@@ -383,3 +383,254 @@ export const fanSpendTrend = [
   { month: "May", vip: 625, premium: 345, core: 128, casual: 46 },
   { month: "Jun", vip: 720, premium: 395, core: 145, casual: 52 },
 ];
+
+// ─── Community Pulse ──────────────────────────────────────────────────────────
+
+export const communityPulse = [
+  {
+    id: "active",
+    label: "Hinchas Activos",
+    value: "147.8K",
+    raw: 147832,
+    trend: +12.7,
+    trendLabel: "este mes",
+    icon: "Users",
+    accent: true,
+  },
+  {
+    id: "new",
+    label: "Nuevos Registros",
+    value: "1,240",
+    raw: 1240,
+    trend: +8.4,
+    trendLabel: "hoy",
+    icon: "UserPlus",
+    accent: false,
+  },
+  {
+    id: "members",
+    label: "Socios al Día",
+    value: "38,450",
+    raw: 38450,
+    trend: +3.2,
+    trendLabel: "vs semana ant.",
+    icon: "ShieldCheck",
+    accent: false,
+  },
+  {
+    id: "churn",
+    label: "Riesgo Abandono",
+    value: "1,150",
+    raw: 1150,
+    trend: -4.8,
+    trendLabel: "vs mes ant.",
+    icon: "UserMinus",
+    accent: false,
+    warning: true,
+  },
+  {
+    id: "points",
+    label: "Puntos Entregados",
+    value: "4.2M",
+    raw: 4200000,
+    trend: +22.1,
+    trendLabel: "este mes",
+    icon: "Zap",
+    accent: false,
+  },
+];
+
+// ─── Last Match ───────────────────────────────────────────────────────────────
+
+export const lastMatch = {
+  homeTeam: { name: "River Club", abbr: "RIV", score: 3 },
+  awayTeam: { name: "Estudiantes", abbr: "EST", score: 1 },
+  date: "Sáb 27 Abr 2026",
+  time: "21:00",
+  stadium: "El Monumental",
+  competition: "Liga Profesional · Fecha 28",
+  attendance: { value: 82340, capacity: 84567, pct: 97.4 },
+  checkins: { value: 61480, pct: 74.7 },
+  pointsAwarded: 128400,
+  topSponsor: { name: "Nike AR", campaign: "Champions Pack", activations: 42 },
+  topProduct: { name: "Camiseta Edición Clásico", units: 1840, revenue: "$156.4K" },
+  trivia: { participants: 24800, correct: 68.4, question: "¿Cuántos goles marcó Gallardo en el 2019?" },
+  highlights: [
+    { minute: 12, type: "goal", player: "M. Borja", team: "home" },
+    { minute: 34, type: "goal", player: "M. Borja", team: "home" },
+    { minute: 58, type: "goal", player: "L. Romero", team: "away" },
+    { minute: 77, type: "goal", player: "F. Girotti", team: "home" },
+  ],
+};
+
+// ─── Top Fans ─────────────────────────────────────────────────────────────────
+
+export const topFans = [
+  {
+    rank: 1,
+    name: "Carlos Mendoza",
+    initials: "CM",
+    points: 48200,
+    level: "Leyenda",
+    badges: ["👑", "🔥", "💎"],
+    streak: 42,
+    location: "Buenos Aires",
+  },
+  {
+    rank: 2,
+    name: "Valentina Ríos",
+    initials: "VR",
+    points: 41800,
+    level: "Elite",
+    badges: ["🔥", "⭐"],
+    streak: 38,
+    location: "Rosario",
+  },
+  {
+    rank: 3,
+    name: "Diego Torres",
+    initials: "DT",
+    points: 38500,
+    level: "Elite",
+    badges: ["⚡", "🎯"],
+    streak: 28,
+    location: "Córdoba",
+  },
+  {
+    rank: 4,
+    name: "Ana García",
+    initials: "AG",
+    points: 29100,
+    level: "Gold",
+    badges: ["⭐", "👕"],
+    streak: 22,
+    location: "Mendoza",
+  },
+  {
+    rank: 5,
+    name: "Facundo López",
+    initials: "FL",
+    points: 22400,
+    level: "Gold",
+    badges: ["🎫"],
+    streak: 18,
+    location: "CABA",
+  },
+];
+
+// ─── Smart Alerts ─────────────────────────────────────────────────────────────
+
+export type AlertType = "danger" | "warning" | "info" | "action";
+
+export interface SmartAlert {
+  id: number;
+  type: AlertType;
+  title: string;
+  description: string;
+  cta: string;
+  time: string;
+  metric?: string;
+}
+
+export const smartAlerts: SmartAlert[] = [
+  {
+    id: 1,
+    type: "danger",
+    title: "1,150 fans en riesgo de churn",
+    description: "Sin actividad > 60 días. Probabilidad de abandono: 84%.",
+    cta: "Activar campaña",
+    time: "hace 1h",
+    metric: "84% riesgo",
+  },
+  {
+    id: 2,
+    type: "warning",
+    title: "Contrato Pepsi vence en 30 días",
+    description: "El acuerdo de sponsoreo finaliza el 31 de agosto 2026.",
+    cta: "Ver contrato",
+    time: "hace 3h",
+    metric: "30 días",
+  },
+  {
+    id: 3,
+    type: "action",
+    title: "890 fans listos para upgrade VIP",
+    description: "Comportamiento de compra indica alta propensión al upgrade.",
+    cta: "Crear oferta",
+    time: "hace 5h",
+    metric: "$445K est.",
+  },
+  {
+    id: 4,
+    type: "info",
+    title: "Revenue superó meta mensual +13.6%",
+    description: "Mayo 2026 cerró en $2.84M vs meta de $2.5M.",
+    cta: "Ver reporte",
+    time: "hace 12h",
+    metric: "+$340K",
+  },
+];
+
+// ─── Recent Timeline ──────────────────────────────────────────────────────────
+
+export type TimelineEventType = "fan" | "sponsor" | "reward" | "campaign" | "game";
+
+export interface TimelineEvent {
+  id: number;
+  type: TimelineEventType;
+  title: string;
+  description: string;
+  time: string;
+  amount?: string;
+}
+
+export const recentTimeline: TimelineEvent[] = [
+  {
+    id: 1,
+    type: "fan",
+    title: "1,240 nuevos registros",
+    description: "Pico de ingreso post-clásico",
+    time: "hace 2h",
+    amount: "+1,240",
+  },
+  {
+    id: 2,
+    type: "sponsor",
+    title: "Nike activó campaña Champions",
+    description: "42 activaciones · 48.5M impresiones",
+    time: "hace 4h",
+    amount: "$120K",
+  },
+  {
+    id: 3,
+    type: "reward",
+    title: "128,400 puntos entregados",
+    description: "Post-partido El Monumental",
+    time: "hace 6h",
+    amount: "128.4K XP",
+  },
+  {
+    id: 4,
+    type: "campaign",
+    title: "Campaña Upgrade VIP lanzada",
+    description: "Segmento: 33,350 fans Premium",
+    time: "hace 8h",
+    amount: "$445K est.",
+  },
+  {
+    id: 5,
+    type: "game",
+    title: "Trivia River vs Boca · 24.8K part.",
+    description: "68.4% de respuestas correctas",
+    time: "hace 10h",
+    amount: "24.8K",
+  },
+  {
+    id: 6,
+    type: "fan",
+    title: "890 upgrades a VIP Elite",
+    description: "Nuevo récord mensual",
+    time: "ayer",
+    amount: "890",
+  },
+];
