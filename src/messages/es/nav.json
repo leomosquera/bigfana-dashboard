@@ -1,0 +1,16 @@
+{
+  "dashboard":    "Dashboard",
+  "fans":         "Fans",
+  "segments":     "Segmentos",
+  "sponsors":     "Sponsors",
+  "campaigns":    "Campañas",
+  "gamification": "Gamificación",
+  "analytics":    "Analytics",
+  "alerts":       "Alertas",
+  "settings":     "Configuración",
+
+  "sections": {
+    "analytics": "Reportes",
+    "system":    "Sistema"
+  }
+}

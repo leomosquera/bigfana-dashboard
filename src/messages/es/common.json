@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "export":     "Exportar",
+    "filter":     "Filtros",
+    "save":       "Guardar cambios",
+    "configure":  "Configurar →",
+    "cancel":     "Cancelar",
+    "apply":      "Aplicar",
+    "connect":    "Conectar",
+    "editLogo":   "Editar logo"
+  },
+
+  "status": {
+    "live":        "Live",
+    "comingSoon":  "Próximamente",
+    "beta":        "Beta",
+    "connected":   "✓ Conectado",
+    "processing":  "Procesando"
+  },
+
+  "role": {
+    "admin": "Admin"
+  },
+
+  "datePresets": {
+    "today":     "Hoy",
+    "yesterday": "Ayer",
+    "last7":     "Últimos 7 días",
+    "last30":    "Últimos 30 días",
+    "thisMonth": "Este mes",
+    "lastMonth": "Mes anterior"
+  },
+
+  "rangePicker": {
+    "quickSelect":     "Selección rápida",
+    "selectEndDate":   "Seleccioná fecha fin...",
+    "noRangeSelected": "Sin rango seleccionado"
+  }
+}

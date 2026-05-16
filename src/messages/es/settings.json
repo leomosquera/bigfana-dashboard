@@ -1,0 +1,82 @@
+{
+  "title":    "Configuración",
+  "subtitle": "Perfil del club, integraciones, seguridad y preferencias del sistema BigFana",
+
+  "sections": {
+    "club":          "Perfil del Club",
+    "account":       "Cuenta",
+    "security":      "Seguridad",
+    "notifications": "Notificaciones",
+    "integrations":  "Integraciones",
+    "appearance":    "Apariencia"
+  },
+
+  "sectionDescriptions": {
+    "club":          "Información general, identidad del club y datos de la organización",
+    "account":       "Datos personales del administrador y configuración de sesión",
+    "security":      "Autenticación, roles de equipo y auditoría de accesos",
+    "notifications": "Canales y preferencias de alertas del sistema",
+    "integrations":  "Plataformas conectadas y APIs externas",
+    "appearance":    "Personalización visual del dashboard"
+  },
+
+  "club": {
+    "editLogo": "Editar logo",
+    "plan":     "Plan Enterprise · Activo hasta Jun 2027",
+    "save":     "Guardar cambios",
+    "fields": {
+      "name":    "Nombre del club",
+      "league":  "País / Liga",
+      "website": "Sitio web",
+      "stadium": "Estadio",
+      "capacity":"Capacidad",
+      "season":  "Temporada activa"
+    }
+  },
+
+  "integrations": {
+    "connected": "✓ Conectado",
+    "connect":   "Conectar"
+  },
+
+  "genericSection": {
+    "configure": "Configurar →"
+  },
+
+  "quickPrefs": {
+    "title": "Preferencias rápidas",
+    "emailNotifications": {
+      "label":       "Notificaciones por email",
+      "description": "Recibí alertas críticas en tu email"
+    },
+    "slackAlerts": {
+      "label": "Alertas de Slack"
+    },
+    "twoFactor": {
+      "label":       "Autenticación en dos pasos (2FA)",
+      "description": "Recomendado para cuentas admin"
+    },
+    "sessionAlerts": {
+      "label": "Alertas de sesión nueva"
+    }
+  },
+
+  "genericContent": {
+    "account": {
+      "title":       "Configuración de cuenta",
+      "description": "Gestioná los datos del administrador, contraseña, sesiones activas y preferencias de idioma."
+    },
+    "security": {
+      "title":       "Seguridad y accesos",
+      "description": "Activá autenticación de dos factores, revisá el log de accesos y gestioná los roles del equipo."
+    },
+    "notifications": {
+      "title":       "Preferencias de notificación",
+      "description": "Elegí qué alertas recibir, con qué frecuencia y por qué canal: email, Slack, WhatsApp o webhook."
+    },
+    "appearance": {
+      "title":       "Apariencia del dashboard",
+      "description": "Personalizá el tema, colores del club, idioma y densidad de información del panel de control."
+    }
+  }
+}

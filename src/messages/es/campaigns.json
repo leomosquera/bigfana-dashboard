@@ -1,0 +1,56 @@
+{
+  "title":    "Campañas",
+  "subtitle": "Gestión de activaciones, campañas de marketing y comunicaciones segmentadas",
+
+  "actions": {
+    "templates":   "Plantillas",
+    "newCampaign": "Nueva campaña"
+  },
+
+  "kpi": {
+    "active": {
+      "title":       "Campañas activas",
+      "description": "Activaciones en ejecución con tracking en tiempo real.",
+      "metricLabel": "corriendo ahora"
+    },
+    "reach": {
+      "title":       "Alcance total",
+      "description": "Fans e impresiones alcanzadas en todas las campañas activas del mes.",
+      "metricLabel": "impresiones este mes"
+    },
+    "conversion": {
+      "title":       "Conversión promedio",
+      "description": "Tasa promedio de conversión en campañas activas vs. benchmark de industria.",
+      "metricLabel": "+3.2% vs benchmark"
+    }
+  },
+
+  "table": {
+    "title":    "Todas las campañas",
+    "subtitle": "{count} campañas · temporada 2025/26"
+  },
+
+  "status": {
+    "active":    "Activa",
+    "paused":    "Pausada",
+    "scheduled": "Programada",
+    "completed": "Completada"
+  },
+
+  "columns": {
+    "reach":      "Alcance",
+    "conversion": "Conv.",
+    "budget":     "Budget"
+  },
+
+  "bottomCards": {
+    "performance": {
+      "title":       "Performance histórico",
+      "description": "Comparativa de conversión, ROI y alcance entre campañas. Identifica qué tipo de activación genera más valor para el club."
+    },
+    "automation": {
+      "title":       "Automatización inteligente",
+      "description": "Disparadores automáticos basados en comportamiento del fan: upgrade, cumpleaños, aniversario, streak de asistencia."
+    }
+  }
+}

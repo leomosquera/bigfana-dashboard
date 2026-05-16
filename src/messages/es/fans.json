@@ -1,0 +1,50 @@
+{
+  "title": "Fans",
+
+  "actions": {
+    "filter":     "Filtros",
+    "export":     "Exportar",
+    "newSegment": "Nuevo segmento"
+  },
+
+  "kpi": {
+    "totalFans":     "Total Fans",
+    "vipElite":      "Fan VIP Elite",
+    "avgEngagement": "Engagement Prom.",
+    "avgSpend":      "Gasto Promedio"
+  },
+
+  "charts": {
+    "engagementByDimension": "Engagement por Dimensión",
+    "ultraVip":              "Ultra VIP",
+    "coreFan":               "Core Fan",
+    "spendBySegment":        "Gasto por Segmento",
+    "monthlyAverageUSD":     "Promedio mensual en USD"
+  },
+
+  "table": {
+    "searchPlaceholder": "Buscar fan...",
+    "headers": {
+      "fan":          "Fan",
+      "level":        "Nivel",
+      "segment":      "Segmento",
+      "spend":        "Gasto",
+      "engagement":   "Engagement",
+      "matches":      "Partidos",
+      "lastActivity": "Última actividad"
+    }
+  },
+
+  "detail": {
+    "totalSpend":     "Gasto Total",
+    "engagement":     "Engagement",
+    "matches":        "Partidos",
+    "city":           "Ciudad",
+    "engagementScore":"Engagement Score",
+    "badges":         "Badges",
+    "segment":        "Segmento",
+    "fanSince":       "Fan desde",
+    "lastActivity":   "Última actividad",
+    "viewProfile":    "Ver perfil completo →"
+  }
+}

@@ -26,13 +26,14 @@ import {
 import { DayPicker } from "react-day-picker";
 import type { DateRange as RDPDateRange, DayPickerProps } from "react-day-picker";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
 import { Button } from "@/components/ui/Button";
+import { useDatePresets } from "@/i18n/formatting";
 import {
   type DateRange,
   type DatePreset,
-  DATE_PRESETS,
   formatDateRange,
   getPresetRange,
   isPresetActive,
@@ -110,6 +111,9 @@ export function RangePicker({
   const uid       = useId();
   const [open, setOpen] = useState(false);
   const hasError  = !!errorText;
+
+  const tCommon  = useTranslations("common");
+  const datePresets = useDatePresets();
 
   // ── Internal draft state (uncommitted while popover is open) ─────────────
   const [draft, setDraft]     = useState<DateRange>({ from: undefined, to: undefined });
@@ -293,9 +297,9 @@ export function RangePicker({
                     {/* ── Presets sidebar ───────────────────────── */}
                     <div className="w-36 shrink-0 border-r border-white/[0.07] p-2 flex flex-col gap-0.5">
                       <p className="text-[10px] font-semibold uppercase tracking-widest text-[#55556A] px-3 py-1.5">
-                        Quick select
+                        {tCommon("rangePicker.quickSelect")}
                       </p>
-                      {DATE_PRESETS.map((preset) => {
+                      {datePresets.map((preset) => {
                         const isActive =
                           activePreset === preset.id ||
                           (!activePreset && isPresetActive(draft, preset.id));
@@ -348,8 +352,8 @@ export function RangePicker({
                             {draft.from && draft.to
                               ? formatDateRange(draft, displayFormat)
                               : draft.from
-                              ? <span className="text-[#55556A]">Select end date…</span>
-                              : <span className="text-[#55556A]">No range selected</span>
+                              ? <span className="text-[#55556A]">{tCommon("rangePicker.selectEndDate")}</span>
+                              : <span className="text-[#55556A]">{tCommon("rangePicker.noRangeSelected")}</span>
                             }
                           </p>
                           <div className="flex items-center gap-2 shrink-0">
@@ -358,7 +362,7 @@ export function RangePicker({
                               size="sm"
                               onClick={handleCancel}
                             >
-                              Cancel
+                              {tCommon("actions.cancel")}
                             </Button>
                             <Button
                               intent="primary"
@@ -366,7 +370,7 @@ export function RangePicker({
                               disabled={!draft.from}
                               onClick={handleApply}
                             >
-                              Apply
+                              {tCommon("actions.apply")}
                             </Button>
                           </div>
                         </div>

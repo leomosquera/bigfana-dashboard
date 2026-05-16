@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import {
   Search,
@@ -45,23 +46,16 @@ const notifications = [
   },
 ];
 
-const profileItems = [
-  {
-    icon: User,
-    label: "Mi perfil",
-  },
-  {
-    icon: Shield,
-    label: "Seguridad",
-  },
-  {
-    icon: CreditCard,
-    label: "Facturación",
-  },
-  {
-    icon: Settings,
-    label: "Configuración",
-  },
+type ProfileKey = "myProfile" | "security" | "billing" | "settings";
+
+const profileItems: {
+  icon:  React.ComponentType<{ size?: number }>;
+  tKey:  ProfileKey;
+}[] = [
+  { icon: User,       tKey: "myProfile" },
+  { icon: Shield,     tKey: "security"  },
+  { icon: CreditCard, tKey: "billing"   },
+  { icon: Settings,   tKey: "settings"  },
 ];
 
 interface HeaderProps {
@@ -81,6 +75,7 @@ export function Header({
   const profileRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
+  const t = useTranslations("header");
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -205,7 +200,7 @@ export function Header({
 
             <input
               type="text"
-              placeholder="Buscar fans, sponsors, campañas..."
+              placeholder={t("searchPlaceholder")}
               className="
                 flex-1
 
@@ -416,7 +411,7 @@ export function Header({
                     font-semibold
                     text-[#F0F0F8]
                   ">
-                    Notificaciones
+                    {t("notifications.title")}
                   </p>
 
                   <span className="
@@ -501,7 +496,7 @@ export function Header({
                       transition-colors
                     "
                   >
-                    Ver todas las notificaciones →
+                    {t("notifications.viewAll")}
                   </button>
 
                 </div>
@@ -667,7 +662,7 @@ export function Header({
 
                   {profileItems.map((item) => (
                     <button
-                      key={item.label}
+                      key={item.tKey}
                       className="
                         w-full
 
@@ -694,7 +689,7 @@ export function Header({
                       <item.icon size={15} />
 
                       <span className="text-sm font-medium">
-                        {item.label}
+                        {t(`profile.${item.tKey}`)}
                       </span>
 
                     </button>
@@ -739,7 +734,7 @@ export function Header({
                     <LogOut size={15} />
 
                     <span className="text-sm font-medium">
-                      Cerrar sesión
+                      {t("profile.logout")}
                     </span>
 
                   </button>

@@ -1,0 +1,26 @@
+{
+  "title":    "Overview",
+  "subtitle": "Temporada 2025/26 · Actualizado hace 2 minutos",
+
+  "period": {
+    "last12Months": "Últimos 12 meses",
+    "last6Months":  "Últimos 6 meses",
+    "last30Days":   "Últimos 30 días"
+  },
+
+  "sections": {
+    "operationsCenter":       "Centro de Operaciones",
+    "revenueAudiences":       "Revenue & Audiencias",
+    "sponsorsAlertsActivity": "Sponsors · Alertas · Actividad",
+    "engagement":             "Engagement"
+  },
+
+  "kpi": {
+    "revenue":       "Revenue Total",
+    "activeFans":    "Fans Activos",
+    "sponsors":      "Sponsors",
+    "ticketsSold":   "Tickets Vendidos",
+    "engagementRate":"Engagement Rate",
+    "avgSpend":      "Gasto Promedio"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "title":    "Analytics",
+  "subtitle": "Reportes avanzados, métricas de negocio y predicciones basadas en datos reales del club",
+
+  "actions": {
+    "period":    "Período",
+    "export":    "Exportar",
+    "newReport": "Nuevo reporte"
+  },
+
+  "kpi": {
+    "reports": {
+      "title":       "Reportes disponibles",
+      "description": "Informes generados y listos para exportar en PDF, Excel o API.",
+      "metricLabel": "reportes activos"
+    },
+    "revenueGrowth": {
+      "title":       "Crecimiento de revenue",
+      "description": "Variación porcentual del revenue total vs. mismo período del año anterior.",
+      "metricLabel": "vs temporada 24/25"
+    },
+    "models": {
+      "title":       "Modelos predictivos",
+      "description": "Algoritmos activos analizando churn, upgrade y comportamiento de compra.",
+      "metricLabel": "modelos en producción"
+    }
+  },
+
+  "reports": {
+    "title":    "Reportes recientes",
+    "subtitle": "Generados automáticamente · actualizados en tiempo real",
+    "status": {
+      "processing": "Procesando"
+    },
+    "actions": {
+      "export": "Exportar"
+    }
+  },
+
+  "metrics": {
+    "title": "Métricas clave",
+    "prediction": {
+      "label": "Predicción Q3 2026"
+    }
+  },
+
+  "bottomCards": {
+    "cohorts": {
+      "title":       "Análisis de cohortes",
+      "description": "Evolución de fans agrupados por fecha de ingreso. Identifica qué cohortes tienen mayor retención y LTV."
+    },
+    "forecasting": {
+      "title":       "Forecasting de revenue",
+      "description": "Proyección automática a 90 días basada en histórico de ventas, calendario de partidos y tendencias de mercado."
+    },
+    "heatmap": {
+      "title":       "Mapa de calor geográfico",
+      "description": "Distribución geográfica de fans activos, clusters de engagement por región y potencial de expansión."
+    }
+  }
+}

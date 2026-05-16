@@ -96,13 +96,18 @@ export function formatTime(
 
 // ─── Range Presets ────────────────────────────────────────────────────────────
 
-export const DATE_PRESETS: { id: DatePreset; label: string }[] = [
-  { id: "today",     label: "Today" },
-  { id: "yesterday", label: "Yesterday" },
-  { id: "last7",     label: "Last 7 days" },
-  { id: "last30",    label: "Last 30 days" },
-  { id: "thisMonth", label: "This month" },
-  { id: "lastMonth", label: "Last month" },
+/**
+ * Ordered list of date preset IDs.
+ * Labels are intentionally omitted — use `useDatePresets()` from
+ * `@/i18n/formatting` to get locale-aware preset labels in React components.
+ */
+export const DATE_PRESETS: { id: DatePreset }[] = [
+  { id: "today"     },
+  { id: "yesterday" },
+  { id: "last7"     },
+  { id: "last30"    },
+  { id: "thisMonth" },
+  { id: "lastMonth" },
 ];
 
 export function getPresetRange(preset: DatePreset): DateRange {

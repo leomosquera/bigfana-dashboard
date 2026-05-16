@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Users,
@@ -18,16 +19,26 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/dashboard",                  label: "Dashboard",     icon: LayoutDashboard, section: "main" },
-  { href: "/dashboard/fans",             label: "Fans",          icon: Users,           section: "main" },
-  { href: "/dashboard/segments",         label: "Segmentos",     icon: PieChart,        section: "main" },
-  { href: "/dashboard/sponsors",         label: "Sponsors",      icon: Handshake,       section: "main" },
-  { href: "/dashboard/campaigns",        label: "Campañas",      icon: Zap,             section: "main" },
-  { href: "/dashboard/gamification",     label: "Gamificación",  icon: Gamepad2,        section: "main" },
-  { href: "/dashboard/analytics",        label: "Analytics",     icon: BarChart3,       section: "analytics" },
-  { href: "/dashboard/alerts",           label: "Alertas",       icon: Bell,            section: "system" },
-  { href: "/dashboard/settings",         label: "Configuración", icon: Settings,        section: "system" },
+type NavSection = "main" | "analytics" | "system";
+type NavKey =
+  | "dashboard" | "fans" | "segments" | "sponsors"
+  | "campaigns" | "gamification" | "analytics" | "alerts" | "settings";
+
+const NAV_ITEMS: {
+  href:    string;
+  tKey:    NavKey;
+  icon:    React.ComponentType<{ size?: number; className?: string }>;
+  section: NavSection;
+}[] = [
+  { href: "/dashboard",              tKey: "dashboard",    icon: LayoutDashboard, section: "main"      },
+  { href: "/dashboard/fans",         tKey: "fans",         icon: Users,           section: "main"      },
+  { href: "/dashboard/segments",     tKey: "segments",     icon: PieChart,        section: "main"      },
+  { href: "/dashboard/sponsors",     tKey: "sponsors",     icon: Handshake,       section: "main"      },
+  { href: "/dashboard/campaigns",    tKey: "campaigns",    icon: Zap,             section: "main"      },
+  { href: "/dashboard/gamification", tKey: "gamification", icon: Gamepad2,        section: "main"      },
+  { href: "/dashboard/analytics",    tKey: "analytics",    icon: BarChart3,       section: "analytics" },
+  { href: "/dashboard/alerts",       tKey: "alerts",       icon: Bell,            section: "system"    },
+  { href: "/dashboard/settings",     tKey: "settings",     icon: Settings,        section: "system"    },
 ];
 
 interface SidebarProps {
@@ -37,6 +48,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
 
   return (
     <motion.aside
@@ -67,15 +79,15 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        {["main", "analytics", "system"].map((section) => {
-          const sectionItems = navItems.filter((i) => i.section === section);
+        {(["main", "analytics", "system"] as NavSection[]).map((section) => {
+          const sectionItems = NAV_ITEMS.filter((i) => i.section === section);
           return (
             <div key={section}>
               {section !== "main" && (
                 <div className="mt-4 mb-2 px-2">
                   {!collapsed && (
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-[#55556A]">
-                      {section === "analytics" ? "Reportes" : "Sistema"}
+                      {section === "analytics" ? t("sections.analytics") : t("sections.system")}
                     </p>
                   )}
                   {collapsed && <div className="h-px bg-white/[0.05] my-2" />}
@@ -125,7 +137,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                         ? "text-[#FF2D55]"
                         : "text-[#8888AA] hover:text-[#F0F0F8] hover:bg-white/[0.04]"
                     )}
-                    title={collapsed ? item.label : undefined}
+                    title={collapsed ? t(item.tKey) : undefined}
                   >
                     {isActive && (
                       <motion.div
@@ -170,7 +182,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                         z-10
                       "
                     >
-                      {item.label}
+                      {t(item.tKey)}
                     </motion.span>
                   </Link>
                 );

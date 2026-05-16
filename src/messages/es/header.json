@@ -1,0 +1,16 @@
+{
+  "searchPlaceholder": "Buscar fans, sponsors, campañas...",
+
+  "notifications": {
+    "title":   "Notificaciones",
+    "viewAll": "Ver todas las notificaciones →"
+  },
+
+  "profile": {
+    "myProfile": "Mi perfil",
+    "security":  "Seguridad",
+    "billing":   "Facturación",
+    "settings":  "Configuración",
+    "logout":    "Cerrar sesión"
+  }
+}
