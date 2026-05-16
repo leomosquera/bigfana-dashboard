@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Zap, Users, BarChart3, Bell, Search, Star, Heart,
   Plus, Trash2, Settings, ChevronRight, ArrowRight,
@@ -13,6 +13,7 @@ import {
   Calendar, Clock, Shield, Trophy, TrendingUp,
   DollarSign, Activity, Target, Globe,
   Tag, MapPin, Ticket,
+  Table2, Send, BarChart2, MousePointerClick,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -52,6 +53,8 @@ import { t as mt, fadeUpProps, fadeInProps, stagger, duration, hover as hoverPre
 import { tenantPresets, applyTenantTheme } from "@/lib/design-system/theme";
 import { Stack, Inline, Surface, Grid, Section } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
+import { DataTable } from "@/components/ui/DataTable";
+import type { ColumnDef } from "@/components/ui/DataTable";
 
 // ─── Section helpers ──────────────────────────────────────────────────────────
 
@@ -2660,6 +2663,645 @@ function DateTimeSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+// ─── DataTable Section ────────────────────────────────────────────────────────
+
+// ── Mock data ─────────────────────────────────────────────────────────────────
+
+type FanRow = {
+  id: string; name: string; email: string; initials: string;
+  level: string; segment: string; spend: number;
+  engagement: number; matches: number; lastActive: string;
+};
+
+const FANS_DATA: FanRow[] = [
+  { id: "1",  name: "Alex Johnson",   email: "alex@example.com",    initials: "AJ", level: "Ultra VIP", segment: "Founding Member",  spend: 2840, engagement: 94, matches: 28, lastActive: "2h ago"  },
+  { id: "2",  name: "Maria Santos",   email: "maria@example.com",   initials: "MS", level: "Premium",   segment: "Season Pass",      spend: 1240, engagement: 78, matches: 21, lastActive: "1d ago"  },
+  { id: "3",  name: "James Liu",      email: "james@example.com",   initials: "JL", level: "Ultra VIP", segment: "Founding Member",  spend: 3120, engagement: 97, matches: 31, lastActive: "4h ago"  },
+  { id: "4",  name: "Sophie Müller",  email: "sophie@example.com",  initials: "SM", level: "Core",      segment: "Match Day Fan",    spend:  480, engagement: 55, matches: 12, lastActive: "3d ago"  },
+  { id: "5",  name: "Ravi Patel",     email: "ravi@example.com",    initials: "RP", level: "Premium",   segment: "Season Pass",      spend:  960, engagement: 71, matches: 19, lastActive: "6h ago"  },
+  { id: "6",  name: "Lena Fischer",   email: "lena@example.com",    initials: "LF", level: "Ultra VIP", segment: "VIP Club",         spend: 4500, engagement: 99, matches: 35, lastActive: "1h ago"  },
+  { id: "7",  name: "Tom Wilson",     email: "tom@example.com",     initials: "TW", level: "Casual",    segment: "Digital Only",     spend:   80, engagement: 32, matches:  5, lastActive: "2w ago"  },
+  { id: "8",  name: "Ana Costa",      email: "ana@example.com",     initials: "AC", level: "Core",      segment: "Match Day Fan",    spend:  640, engagement: 61, matches: 14, lastActive: "5d ago"  },
+  { id: "9",  name: "Max Bauer",      email: "max@example.com",     initials: "MB", level: "Premium",   segment: "Season Pass",      spend: 1080, engagement: 74, matches: 22, lastActive: "2d ago"  },
+  { id: "10", name: "Yuki Tanaka",    email: "yuki@example.com",    initials: "YT", level: "Ultra VIP", segment: "Founding Member",  spend: 2260, engagement: 88, matches: 26, lastActive: "3h ago"  },
+  { id: "11", name: "Carlos Rojas",   email: "carlos@example.com",  initials: "CR", level: "Core",      segment: "Match Day Fan",    spend:  320, engagement: 48, matches:  9, lastActive: "1w ago"  },
+  { id: "12", name: "Emma Laurent",   email: "emma@example.com",    initials: "EL", level: "Premium",   segment: "VIP Club",         spend: 1560, engagement: 82, matches: 24, lastActive: "8h ago"  },
+  { id: "13", name: "Noah Eriksson",  email: "noah@example.com",    initials: "NE", level: "Casual",    segment: "Digital Only",     spend:  140, engagement: 41, matches:  7, lastActive: "3w ago"  },
+  { id: "14", name: "Fatima Al-Sayed",email: "fatima@example.com",  initials: "FA", level: "Ultra VIP", segment: "VIP Club",         spend: 3880, engagement: 96, matches: 33, lastActive: "30m ago" },
+  { id: "15", name: "Lucas Martin",   email: "lucas@example.com",   initials: "LM", level: "Core",      segment: "Season Pass",      spend:  560, engagement: 59, matches: 13, lastActive: "4d ago"  },
+];
+
+type SponsorRow = {
+  id: string; company: string; initials: string; tier: string;
+  roi: number; reach: string; spend: number; campaigns: number;
+  status: "active" | "negotiating" | "renewing"; since: string;
+};
+
+const SPONSORS_DATA: SponsorRow[] = [
+  { id: "1",  company: "Nike Sport",       initials: "NS", tier: "Platinum", roi: 340, reach: "12.4M", spend: 180000, campaigns: 8,  status: "active",      since: "Jan 2024" },
+  { id: "2",  company: "Adidas Global",    initials: "AG", tier: "Gold",     roi: 220, reach: "8.2M",  spend:  95000, campaigns: 5,  status: "active",      since: "Mar 2024" },
+  { id: "3",  company: "Red Bull Energy",  initials: "RB", tier: "Platinum", roi: 480, reach: "18.7M", spend: 240000, campaigns: 12, status: "active",      since: "Feb 2023" },
+  { id: "4",  company: "Samsung Tech",     initials: "ST", tier: "Silver",   roi: 155, reach: "4.1M",  spend:  42000, campaigns: 3,  status: "negotiating", since: "Jun 2024" },
+  { id: "5",  company: "Heineken Beer",    initials: "HB", tier: "Gold",     roi: 195, reach: "6.8M",  spend:  78000, campaigns: 4,  status: "renewing",    since: "Jan 2023" },
+  { id: "6",  company: "Emirates Air",     initials: "EA", tier: "Platinum", roi: 520, reach: "22.3M", spend: 310000, campaigns: 15, status: "active",      since: "Aug 2022" },
+  { id: "7",  company: "Mastercard",       initials: "MC", tier: "Gold",     roi: 268, reach: "9.5M",  spend: 112000, campaigns: 6,  status: "active",      since: "Apr 2024" },
+  { id: "8",  company: "Puma Athletics",   initials: "PA", tier: "Silver",   roi: 130, reach: "3.2M",  spend:  28000, campaigns: 2,  status: "negotiating", since: "Sep 2024" },
+  { id: "9",  company: "Gatorade Sports",  initials: "GS", tier: "Gold",     roi: 210, reach: "7.6M",  spend:  88000, campaigns: 5,  status: "active",      since: "Nov 2023" },
+  { id: "10", company: "Intel Gaming",     initials: "IG", tier: "Silver",   roi: 175, reach: "5.0M",  spend:  55000, campaigns: 4,  status: "renewing",    since: "Mar 2023" },
+];
+
+type CampaignRow = {
+  id: string; name: string; type: string; status: string;
+  reach: number; opens: number; clicks: number; budget: number; date: string;
+};
+
+const CAMPAIGNS_DATA: CampaignRow[] = [
+  { id: "1",  name: "Season Opener 2024",   type: "Email",   status: "active",    reach: 45200, opens: 67, clicks: 23, budget:  5000, date: "Mar 1, 2024"  },
+  { id: "2",  name: "Champions League Live", type: "Push",    status: "active",    reach: 82400, opens: 0,  clicks: 41, budget:  3200, date: "Mar 5, 2024"  },
+  { id: "3",  name: "Fan Loyalty Rewards",   type: "SMS",     status: "completed", reach: 12800, opens: 0,  clicks: 88, budget:  1800, date: "Feb 28, 2024" },
+  { id: "4",  name: "Sponsor Spotlight",     type: "Social",  status: "active",    reach: 31600, opens: 0,  clicks: 15, budget:  4500, date: "Mar 3, 2024"  },
+  { id: "5",  name: "VIP Match Preview",     type: "Email",   status: "draft",     reach:  8200, opens: 0,  clicks: 0,  budget:  2200, date: "Mar 8, 2024"  },
+  { id: "6",  name: "Gamification Push",     type: "Push",    status: "active",    reach: 58900, opens: 0,  clicks: 36, budget:  2800, date: "Mar 6, 2024"  },
+  { id: "7",  name: "Away Game Alert",       type: "SMS",     status: "completed", reach:  9400, opens: 0,  clicks: 72, budget:   900, date: "Feb 25, 2024" },
+  { id: "8",  name: "Merchandise Drop",      type: "Email",   status: "paused",    reach: 22100, opens: 44, clicks: 12, budget:  3600, date: "Mar 2, 2024"  },
+  { id: "9",  name: "Club Birthday Promo",   type: "Social",  status: "active",    reach: 44800, opens: 0,  clicks: 28, budget:  5800, date: "Mar 7, 2024"  },
+  { id: "10", name: "Halftime Survey",       type: "Push",    status: "completed", reach: 19200, opens: 0,  clicks: 54, budget:  1100, date: "Feb 20, 2024" },
+  { id: "11", name: "Pre-Season Teaser",     type: "Email",   status: "draft",     reach: 35000, opens: 0,  clicks: 0,  budget:  4200, date: "Mar 10, 2024" },
+  { id: "12", name: "Stadium Experience",    type: "Social",  status: "active",    reach: 67300, opens: 0,  clicks: 19, budget:  6100, date: "Mar 4, 2024"  },
+];
+
+type EventRow = {
+  id: string; event: string; user: string; page: string;
+  country: string; device: string; timestamp: string;
+};
+
+const EVENTS_DATA: EventRow[] = [
+  { id: "1",  event: "page_view",      user: "usr_4A2x",  page: "/tickets",       country: "US", device: "mobile",  timestamp: "2024-03-15 14:23:01" },
+  { id: "2",  event: "ticket_purchase", user: "usr_8Kqz",  page: "/checkout",      country: "BR", device: "desktop", timestamp: "2024-03-15 14:22:47" },
+  { id: "3",  event: "badge_earned",   user: "usr_2Lmn",  page: "/gamification",  country: "DE", device: "mobile",  timestamp: "2024-03-15 14:22:30" },
+  { id: "4",  event: "page_view",      user: "usr_9Pqr",  page: "/dashboard",     country: "ES", device: "tablet",  timestamp: "2024-03-15 14:22:15" },
+  { id: "5",  event: "login",          user: "usr_7Jkl",  page: "/auth",          country: "FR", device: "desktop", timestamp: "2024-03-15 14:21:58" },
+  { id: "6",  event: "fan_reaction",   user: "usr_3Abc",  page: "/match-live",    country: "IT", device: "mobile",  timestamp: "2024-03-15 14:21:44" },
+  { id: "7",  event: "sponsor_click",  user: "usr_5Def",  page: "/home",          country: "UK", device: "mobile",  timestamp: "2024-03-15 14:21:31" },
+  { id: "8",  event: "page_view",      user: "usr_6Ghi",  page: "/segments",      country: "MX", device: "desktop", timestamp: "2024-03-15 14:21:18" },
+];
+
+// ── Campaign status badge ──────────────────────────────────────────────────────
+
+function CampaignStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { variant: "success" | "warning" | "info" | "ghost" | "brand"; label: string }> = {
+    active:    { variant: "success", label: "Active" },
+    completed: { variant: "ghost",   label: "Completed" },
+    paused:    { variant: "warning", label: "Paused" },
+    draft:     { variant: "info",    label: "Draft" },
+  };
+  const cfg = map[status] ?? { variant: "ghost", label: status };
+  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+}
+
+function CampaignTypeBadge({ type }: { type: string }) {
+  const iconMap: Record<string, React.ReactNode> = {
+    Email:  <Send size={10} />,
+    Push:   <Bell size={10} />,
+    SMS:    <Tag size={10} />,
+    Social: <Globe size={10} />,
+  };
+  return (
+    <Badge variant="ghost" className="gap-1">
+      {iconMap[type]}
+      {type}
+    </Badge>
+  );
+}
+
+function EventTypeBadge({ event }: { event: string }) {
+  const map: Record<string, "brand" | "success" | "info" | "warning" | "ghost"> = {
+    page_view:       "ghost",
+    ticket_purchase: "success",
+    badge_earned:    "brand",
+    login:           "info",
+    fan_reaction:    "warning",
+    sponsor_click:   "info",
+  };
+  return <Badge variant={map[event] ?? "ghost"}>{event}</Badge>;
+}
+
+// ── Demo: Fans table ──────────────────────────────────────────────────────────
+
+function FansTableDemo() {
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<FanRow[]>([]);
+
+  const columns = useMemo<ColumnDef<FanRow, unknown>[]>(() => [
+    {
+      accessorKey: "name",
+      header: "Fan",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2.5 min-w-[180px]">
+          <Avatar initials={row.original.initials} size="sm" />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-[#F0F0F8] truncate">{row.original.name}</p>
+            <p className="text-[11px] text-[#55556A] truncate">{row.original.email}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "level",
+      header: "Level",
+      cell: ({ row }) => <LevelBadge level={row.original.level} />,
+    },
+    {
+      accessorKey: "segment",
+      header: "Segment",
+      cell: ({ getValue }) => <Badge variant="ghost">{getValue() as string}</Badge>,
+    },
+    {
+      accessorKey: "spend",
+      header: "Spend",
+      cell: ({ getValue }) => (
+        <span className="font-semibold text-[#F0F0F8] tabular-nums">
+          ${(getValue() as number).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "engagement",
+      header: "Engagement",
+      cell: ({ getValue }) => (
+        <EngagementBar value={getValue() as number} className="min-w-[120px]" />
+      ),
+    },
+    {
+      accessorKey: "matches",
+      header: "Matches",
+      cell: ({ getValue }) => (
+        <span className="text-[#8888AA] tabular-nums">{getValue() as number}</span>
+      ),
+    },
+    {
+      accessorKey: "lastActive",
+      header: "Last Active",
+      enableSorting: false,
+      cell: ({ getValue }) => (
+        <span className="text-[#55556A]">{getValue() as string}</span>
+      ),
+    },
+  ], []);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-[#55556A]">
+          Search · pagination · selection · column visibility · row actions · export
+          {selected.length > 0 && (
+            <span className="text-[#FF2D55] ml-1">· {selected.length} selected</span>
+          )}
+        </p>
+        <Button intent="ghost" size="xs" onClick={() => setLoading((l) => !l)}>
+          {loading ? "Show data" : "Simulate loading"}
+        </Button>
+      </div>
+      <DataTable
+        data={FANS_DATA}
+        columns={columns}
+        getRowId={(row) => row.id}
+        loading={loading}
+        skeletonRows={8}
+        emptyMessage="No fans found"
+        emptyDescription="Try adjusting your search query."
+        searchable
+        searchPlaceholder="Search fans…"
+        paginated
+        defaultPageSize={8}
+        selectable
+        onSelectionChange={setSelected}
+        onExport={() => window.alert("CSV export triggered")}
+        bulkActions={(rows) => (
+          <Button intent="danger" size="xs" leftIcon={<Trash2 size={11} />}>
+            Delete {rows.length} fans
+          </Button>
+        )}
+        rowActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenu.Trigger asChild>
+              <Button intent="ghost" size="icon-sm">
+                <MoreHorizontal size={14} />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              <DropdownMenu.Label>{row.name}</DropdownMenu.Label>
+              <DropdownMenu.Item icon={<Eye size={13} />}>View profile</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<Pencil size={13} />}>Edit</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<Copy size={13} />}>Duplicate</DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item icon={<Trash2 size={13} />} variant="destructive">Delete</DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Demo: Sponsors table ──────────────────────────────────────────────────────
+
+function SponsorsTableDemo() {
+  const [selected, setSelected] = useState<SponsorRow[]>([]);
+
+  const columns = useMemo<ColumnDef<SponsorRow, unknown>[]>(() => [
+    {
+      accessorKey: "company",
+      header: "Sponsor",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2.5 min-w-[160px]">
+          <div className="w-7 h-7 rounded-lg bg-white/[0.05] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <span className="text-[9px] font-bold text-[#8888AA]">{row.original.initials}</span>
+          </div>
+          <span className="text-xs font-semibold text-[#F0F0F8]">{row.original.company}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "tier",
+      header: "Tier",
+      cell: ({ getValue }) => {
+        const t = getValue() as string;
+        const variantMap: Record<string, "vip" | "premium" | "ghost"> = {
+          Platinum: "vip", Gold: "premium", Silver: "ghost",
+        };
+        return <Badge variant={variantMap[t] ?? "ghost"}>{t}</Badge>;
+      },
+    },
+    {
+      accessorKey: "roi",
+      header: "ROI",
+      cell: ({ getValue }) => {
+        const roi = getValue() as number;
+        return (
+          <span className={cn("font-semibold tabular-nums", roi >= 300 ? "text-[#00D4A8]" : roi >= 200 ? "text-blue-400" : "text-[#8888AA]")}>
+            {roi}%
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "reach",
+      header: "Reach",
+      cell: ({ getValue }) => <span className="text-[#8888AA] tabular-nums">{getValue() as string}</span>,
+    },
+    {
+      accessorKey: "spend",
+      header: "Investment",
+      cell: ({ getValue }) => (
+        <span className="font-semibold text-[#F0F0F8] tabular-nums">
+          ${((getValue() as number) / 1000).toFixed(0)}K
+        </span>
+      ),
+    },
+    {
+      accessorKey: "campaigns",
+      header: "Campaigns",
+      cell: ({ getValue }) => (
+        <span className="text-[#8888AA] tabular-nums">{getValue() as number}</span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ getValue }) => <StatusBadge status={getValue() as "active" | "negotiating" | "renewing"} />,
+    },
+    {
+      accessorKey: "since",
+      header: "Since",
+      enableSorting: false,
+      cell: ({ getValue }) => <span className="text-[#55556A]">{getValue() as string}</span>,
+    },
+  ], []);
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-[#55556A]">
+        Sortable · searchable · selection · ROI coloring · status badges
+        {selected.length > 0 && (
+          <span className="text-[#FF2D55] ml-1">· {selected.length} selected</span>
+        )}
+      </p>
+      <DataTable
+        data={SPONSORS_DATA}
+        columns={columns}
+        getRowId={(row) => row.id}
+        searchable
+        searchPlaceholder="Search sponsors…"
+        paginated
+        defaultPageSize={8}
+        selectable
+        onSelectionChange={setSelected}
+        onExport={() => window.alert("Export sponsors")}
+        bulkActions={(rows) => (
+          <Button intent="secondary" size="xs" leftIcon={<Send size={11} />}>
+            Email {rows.length} sponsors
+          </Button>
+        )}
+        rowActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenu.Trigger asChild>
+              <Button intent="ghost" size="icon-sm">
+                <MoreHorizontal size={14} />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              <DropdownMenu.Label>{row.company}</DropdownMenu.Label>
+              <DropdownMenu.Item icon={<Eye size={13} />}>View deal</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<BarChart2 size={13} />}>ROI report</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<Pencil size={13} />}>Edit contract</DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item icon={<Trash2 size={13} />} variant="destructive">Remove</DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Demo: Campaigns table ─────────────────────────────────────────────────────
+
+function CampaignsTableDemo() {
+  const [dateRange, setDateRange] = useState<import("@/lib/date-utils").DateRange | null>(null);
+
+  const columns = useMemo<ColumnDef<CampaignRow, unknown>[]>(() => [
+    {
+      accessorKey: "name",
+      header: "Campaign",
+      cell: ({ getValue }) => (
+        <span className="text-xs font-semibold text-[#F0F0F8] min-w-[160px] block">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      enableSorting: false,
+      cell: ({ getValue }) => <CampaignTypeBadge type={getValue() as string} />,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ getValue }) => <CampaignStatusBadge status={getValue() as string} />,
+    },
+    {
+      accessorKey: "reach",
+      header: "Reach",
+      cell: ({ getValue }) => (
+        <span className="text-[#8888AA] tabular-nums">{((getValue() as number) / 1000).toFixed(1)}K</span>
+      ),
+    },
+    {
+      accessorKey: "opens",
+      header: "Open %",
+      cell: ({ row }) => (
+        row.original.type === "Email"
+          ? <span className="text-[#F0F0F8] tabular-nums">{row.original.opens}%</span>
+          : <span className="text-[#55556A]">—</span>
+      ),
+    },
+    {
+      accessorKey: "clicks",
+      header: "CTR %",
+      cell: ({ getValue }) => {
+        const v = getValue() as number;
+        return v > 0
+          ? <span className="font-semibold tabular-nums text-[#00D4A8]">{v}%</span>
+          : <span className="text-[#55556A]">—</span>;
+      },
+    },
+    {
+      accessorKey: "budget",
+      header: "Budget",
+      cell: ({ getValue }) => (
+        <span className="font-semibold text-[#F0F0F8] tabular-nums">
+          ${(getValue() as number).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "date",
+      header: "Date",
+      enableSorting: false,
+      cell: ({ getValue }) => <span className="text-[#55556A]">{getValue() as string}</span>,
+    },
+  ], []);
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-[#55556A]">
+        Date range filter in toolbar · campaign type & status badges · CTR coloring
+      </p>
+      <DataTable
+        data={CAMPAIGNS_DATA}
+        columns={columns}
+        getRowId={(row) => row.id}
+        searchable
+        searchPlaceholder="Search campaigns…"
+        paginated
+        defaultPageSize={8}
+        onExport={() => window.alert("Export campaigns")}
+        toolbarLeft={
+          <RangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            placeholder="Filter by date"
+            size="sm"
+          />
+        }
+        rowActions={(row) => (
+          <DropdownMenu>
+            <DropdownMenu.Trigger asChild>
+              <Button intent="ghost" size="icon-sm">
+                <MoreHorizontal size={14} />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              <DropdownMenu.Label>{row.name}</DropdownMenu.Label>
+              <DropdownMenu.Item icon={<Eye size={13} />}>View analytics</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<MousePointerClick size={13} />}>Duplicate</DropdownMenu.Item>
+              <DropdownMenu.Item icon={<Pencil size={13} />}>Edit</DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item icon={<Trash2 size={13} />} variant="destructive">Archive</DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Demo: Analytics events table (loading + empty) ────────────────────────────
+
+function EventsTableDemo() {
+  const [loading, setLoading] = useState(false);
+  const [empty, setEmpty] = useState(false);
+
+  const columns = useMemo<ColumnDef<EventRow, unknown>[]>(() => [
+    {
+      accessorKey: "event",
+      header: "Event",
+      cell: ({ getValue }) => <EventTypeBadge event={getValue() as string} />,
+    },
+    {
+      accessorKey: "user",
+      header: "User ID",
+      enableSorting: false,
+      cell: ({ getValue }) => (
+        <span className="font-mono text-xs text-[#8888AA]">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "page",
+      header: "Page",
+      cell: ({ getValue }) => (
+        <span className="font-mono text-xs text-[#8888AA]">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "country",
+      header: "Country",
+      cell: ({ getValue }) => <Badge variant="ghost">{getValue() as string}</Badge>,
+    },
+    {
+      accessorKey: "device",
+      header: "Device",
+      cell: ({ getValue }) => (
+        <span className="text-[#55556A] capitalize">{getValue() as string}</span>
+      ),
+    },
+    {
+      accessorKey: "timestamp",
+      header: "Timestamp",
+      enableSorting: false,
+      cell: ({ getValue }) => (
+        <span className="font-mono text-[11px] text-[#55556A]">{getValue() as string}</span>
+      ),
+    },
+  ], []);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-[#55556A]">
+          Loading state · empty state · event type badges · monospace values
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            intent="ghost"
+            size="xs"
+            onClick={() => { setLoading((l) => !l); setEmpty(false); }}
+          >
+            {loading ? "Hide skeleton" : "Show skeleton"}
+          </Button>
+          <Button
+            intent="ghost"
+            size="xs"
+            onClick={() => { setEmpty((e) => !e); setLoading(false); }}
+          >
+            {empty ? "Show data" : "Show empty"}
+          </Button>
+        </div>
+      </div>
+      <DataTable
+        data={empty ? [] : EVENTS_DATA}
+        columns={columns}
+        getRowId={(row) => row.id}
+        loading={loading}
+        skeletonRows={6}
+        searchable
+        searchPlaceholder="Filter events…"
+        emptyMessage="No events recorded"
+        emptyDescription="Events will appear here as fans interact with the platform."
+        paginated
+        defaultPageSize={6}
+      />
+    </div>
+  );
+}
+
+// ── DataTable section ─────────────────────────────────────────────────────────
+
+function DataTableSection() {
+  const [activeTab, setActiveTab] = useState("fans");
+
+  const tabs = [
+    { id: "fans",      label: "Fans",      icon: <Users size={13} /> },
+    { id: "sponsors",  label: "Sponsors",  icon: <DollarSign size={13} /> },
+    { id: "campaigns", label: "Campaigns", icon: <BarChart2 size={13} /> },
+    { id: "events",    label: "Events",    icon: <Activity size={13} /> },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionTitle
+        title="DataTable"
+        description="Enterprise data table built on TanStack Table v8. Sorting, pagination, search, row selection, column visibility, row actions, loading & empty states."
+      />
+
+      {/* Feature badges */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          "TanStack Table v8", "Sorting", "Global Search", "Pagination",
+          "Row Selection", "Column Visibility", "Row Actions", "Loading State",
+          "Empty State", "Bulk Actions", "Export", "Responsive",
+        ].map((f) => (
+          <Badge key={f} variant="ghost">{f}</Badge>
+        ))}
+      </div>
+
+      {/* Quick usage */}
+      <div>
+        <SubTitle>Usage</SubTitle>
+        <DemoBox className="bg-[#06060A] font-mono text-xs text-[#8888AA] leading-relaxed space-y-1">
+          <p><span className="text-[#FF2D55]">{"import"}</span>{" { DataTable } from "}<span className="text-[#00D4A8]">&quot;@/components/ui&quot;</span>;</p>
+          <p><span className="text-[#FF2D55]">{"import type"}</span>{" { ColumnDef } from "}<span className="text-[#00D4A8]">&quot;@/components/ui&quot;</span>;</p>
+          <br />
+          <p className="text-[#55556A]">{"// Define columns with TanStack ColumnDef"}</p>
+          <p>{"const columns: ColumnDef<MyRow>[] = ["}</p>
+          <p>&nbsp;&nbsp;{"{ accessorKey: \"name\", header: \"Name\", cell: ({ row }) => row.original.name },"}</p>
+          <p>&nbsp;&nbsp;{"{ accessorKey: \"status\", header: \"Status\", cell: ({ getValue }) => <Badge>{...}</Badge> },"}</p>
+          <p>{"];"}</p>
+          <br />
+          <p>{"<DataTable"}</p>
+          <p>&nbsp;&nbsp;{"data={rows}"}</p>
+          <p>&nbsp;&nbsp;{"columns={columns}"}</p>
+          <p>&nbsp;&nbsp;{"searchable paginated selectable"}</p>
+          <p>&nbsp;&nbsp;{"rowActions={(row) => <RowMenu row={row} />}"}</p>
+          <p>&nbsp;&nbsp;{"onExport={() => exportCSV()}"}</p>
+          <p>{"/>"}</p>
+        </DemoBox>
+      </div>
+
+      <Divider />
+
+      {/* Demos */}
+      <div>
+        <SubTitle>Live Demos</SubTitle>
+        <Tabs
+          items={tabs}
+          active={activeTab}
+          onChange={setActiveTab}
+          variant="pill"
+          size="sm"
+        />
+
+        <div className="mt-6">
+          {activeTab === "fans"      && <FansTableDemo />}
+          {activeTab === "sponsors"  && <SponsorsTableDemo />}
+          {activeTab === "campaigns" && <CampaignsTableDemo />}
+          {activeTab === "events"    && <EventsTableDemo />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const SECTIONS = [
   { id: "foundation",  label: "Foundation",  icon: Palette,      Component: FoundationSection  },
   { id: "components",  label: "Components",  icon: Box,          Component: ComponentsSection  },
@@ -2671,6 +3313,7 @@ const SECTIONS = [
   { id: "primitives",  label: "Primitives",  icon: Shapes,       Component: PrimitivesSection  },
   { id: "motion",      label: "Motion",      icon: Sparkles,     Component: MotionSection      },
   { id: "theme",       label: "Theme",       icon: Paintbrush,   Component: ThemeSection       },
+  { id: "datatable",   label: "DataTable",   icon: Table2,       Component: DataTableSection   },
 ] as const;
 
 type SectionId = typeof SECTIONS[number]["id"];

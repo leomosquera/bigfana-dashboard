@@ -1,4 +1,6 @@
 export { Avatar } from "./Avatar";
+export { DataTable } from "./DataTable";
+export type { ColumnDef, DataTableProps } from "./DataTable";
 export { Badge, LevelBadge, StatusBadge } from "./Badge";
 export { Button, buttonVariants } from "./Button";
 export type { ButtonIntent, ButtonSize } from "./Button";
