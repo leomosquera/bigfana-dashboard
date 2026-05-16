@@ -1,8 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DollarSign, Users, Handshake, Ticket, Activity, TrendingUp } from "lucide-react";
+import { DollarSign, Users, Handshake, Ticket, Activity, TrendingUp, Download } from "lucide-react";
 import { StatCard } from "@/components/ui/Card";
+import { PageShell } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/forms/Select";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { FanSegmentsChart } from "@/components/dashboard/FanSegmentsChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
@@ -16,12 +19,12 @@ import { RecentTimeline } from "@/components/dashboard/RecentTimeline";
 import { kpiData } from "@/lib/mock-data";
 
 const kpis = [
-  { key: "revenue",    label: "Revenue Total",    icon: <DollarSign size={18} />, accent: true,  data: kpiData.revenue },
-  { key: "fans",       label: "Fans Activos",      icon: <Users size={18} />,      accent: false, data: kpiData.activeFans },
-  { key: "sponsors",   label: "Sponsors",          icon: <Handshake size={18} />,  accent: false, data: { ...kpiData.sponsors, change: undefined } },
-  { key: "tickets",    label: "Tickets Vendidos",  icon: <Ticket size={18} />,     accent: false, data: kpiData.ticketsSold },
-  { key: "engagement", label: "Engagement Rate",   icon: <Activity size={18} />,   accent: false, data: kpiData.engagement },
-  { key: "avgspend",   label: "Gasto Promedio",    icon: <TrendingUp size={18} />, accent: false, data: kpiData.avgSpend },
+  { key: "revenue",    label: "Revenue Total",   icon: <DollarSign size={18} />, accent: true,  data: kpiData.revenue },
+  { key: "fans",       label: "Fans Activos",     icon: <Users size={18} />,      accent: false, data: kpiData.activeFans },
+  { key: "sponsors",   label: "Sponsors",         icon: <Handshake size={18} />,  accent: false, data: { ...kpiData.sponsors, change: undefined } },
+  { key: "tickets",    label: "Tickets Vendidos", icon: <Ticket size={18} />,     accent: false, data: kpiData.ticketsSold },
+  { key: "engagement", label: "Engagement Rate",  icon: <Activity size={18} />,   accent: false, data: kpiData.engagement },
+  { key: "avgspend",   label: "Gasto Promedio",   icon: <TrendingUp size={18} />, accent: false, data: kpiData.avgSpend },
 ];
 
 const container = {
@@ -30,7 +33,7 @@ const container = {
 };
 const item = {
   hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 function SectionDivider({ label }: { label: string }) {
@@ -44,32 +47,27 @@ function SectionDivider({ label }: { label: string }) {
 
 export default function DashboardPage() {
   return (
-    <div className="w-full p-6 space-y-6">
-
-      {/* ── Page header ── */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-xl font-bold text-[#F0F0F8]">Overview</h1>
-          <p className="text-sm text-[#55556A] mt-0.5">
-            Temporada 2025/26 · Actualizado hace 2 minutos
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select className="h-8 px-3 rounded-lg bg-[#141420] border border-white/[0.06] text-xs text-[#8888AA] outline-none cursor-pointer">
-            <option>Últimos 12 meses</option>
-            <option>Últimos 6 meses</option>
-            <option>Últimos 30 días</option>
-          </select>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
+    <PageShell
+      title="Overview"
+      subtitle="Temporada 2025/26 · Actualizado hace 2 minutos"
+      actions={
+        <>
+          <Select
+            size="sm"
+            options={[
+              { value: "12m", label: "Últimos 12 meses" },
+              { value: "6m",  label: "Últimos 6 meses"  },
+              { value: "30d", label: "Últimos 30 días"  },
+            ]}
+            defaultValue="12m"
+            wrapperClassName="w-40"
+          />
+          <Button intent="primary" size="sm" leftIcon={<Download size={13} />}>
             Exportar
-          </button>
-        </div>
-      </motion.div>
+          </Button>
+        </>
+      }
+    >
 
       {/* ── KPI Grid ── */}
       <motion.div
@@ -109,9 +107,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.45, delay: 0.25 }}
         className="grid grid-cols-1 lg:grid-cols-3 gap-4"
       >
-        <div className="lg:col-span-2">
-          <LastMatch />
-        </div>
+        <div className="lg:col-span-2"><LastMatch /></div>
         <TopFans />
       </motion.div>
 
@@ -123,9 +119,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.5, delay: 0.3 }}
         className="grid grid-cols-1 xl:grid-cols-3 gap-4"
       >
-        <div className="xl:col-span-2">
-          <RevenueChart />
-        </div>
+        <div className="xl:col-span-2"><RevenueChart /></div>
         <FanSegmentsChart />
       </motion.div>
 
@@ -154,6 +148,6 @@ export default function DashboardPage() {
         <EngagementHeatmap />
       </motion.div>
 
-    </div>
+    </PageShell>
   );
 }

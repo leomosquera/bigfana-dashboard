@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gamepad2, Trophy, Star, Flame, Crown, Zap, Gift, Medal } from "lucide-react";
+import { Gamepad2, Trophy, Flame, Zap, Gift, Medal, Plus } from "lucide-react";
 import { PageShell, PlaceholderCard } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
 
 const leaderboard = [
   { rank: 1, name: "Carlos Mendoza", points: 48200, level: "Leyenda", streak: 42, badge: "👑" },
@@ -36,12 +37,8 @@ export default function GamificationPage() {
       subtitle="Sistema de puntos, desafíos, badges y ranking para maximizar el engagement del hincha"
       actions={
         <>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] transition-colors">
-            Configurar reglas
-          </button>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
-            + Nuevo desafío
-          </button>
+          <Button intent="secondary" size="sm">Configurar reglas</Button>
+          <Button intent="primary"   size="sm" leftIcon={<Plus size={12} />}>Nuevo desafío</Button>
         </>
       }
     >
@@ -119,9 +116,9 @@ export default function GamificationPage() {
             ))}
           </div>
           <div className="px-6 py-3 border-t border-white/[0.04]">
-            <button className="text-xs text-[#FF2D55] hover:text-[#FF6B6B] transition-colors">
-              Ver ranking completo →
-            </button>
+          <Button intent="ghost" size="xs" className="text-[#FF2D55] hover:text-[#FF6B6B]">
+            Ver ranking completo →
+          </Button>
           </div>
         </motion.div>
 

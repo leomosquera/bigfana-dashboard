@@ -2,38 +2,41 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Settings,
-  User,
-  Shield,
-  Bell,
-  Plug,
-  Palette,
-  Building2,
-  ChevronRight,
-  Check,
-} from "lucide-react";
+import { Settings, User, Shield, Bell, Plug, Palette, Building2, ChevronRight } from "lucide-react";
 import { PageShell } from "@/components/ui/PageShell";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/forms/Switch";
 import { cn } from "@/lib/utils";
 
 type Section = "club" | "account" | "security" | "notifications" | "integrations" | "appearance";
 
 const sections: { id: Section; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "club",          label: "Perfil del Club",      icon: Building2 },
-  { id: "account",       label: "Cuenta",               icon: User },
-  { id: "security",      label: "Seguridad",            icon: Shield },
-  { id: "notifications", label: "Notificaciones",       icon: Bell },
-  { id: "integrations",  label: "Integraciones",        icon: Plug },
-  { id: "appearance",    label: "Apariencia",           icon: Palette },
+  { id: "club",          label: "Perfil del Club",  icon: Building2 },
+  { id: "account",       label: "Cuenta",           icon: User      },
+  { id: "security",      label: "Seguridad",        icon: Shield    },
+  { id: "notifications", label: "Notificaciones",   icon: Bell      },
+  { id: "integrations",  label: "Integraciones",    icon: Plug      },
+  { id: "appearance",    label: "Apariencia",       icon: Palette   },
 ];
 
 const integrations = [
-  { name: "Ticketera PRO", desc: "Sincronización de ventas y asistencia", connected: true, icon: "🎫" },
-  { name: "Stripe", desc: "Pagos y suscripciones premium", connected: true, icon: "💳" },
-  { name: "Mailchimp", desc: "Email marketing automatizado", connected: true, icon: "📧" },
-  { name: "Google Analytics", desc: "Tracking de comportamiento web", connected: false, icon: "📊" },
-  { name: "Slack", desc: "Alertas y notificaciones internas", connected: true, icon: "💬" },
-  { name: "WhatsApp Business", desc: "Comunicación directa con fans", connected: false, icon: "📱" },
+  { name: "Ticketera PRO",     desc: "Sincronización de ventas y asistencia", connected: true,  icon: "🎫" },
+  { name: "Stripe",            desc: "Pagos y suscripciones premium",         connected: true,  icon: "💳" },
+  { name: "Mailchimp",         desc: "Email marketing automatizado",          connected: true,  icon: "📧" },
+  { name: "Google Analytics",  desc: "Tracking de comportamiento web",        connected: false, icon: "📊" },
+  { name: "Slack",             desc: "Alertas y notificaciones internas",     connected: true,  icon: "💬" },
+  { name: "WhatsApp Business", desc: "Comunicación directa con fans",         connected: false, icon: "📱" },
+];
+
+const clubFields = [
+  { label: "Nombre del club",  value: "River Club",                  name: "name"    },
+  { label: "País / Liga",      value: "Argentina · Primera División", name: "league"  },
+  { label: "Sitio web",        value: "https://riverclub.com.ar",    name: "website" },
+  { label: "Estadio",          value: "El Monumental",               name: "stadium" },
+  { label: "Capacidad",        value: "84,567",                      name: "cap"     },
+  { label: "Temporada activa", value: "2025/2026",                   name: "season"  },
 ];
 
 function ClubSection() {
@@ -48,32 +51,21 @@ function ClubSection() {
           <p className="text-sm text-[#55556A]">club@riverclub.com · Buenos Aires, Argentina</p>
           <p className="text-xs text-[#FF2D55] mt-1">Plan Enterprise · Activo hasta Jun 2027</p>
         </div>
-        <button className="h-8 px-4 rounded-xl border border-white/[0.08] text-xs text-[#8888AA] hover:text-[#F0F0F8] transition-colors">
-          Editar logo
-        </button>
+        <Button intent="secondary" size="sm">Editar logo</Button>
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[
-          { label: "Nombre del club", value: "River Club", type: "text" },
-          { label: "País / Liga", value: "Argentina · Primera División", type: "text" },
-          { label: "Sitio web", value: "https://riverclub.com.ar", type: "text" },
-          { label: "Estadio", value: "El Monumental", type: "text" },
-          { label: "Capacidad", value: "84,567", type: "text" },
-          { label: "Temporada activa", value: "2025/2026", type: "text" },
-        ].map((f) => (
-          <div key={f.label} className="space-y-1.5">
-            <label className="text-[10px] font-semibold text-[#55556A] uppercase tracking-wider">{f.label}</label>
-            <input
-              type={f.type}
-              defaultValue={f.value}
-              className="w-full h-10 px-3 rounded-xl bg-[#141420] border border-white/[0.06] text-sm text-[#F0F0F8] outline-none focus:border-[#FF2D55]/40 transition-colors"
-            />
-          </div>
+        {clubFields.map((f) => (
+          <Input
+            key={f.name}
+            label={f.label}
+            defaultValue={f.value}
+            name={f.name}
+          />
         ))}
       </div>
-      <button className="h-9 px-5 rounded-xl bg-[#FF2D55] text-white text-sm font-semibold hover:bg-[#CC1F3F] transition-colors">
-        Guardar cambios
-      </button>
+
+      <Button intent="primary" size="md">Guardar cambios</Button>
     </div>
   );
 }
@@ -95,14 +87,9 @@ function IntegrationsSection() {
             <p className="text-xs text-[#55556A]">{int.desc}</p>
           </div>
           {int.connected ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#00D4A8]/10 border border-[#00D4A8]/20">
-              <Check size={11} className="text-[#00D4A8]" />
-              <span className="text-[10px] font-semibold text-[#00D4A8]">Conectado</span>
-            </div>
+            <Badge variant="success">✓ Conectado</Badge>
           ) : (
-            <button className="px-3 py-1.5 rounded-lg bg-[#FF2D55]/10 border border-[#FF2D55]/20 text-[10px] font-semibold text-[#FF2D55] hover:bg-[#FF2D55]/15 transition-colors">
-              Conectar
-            </button>
+            <Button intent="outline" size="xs">Conectar</Button>
           )}
         </motion.div>
       ))}
@@ -118,9 +105,7 @@ function GenericSection({ title, description }: { title: string; description: st
       </div>
       <h3 className="text-sm font-bold text-[#F0F0F8] mb-2">{title}</h3>
       <p className="text-xs text-[#55556A] max-w-xs leading-relaxed">{description}</p>
-      <button className="mt-5 h-8 px-5 rounded-xl bg-[#FF2D55]/10 border border-[#FF2D55]/20 text-[#FF2D55] text-xs font-semibold hover:bg-[#FF2D55]/15 transition-colors">
-        Configurar →
-      </button>
+      <Button intent="outline" size="sm" className="mt-5">Configurar →</Button>
     </div>
   );
 }
@@ -130,21 +115,30 @@ export default function SettingsPage() {
 
   const genericContent: Partial<Record<Section, { title: string; description: string }>> = {
     account: {
-      title: "Configuración de cuenta",
+      title:       "Configuración de cuenta",
       description: "Gestioná los datos del administrador, contraseña, sesiones activas y preferencias de idioma.",
     },
     security: {
-      title: "Seguridad y accesos",
+      title:       "Seguridad y accesos",
       description: "Activá autenticación de dos factores, revisá el log de accesos y gestioná los roles del equipo.",
     },
     notifications: {
-      title: "Preferencias de notificación",
+      title:       "Preferencias de notificación",
       description: "Elegí qué alertas recibir, con qué frecuencia y por qué canal: email, Slack, WhatsApp o webhook.",
     },
     appearance: {
-      title: "Apariencia del dashboard",
+      title:       "Apariencia del dashboard",
       description: "Personalizá el tema, colores del club, idioma y densidad de información del panel de control.",
     },
+  };
+
+  const sectionDescriptions: Record<Section, string> = {
+    club:          "Información general, identidad del club y datos de la organización",
+    account:       "Datos personales del administrador y configuración de sesión",
+    security:      "Autenticación, roles de equipo y auditoría de accesos",
+    notifications: "Canales y preferencias de alertas del sistema",
+    integrations:  "Plataformas conectadas y APIs externas",
+    appearance:    "Personalización visual del dashboard",
   };
 
   return (
@@ -189,17 +183,11 @@ export default function SettingsPage() {
             <h2 className="text-base font-bold text-[#F0F0F8] mb-1">
               {sections.find((s) => s.id === active)?.label}
             </h2>
-            <p className="text-xs text-[#55556A] mb-6">
-              {active === "club" && "Información general, identidad del club y datos de la organización"}
-              {active === "account" && "Datos personales del administrador y configuración de sesión"}
-              {active === "security" && "Autenticación, roles de equipo y auditoría de accesos"}
-              {active === "notifications" && "Canales y preferencias de alertas del sistema"}
-              {active === "integrations" && "Plataformas conectadas y APIs externas"}
-              {active === "appearance" && "Personalización visual del dashboard"}
-            </p>
-            {active === "club" && <ClubSection />}
+            <p className="text-xs text-[#55556A] mb-6">{sectionDescriptions[active]}</p>
+
+            {active === "club"         && <ClubSection />}
             {active === "integrations" && <IntegrationsSection />}
-            {genericContent[active] && (
+            {genericContent[active]    && (
               <GenericSection
                 title={genericContent[active]!.title}
                 description={genericContent[active]!.description}
@@ -208,6 +196,22 @@ export default function SettingsPage() {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Notification & appearance switches demo — shown when in those sections */}
+      {(active === "notifications" || active === "security") && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.15 }}
+          className="rounded-2xl border border-white/[0.06] bg-[#0D0D14] p-6 space-y-4 max-w-md"
+        >
+          <p className="text-sm font-semibold text-[#F0F0F8]">Preferencias rápidas</p>
+          <Switch label="Notificaciones por email"          description="Recibí alertas críticas en tu email" defaultChecked />
+          <Switch label="Alertas de Slack"                  defaultChecked />
+          <Switch label="Autenticación en dos pasos (2FA)"  description="Recomendado para cuentas admin" />
+          <Switch label="Alertas de sesión nueva"           defaultChecked />
+        </motion.div>
+      )}
     </PageShell>
   );
 }

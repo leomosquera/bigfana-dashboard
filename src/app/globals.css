@@ -122,6 +122,115 @@ body {
   z-index: 0;
 }
 
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Focus ring utility */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px #06060A, 0 0 0 4px rgba(255, 45, 85, 0.5);
+}
+
+/* ─── BigFana Calendar — DatePicker / RangePicker ────────────────────────── */
+
+/* Range strip background on the td cell */
+.bf-day-range-start {
+  background: linear-gradient(to right, transparent 50%, rgba(255, 45, 85, 0.12) 50%);
+}
+.bf-day-range-end {
+  background: linear-gradient(to right, rgba(255, 45, 85, 0.12) 50%, transparent 50%);
+}
+.bf-day-range-mid {
+  background: rgba(255, 45, 85, 0.10);
+}
+/* When start and end land on the same day */
+.bf-day-range-start.bf-day-range-end {
+  background: transparent;
+}
+
+/* Button inside selected / range caps */
+.bf-day-selected > button,
+.bf-day-range-start > button,
+.bf-day-range-end > button {
+  background: #FF2D55 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+.bf-day-selected > button:hover,
+.bf-day-range-start > button:hover,
+.bf-day-range-end > button:hover {
+  background: #CC1F3F !important;
+}
+
+/* Range middle button — full-width, no border-radius pill */
+.bf-day-range-mid > button {
+  border-radius: 0 !important;
+  color: #F0F0F8 !important;
+  background: transparent !important;
+}
+.bf-day-range-mid > button:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Today indicator */
+.bf-day-today > button {
+  color: #FF2D55;
+  font-weight: 700;
+  position: relative;
+}
+/* Keep today white when it is selected */
+.bf-day-today.bf-day-selected > button,
+.bf-day-today.bf-day-range-start > button,
+.bf-day-today.bf-day-range-end > button {
+  color: #ffffff;
+}
+
+/* Disabled days */
+.bf-day-disabled {
+  pointer-events: none;
+}
+.bf-day-disabled > button {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Outside-month days */
+.bf-day-outside {
+  pointer-events: none;
+}
+.bf-day-outside > button {
+  opacity: 0.25;
+}
+
+/* Hover preview (range picking in progress) */
+.bf-day-preview-mid {
+  background: rgba(255, 45, 85, 0.07);
+}
+.bf-day-preview-mid > button {
+  border-radius: 0 !important;
+  color: #F0F0F8 !important;
+}
+.bf-day-preview-cap > button {
+  background: rgba(255, 45, 85, 0.22) !important;
+  color: #ffffff !important;
+}
+
 /* Recharts overrides */
 .recharts-tooltip-wrapper {
   outline: none !important;

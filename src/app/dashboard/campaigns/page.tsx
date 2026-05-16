@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, Target, TrendingUp, Clock, CheckCircle, Play, Pause, BarChart2 } from "lucide-react";
+import { Zap, Target, TrendingUp, Clock, CheckCircle, Play, Pause, BarChart2, Plus } from "lucide-react";
 import { PageShell, PlaceholderCard } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
 
 type CampaignStatus = "active" | "paused" | "scheduled" | "completed";
 
@@ -85,12 +86,8 @@ export default function CampaignsPage() {
       subtitle="Gestión de activaciones, campañas de marketing y comunicaciones segmentadas"
       actions={
         <>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] transition-colors">
-            Plantillas
-          </button>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
-            + Nueva campaña
-          </button>
+          <Button intent="secondary" size="sm">Plantillas</Button>
+          <Button intent="primary"   size="sm" leftIcon={<Plus size={12} />}>Nueva campaña</Button>
         </>
       }
     >

@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Download, Eye, ArrowUpRight } from "lucide-react";
+import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Download, Eye, ArrowUpRight, Plus } from "lucide-react";
 import { PageShell, PlaceholderCard, MiniStat } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
 
 const reports = [
   {
@@ -65,17 +66,9 @@ export default function AnalyticsPage() {
       subtitle="Reportes avanzados, métricas de negocio y predicciones basadas en datos reales del club"
       actions={
         <>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] flex items-center gap-1.5 transition-colors">
-            <Calendar size={12} />
-            Período
-          </button>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] flex items-center gap-1.5 transition-colors">
-            <Download size={12} />
-            Exportar
-          </button>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
-            + Nuevo reporte
-          </button>
+          <Button intent="secondary" size="sm" leftIcon={<Calendar size={12} />}>Período</Button>
+          <Button intent="secondary" size="sm" leftIcon={<Download size={12} />}>Exportar</Button>
+          <Button intent="primary"   size="sm" leftIcon={<Plus size={12} />}>Nuevo reporte</Button>
         </>
       }
     >
@@ -154,10 +147,9 @@ export default function AnalyticsPage() {
                       <Eye size={11} />
                       <span className="text-[10px]">{r.views}</span>
                     </div>
-                    <button className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[10px] text-[#8888AA] hover:text-[#F0F0F8] opacity-0 group-hover:opacity-100 transition-all">
-                      <Download size={10} />
+                    <Button intent="ghost" size="xs" leftIcon={<Download size={10} />} className="opacity-0 group-hover:opacity-100">
                       Exportar
-                    </button>
+                    </Button>
                     <ArrowUpRight size={13} className="text-[#55556A] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </motion.div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PieChart, Users, Target, Sparkles, ArrowRight, TrendingUp } from "lucide-react";
-import { PageShell, PlaceholderCard, MiniStat } from "@/components/ui/PageShell";
+import { PieChart, Users, Target, Sparkles, ArrowRight, TrendingUp, Plus } from "lucide-react";
+import { PageShell, PlaceholderCard } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
 
 const segments = [
   {
@@ -46,12 +47,8 @@ export default function SegmentsPage() {
       subtitle="Audiencias inteligentes basadas en comportamiento, consumo y engagement"
       actions={
         <>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] transition-colors">
-            Importar segmento
-          </button>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
-            + Nuevo segmento
-          </button>
+          <Button intent="secondary" size="sm">Importar segmento</Button>
+          <Button intent="primary"   size="sm" leftIcon={<Plus size={12} />}>Nuevo segmento</Button>
         </>
       }
     >
@@ -163,9 +160,9 @@ export default function SegmentsPage() {
               </motion.div>
             ))}
           </div>
-          <button className="mt-4 w-full h-8 rounded-xl border border-[#FF2D55]/20 bg-[#FF2D55]/[0.05] text-[#FF2D55] text-xs font-semibold hover:bg-[#FF2D55]/10 transition-colors">
+          <Button intent="outline" size="sm" className="mt-4 w-full">
             + Crear nueva regla
-          </button>
+          </Button>
         </div>
       </motion.div>
 

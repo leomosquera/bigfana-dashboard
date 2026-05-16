@@ -2,88 +2,54 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Search, Filter, Download, Users, TrendingUp, Star, Activity } from "lucide-react";
 import {
-  Search,
-  Filter,
-  Download,
-  Users,
-  TrendingUp,
-  Star,
-  Activity,
-} from "lucide-react";
-import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
-import { fans, fanSegments, engagementRadar, fanSpendTrend } from "@/lib/mock-data";
+import { fans, engagementRadar, fanSpendTrend } from "@/lib/mock-data";
 import { StatCard, Card } from "@/components/ui/Card";
 import { Badge, LevelBadge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { EngagementBar } from "@/components/ui/EngagementBar";
+import { PageShell } from "@/components/ui/PageShell";
+import { Button } from "@/components/ui/Button";
 import { formatNumber, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { FanLevel } from "@/lib/mock-data";
 
 const levels: (FanLevel | "All")[] = ["All", "Ultra VIP", "Premium", "Core", "Casual"];
 
 const segmentStats = [
-  { label: "Total Fans", value: "147.8K", icon: <Users size={18} />, change: 12.7, period: "vs mes anterior", formatted: "147.8K", accent: false },
-  { label: "Fan VIP Elite", value: "8.75K", icon: <Star size={18} />, change: 8.4, period: "top tier", formatted: "8.75K", accent: true },
-  { label: "Engagement Prom.", value: "73.4%", icon: <Activity size={18} />, change: 5.1, period: "promedio global", formatted: "73.4%", accent: false },
-  { label: "Gasto Promedio", value: "$124", icon: <TrendingUp size={18} />, change: 9.3, period: "por fan activo", formatted: "$124", accent: false },
+  { label: "Total Fans",       value: "147.8K", icon: <Users size={18} />,     change: 12.7, period: "vs mes anterior", accent: false },
+  { label: "Fan VIP Elite",    value: "8.75K",  icon: <Star size={18} />,      change: 8.4,  period: "top tier",        accent: true  },
+  { label: "Engagement Prom.", value: "73.4%",  icon: <Activity size={18} />,  change: 5.1,  period: "promedio global", accent: false },
+  { label: "Gasto Promedio",   value: "$124",   icon: <TrendingUp size={18} />, change: 9.3, period: "por fan activo",  accent: false },
 ];
 
 export default function FansPage() {
-  const [search, setSearch] = useState("");
+  const [search,      setSearch]      = useState("");
   const [levelFilter, setLevelFilter] = useState<FanLevel | "All">("All");
-  const [selected, setSelected] = useState(fans[0]);
+  const [selected,    setSelected]    = useState(fans[0]);
 
   const filtered = fans.filter((f) => {
-    const matchSearch =
-      !search ||
-      f.name.toLowerCase().includes(search.toLowerCase()) ||
-      f.email.toLowerCase().includes(search.toLowerCase());
-    const matchLevel = levelFilter === "All" || f.level === levelFilter;
+    const matchSearch = !search || f.name.toLowerCase().includes(search.toLowerCase()) || f.email.toLowerCase().includes(search.toLowerCase());
+    const matchLevel  = levelFilter === "All" || f.level === levelFilter;
     return matchSearch && matchLevel;
   });
 
   return (
-    <div className="w-full p-6 space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-xl font-bold text-[#F0F0F8]">Fans</h1>
-          <p className="text-sm text-[#55556A] mt-0.5">
-            {formatNumber(147832)} fans registrados · {formatNumber(42100)} premium activos
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] flex items-center gap-1.5 transition-colors">
-            <Filter size={12} />
-            Filtros
-          </button>
-          <button className="h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-[#8888AA] hover:text-[#F0F0F8] flex items-center gap-1.5 transition-colors">
-            <Download size={12} />
-            Exportar
-          </button>
-          <button className="h-8 px-4 rounded-lg bg-[#FF2D55] text-white text-xs font-semibold hover:bg-[#CC1F3F] transition-colors">
-            Nuevo segmento
-          </button>
-        </div>
-      </motion.div>
+    <PageShell
+      title="Fans"
+      subtitle={`${formatNumber(147832)} fans registrados · ${formatNumber(42100)} premium activos`}
+      actions={
+        <>
+          <Button intent="secondary" size="sm" leftIcon={<Filter size={12} />}>Filtros</Button>
+          <Button intent="secondary" size="sm" leftIcon={<Download size={12} />}>Exportar</Button>
+          <Button intent="primary"   size="sm">Nuevo segmento</Button>
+        </>
+      }
+    >
 
       {/* KPIs */}
       <motion.div
@@ -93,15 +59,7 @@ export default function FansPage() {
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
         {segmentStats.map((s) => (
-          <StatCard
-            key={s.label}
-            label={s.label}
-            value={s.value}
-            change={s.change}
-            period={s.period}
-            icon={s.icon}
-            accent={s.accent}
-          />
+          <StatCard key={s.label} label={s.label} value={s.value} change={s.change} period={s.period} icon={s.icon} accent={s.accent} />
         ))}
       </motion.div>
 
@@ -126,23 +84,8 @@ export default function FansPage() {
               <RadarChart data={engagementRadar}>
                 <PolarGrid stroke="rgba(255,255,255,0.05)" />
                 <PolarAngleAxis dataKey="metric" tick={{ fill: "#55556A", fontSize: 11 }} />
-                <Radar
-                  name="Ultra VIP"
-                  dataKey="A"
-                  stroke="#FF2D55"
-                  fill="#FF2D55"
-                  fillOpacity={0.12}
-                  strokeWidth={2}
-                />
-                <Radar
-                  name="Core"
-                  dataKey="B"
-                  stroke="#3B82F6"
-                  fill="#3B82F6"
-                  fillOpacity={0.08}
-                  strokeWidth={1.5}
-                  strokeDasharray="4 2"
-                />
+                <Radar name="Ultra VIP" dataKey="A" stroke="#FF2D55" fill="#FF2D55" fillOpacity={0.12} strokeWidth={2} />
+                <Radar name="Core"      dataKey="B" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.08} strokeWidth={1.5} strokeDasharray="4 2" />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -165,10 +108,10 @@ export default function FansPage() {
                   labelStyle={{ color: "#55556A", fontSize: 12 }}
                   itemStyle={{ color: "#F0F0F8", fontSize: 12 }}
                 />
-                <Bar dataKey="vip" name="Ultra VIP" fill="#FF2D55" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="premium" name="Premium" fill="#3B82F6" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="core" name="Core" fill="#8888AA" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="casual" name="Casual" fill="#242436" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="vip"     name="Ultra VIP" fill="#FF2D55" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="premium" name="Premium"   fill="#3B82F6" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="core"    name="Core"      fill="#8888AA" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="casual"  name="Casual"    fill="#242436" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -199,17 +142,14 @@ export default function FansPage() {
               </div>
               <div className="flex items-center gap-1">
                 {levels.map((l) => (
-                  <button
+                  <Button
                     key={l}
+                    size="xs"
+                    intent={levelFilter === l ? "outline" : "ghost"}
                     onClick={() => setLevelFilter(l)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                      levelFilter === l
-                        ? "bg-[#FF2D55]/15 text-[#FF2D55] border border-[#FF2D55]/25"
-                        : "text-[#55556A] hover:text-[#8888AA]"
-                    }`}
                   >
                     {l}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -234,11 +174,10 @@ export default function FansPage() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.2, delay: i * 0.04 }}
                       onClick={() => setSelected(fan)}
-                      className={`cursor-pointer transition-colors ${
-                        selected.id === fan.id
-                          ? "bg-[#FF2D55]/[0.06]"
-                          : "hover:bg-white/[0.02]"
-                      }`}
+                      className={cn(
+                        "cursor-pointer transition-colors",
+                        selected.id === fan.id ? "bg-[#FF2D55]/[0.06]" : "hover:bg-white/[0.02]"
+                      )}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
@@ -249,24 +188,12 @@ export default function FansPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <LevelBadge level={fan.level} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-[#8888AA]">{fan.segment}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs font-bold text-[#F0F0F8]">{formatCurrency(fan.spend)}</span>
-                      </td>
-                      <td className="px-4 py-3 w-32">
-                        <EngagementBar value={fan.engagement} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs text-[#8888AA]">{fan.matches}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-[10px] text-[#55556A]">{fan.lastActive}</span>
-                      </td>
+                      <td className="px-4 py-3"><LevelBadge level={fan.level} /></td>
+                      <td className="px-4 py-3"><span className="text-xs text-[#8888AA]">{fan.segment}</span></td>
+                      <td className="px-4 py-3"><span className="text-xs font-bold text-[#F0F0F8]">{formatCurrency(fan.spend)}</span></td>
+                      <td className="px-4 py-3 w-32"><EngagementBar value={fan.engagement} /></td>
+                      <td className="px-4 py-3"><span className="text-xs text-[#8888AA]">{fan.matches}</span></td>
+                      <td className="px-4 py-3"><span className="text-[10px] text-[#55556A]">{fan.lastActive}</span></td>
                     </motion.tr>
                   ))}
                 </tbody>
@@ -278,11 +205,7 @@ export default function FansPage() {
         {/* Fan Detail Panel */}
         <Card className="p-5 flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <Avatar
-              initials={selected.name.split(" ").map((n) => n[0]).join("")}
-              size="lg"
-              color="brand"
-            />
+            <Avatar initials={selected.name.split(" ").map((n) => n[0]).join("")} size="lg" color="brand" />
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-bold text-[#F0F0F8]">{selected.name}</h3>
               <p className="text-xs text-[#55556A] truncate">{selected.email}</p>
@@ -294,9 +217,9 @@ export default function FansPage() {
           <div className="grid grid-cols-2 gap-2.5">
             {[
               { label: "Gasto Total", value: formatCurrency(selected.spend) },
-              { label: "Engagement", value: `${selected.engagement}%` },
-              { label: "Partidos", value: `${selected.matches}` },
-              { label: "Ciudad", value: selected.location },
+              { label: "Engagement",  value: `${selected.engagement}%` },
+              { label: "Partidos",    value: `${selected.matches}` },
+              { label: "Ciudad",      value: selected.location },
             ].map((s) => (
               <div key={s.label} className="bg-white/[0.02] rounded-xl p-3 border border-white/[0.04]">
                 <p className="text-[10px] text-[#55556A]">{s.label}</p>
@@ -316,39 +239,31 @@ export default function FansPage() {
             <p className="text-xs text-[#55556A]">Badges</p>
             <div className="flex flex-wrap gap-1.5">
               {selected.badges.map((b) => (
-                <Badge key={b} variant="ghost" className="text-[10px]">
-                  {b}
-                </Badge>
+                <Badge key={b} variant="ghost" className="text-[10px]">{b}</Badge>
               ))}
             </div>
           </div>
 
           {/* Segment & join date */}
           <div className="pt-3 border-t border-white/[0.05] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#55556A]">Segmento</span>
-              <span className="text-[#F0F0F8] font-medium">{selected.segment}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#55556A]">Fan desde</span>
-              <span className="text-[#F0F0F8] font-medium">
-                {new Date(selected.joinDate).toLocaleDateString("es-AR", {
-                  year: "numeric",
-                  month: "short",
-                })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#55556A]">Última actividad</span>
-              <span className="text-[#F0F0F8] font-medium">{selected.lastActive}</span>
-            </div>
+            {[
+              { label: "Segmento",          value: selected.segment },
+              { label: "Fan desde",          value: new Date(selected.joinDate).toLocaleDateString("es-AR", { year: "numeric", month: "short" }) },
+              { label: "Última actividad",  value: selected.lastActive },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center justify-between text-xs">
+                <span className="text-[#55556A]">{row.label}</span>
+                <span className="text-[#F0F0F8] font-medium">{row.value}</span>
+              </div>
+            ))}
           </div>
 
-          <button className="w-full h-8 rounded-xl bg-[#FF2D55]/10 border border-[#FF2D55]/20 text-[#FF2D55] text-xs font-semibold hover:bg-[#FF2D55]/15 transition-colors">
+          <Button intent="outline" size="sm" className="w-full">
             Ver perfil completo →
-          </button>
+          </Button>
         </Card>
       </motion.div>
-    </div>
+
+    </PageShell>
   );
 }
