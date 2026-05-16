@@ -298,3 +298,104 @@ The platform will eventually support:
 - mobile applications
 
 Build with future scalability in mind.
+
+---
+
+# Enterprise Systems
+
+The platform already includes:
+- Overlay System
+- Dropdown System
+- Selection System
+- Date & Time System
+- Enterprise DataTable System
+
+Always reuse existing systems before creating new patterns.
+
+Avoid:
+- duplicated filter UIs
+- duplicated table logic
+- duplicated overlays
+- inconsistent toolbar patterns
+
+---
+
+# DataTable Rules
+
+Use the shared DataTable system for all data-heavy interfaces.
+
+Prefer:
+- toolbar-based filtering
+- dense enterprise spacing
+- bulk actions
+- column visibility
+- row actions
+- loading states
+- empty states
+
+Do not create isolated table implementations unless strictly necessary.
+
+---
+
+# Selection System Rules
+
+Use:
+- Combobox
+- MultiSelect
+- DatePicker
+- RangePicker
+- TimePicker
+
+for all advanced filtering and selection flows.
+
+Avoid native selects for complex enterprise interfaces.
+
+---
+
+# Internationalization
+
+The visible UI currently remains in Spanish.
+
+The project is being prepared for future internationalization using:
+- next-intl
+- App Router compatible architecture
+- non-routing i18n mode
+
+Rules:
+- Extract reusable UI strings progressively.
+- Do not hardcode reusable UI labels inside complex components.
+- Proper nouns and dynamic database content are NOT translation keys.
+- Keep locale architecture lightweight until real multi-language support is needed.
+
+---
+
+# Formatting Rules
+
+Prepare all formatting to become locale-aware.
+
+Prefer:
+- Intl.NumberFormat
+- locale-aware date formatting
+- next-intl formatting helpers
+
+Avoid hardcoded locale formatting inside components.
+
+---
+
+# SaaS Foundation Awareness
+
+The platform will support:
+- Supabase
+- authentication
+- organizations
+- memberships
+- roles
+- protected routes
+- multi-tenant branding
+- behavioral event systems
+
+Frontend architecture should remain compatible with:
+- organization-aware contexts
+- multi-tenant theming
+- future mobile applications
+- EEP integrations
