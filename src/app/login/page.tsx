@@ -11,6 +11,8 @@ import {
   Zap,
 } from "lucide-react";
 
+import { signIn } from "@/lib/auth-client";
+
 const stats = [
   { value: "147K+", label: "Fans activos" },
   { value: "$2.84M", label: "Revenue mensual" },
@@ -23,6 +25,7 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [email, setEmail] = useState("demo@bigfana.com");
   const [password, setPassword] = useState("demo1234");
@@ -31,10 +34,20 @@ export default function LoginPage() {
     e.preventDefault();
 
     setLoading(true);
+    setError(null);
 
-    await new Promise((r) => setTimeout(r, 1200));
+    const result = await signIn.email({
+      email,
+      password,
+      callbackURL: "/dashboard",
+    });
 
-    router.push("/dashboard");
+    if (result.error) {
+      setError("Credenciales incorrectas. Verificá tu email y contraseña.");
+      setLoading(false);
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   const [particles, setParticles] = useState<
@@ -480,6 +493,20 @@ export default function LoginPage() {
             </motion.button>
 
           </form>
+
+          {/* ERROR */}
+          {error && (
+            <p className="
+              mt-3
+
+              text-center
+              text-xs
+
+              text-[#FF6B6B]
+            ">
+              {error}
+            </p>
+          )}
 
           {/* DEMO ACCESS */}
           <div className="

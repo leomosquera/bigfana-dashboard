@@ -1,65 +1,70 @@
+/**
+ * Organizations and memberships schema.
+ *
+ * Reflects the actual Neon PostgreSQL table structure exactly.
+ * The existing database uses text (not enums) for role and status columns,
+ * and uuid (not text) for user_id in memberships.
+ *
+ * better_auth_user_id links a membership to a Better Auth user session.
+ * It is separate from user_id (which references the legacy users table)
+ * so that existing seeded data is not disturbed.
+ */
+
 import {
-  pgEnum,
+  boolean,
   pgTable,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { users } from "./auth";
 
-// --- Enums ---
-
-export const membershipRoleEnum = pgEnum("membership_role", [
-  "owner",
-  "admin",
-  "manager",
-  "analyst",
-  "member",
-]);
-
-export const membershipStatusEnum = pgEnum("membership_status", [
-  "active",
-  "invited",
-  "suspended",
-]);
-
-// --- Tables ---
+// ─── Organizations ────────────────────────────────────────────────────────────
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  /**
-   * URL-safe slug. Used for org lookup and branding resolution.
-   * Must be unique across all tenants.
-   */
   slug: text("slug").notNull().unique(),
-  /**
-   * Hex color fed into applyTenantTheme() from the design system.
-   * Example: "#e63946"
-   */
+  sport: text("sport"),
   brandColor: text("brand_color"),
   logoUrl: text("logo_url"),
-  sport: text("sport"),
+  faviconUrl: text("favicon_url"),
   country: text("country"),
   timezone: text("timezone"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// ─── Memberships ─────────────────────────────────────────────────────────────
 
 export const memberships = pgTable("memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  organizationId: uuid("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  role: membershipRoleEnum("role").notNull().default("member"),
-  status: membershipStatusEnum("status").notNull().default("active"),
-  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  /**
+   * FK to the legacy users table (uuid). Preserved from existing schema.
+   * New auth-based access uses better_auth_user_id instead.
+   */
+  userId: uuid("user_id").notNull(),
+  organizationId: uuid("organization_id").notNull(),
+  /**
+   * Text values: 'owner' | 'admin' | 'manager' | 'analyst' | 'member'
+   * Stored as text in Neon (no PG enum).
+   */
+  role: text("role").notNull(),
+  /**
+   * Text values: 'active' | 'invited' | 'suspended'
+   * Stored as text in Neon (no PG enum).
+   */
+  status: text("status").notNull().default("active"),
+  /**
+   * Better Auth user ID (text). Links this membership to an authenticated
+   * session. Set when the user is created via Better Auth and their
+   * membership is confirmed. Null for legacy memberships not yet migrated.
+   */
+  betterAuthUserId: text("better_auth_user_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// --- Inferred types ---
+// ─── Inferred types ───────────────────────────────────────────────────────────
 
 export type Organization = typeof organizations.$inferSelect;
 export type NewOrganization = typeof organizations.$inferInsert;
@@ -67,5 +72,7 @@ export type NewOrganization = typeof organizations.$inferInsert;
 export type Membership = typeof memberships.$inferSelect;
 export type NewMembership = typeof memberships.$inferInsert;
 
-export type MembershipRole = (typeof membershipRoleEnum.enumValues)[number];
-export type MembershipStatus = (typeof membershipStatusEnum.enumValues)[number];
+// These are typed as string since Neon uses text (not PG enums).
+// Narrowed types are defined here for use in application code.
+export type MembershipRole = "owner" | "admin" | "manager" | "analyst" | "member";
+export type MembershipStatus = "active" | "invited" | "suspended";

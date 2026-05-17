@@ -1,28 +1,48 @@
-"use client";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { getUserActiveMembership } from "@/server/queries/organizations";
+import { OrgProvider } from "@/providers/org-provider";
+import { DashboardShell } from "./shell";
 
-import { useState } from "react";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
-
-export default function DashboardLayout({
+/**
+ * Dashboard layout — server component.
+ *
+ * Performs two security checks before rendering any dashboard content:
+ *
+ *   1. Session check  — calls auth.api.getSession() with the incoming request
+ *      headers for full cryptographic validation (not just cookie presence).
+ *      The middleware does a fast cookie-presence redirect, but this is the
+ *      authoritative guard.
+ *
+ *   2. Membership check — ensures the user belongs to at least one active org.
+ *      Users with a session but no org are redirected to /onboarding.
+ *
+ * On success, the org and role are passed to OrgProvider (client component),
+ * which applies the tenant theme client-side via applyTenantTheme().
+ */
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const membership = await getUserActiveMembership(session.user.id);
+
+  if (!membership) {
+    redirect("/onboarding");
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#06060A]">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-      <Header
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((v) => !v)}
-      />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
+    <OrgProvider initialOrg={membership.org} initialRole={membership.role}>
+      <DashboardShell>{children}</DashboardShell>
+    </OrgProvider>
   );
 }
