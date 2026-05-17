@@ -16,13 +16,15 @@ import {
   Gamepad2,
   Bell,
   PieChart,
+  Smartphone,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type NavSection = "main" | "analytics" | "system";
 type NavKey =
   | "dashboard" | "fans" | "segments" | "sponsors"
-  | "campaigns" | "gamification" | "analytics" | "alerts" | "settings";
+  | "campaigns" | "gamification" | "fanExperience" | "apiPlayground" | "analytics" | "alerts" | "settings";
 
 const NAV_ITEMS: {
   href:    string;
@@ -36,6 +38,8 @@ const NAV_ITEMS: {
   { href: "/dashboard/sponsors",     tKey: "sponsors",     icon: Handshake,       section: "main"      },
   { href: "/dashboard/campaigns",    tKey: "campaigns",    icon: Zap,             section: "main"      },
   { href: "/dashboard/gamification", tKey: "gamification", icon: Gamepad2,        section: "main"      },
+  { href: "/dashboard/fan-experience", tKey: "fanExperience", icon: Smartphone,    section: "main"      },
+  { href: "/dashboard/api-playground", tKey: "apiPlayground", icon: Terminal,        section: "main"      },
   { href: "/dashboard/analytics",    tKey: "analytics",    icon: BarChart3,       section: "analytics" },
   { href: "/dashboard/alerts",       tKey: "alerts",       icon: Bell,            section: "system"    },
   { href: "/dashboard/settings",     tKey: "settings",     icon: Settings,        section: "system"    },

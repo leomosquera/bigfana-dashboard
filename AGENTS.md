@@ -399,3 +399,241 @@ Frontend architecture should remain compatible with:
 - multi-tenant theming
 - future mobile applications
 - EEP integrations
+
+---
+
+# SaaS + Backend Architecture Rules
+
+BigFana is now a real multi-tenant SaaS platform.
+
+The backend architecture must support:
+
+* organizations (tenants)
+* memberships
+* role-based access
+* fan management
+* behavioral event systems
+* gamification
+* EEP integrations
+* future mobile/webapp APIs
+
+---
+
+# Multi-Tenant Rules
+
+All business data must always be organization-scoped.
+
+Every query involving:
+
+* fans
+* events
+* campaigns
+* analytics
+* gamification
+* integrations
+
+must always filter by:
+
+* `organization_id`
+
+Never create global queries unless explicitly required.
+
+Always think:
+
+* tenant isolation
+* organization-aware access
+* secure scoped data
+
+---
+
+# Authentication Rules
+
+The platform uses:
+
+* Better Auth
+* Neon PostgreSQL
+* session-based authentication
+
+Current auth scope:
+
+* admin dashboard authentication only
+
+Future fan authentication will likely use:
+
+* OTP
+* magic links
+* social auth
+* mobile-first flows
+
+Do not mix admin auth and fan auth architectures.
+
+---
+
+# Database Rules
+
+Database:
+
+* Neon PostgreSQL
+
+Current schema includes:
+
+* organizations
+* memberships
+* users
+* fans
+* fan_events
+* integration_jobs
+
+Database architecture must remain:
+
+* scalable
+* tenant-aware
+* event-driven
+
+Avoid premature complexity:
+
+* no microservices
+* no over-engineering
+* no unnecessary abstraction layers
+
+---
+
+# Event Architecture
+
+The platform is event-driven.
+
+Fan behavior should eventually generate:
+
+* fan_events
+* points
+* rankings
+* achievements
+* gamification states
+* EEP synchronization
+
+Examples:
+
+* attending matches
+* buying products
+* answering trivia
+* predictions
+* voting
+* redeeming rewards
+* participating in raffles
+
+Event architecture must remain flexible and append-only.
+
+Avoid rigid schemas for behavioral payloads.
+
+Prefer:
+
+* JSONB payloads
+* typed event metadata
+* scalable event ingestion
+
+---
+
+# EEP Integration Rules
+
+BigFana integrates with the EEP platform.
+
+The EEP acts as:
+
+* behavioral intelligence engine
+* segmentation engine
+* exposure/scoring engine
+
+BigFana responsibilities:
+
+* manage fan interactions
+* generate behavioral events
+* synchronize fan profiles
+* synchronize events
+
+EEP synchronization must:
+
+* be asynchronous
+* never block UX flows
+* support retries
+* support failed sync recovery
+
+Use:
+
+* integration_jobs
+* sync status fields
+* idempotent integration patterns
+
+---
+
+# API Architecture Rules
+
+The platform will expose APIs for:
+
+* future mobile applications
+* fan webapps
+* integrations
+* sponsor systems
+* future public APIs
+
+Architecture must remain:
+
+* API-first
+* mobile-friendly
+* stateless where possible
+
+Avoid tightly coupling:
+
+* dashboard UI
+* business logic
+* API contracts
+
+Prefer:
+
+* reusable server actions
+* reusable queries
+* centralized business logic
+
+---
+
+# Server Architecture Rules
+
+Prefer:
+
+* server components
+* server actions
+* typed queries
+* typed API contracts
+
+Avoid:
+
+* client-heavy business logic
+* duplicated fetch logic
+* direct DB access from client components
+
+---
+
+# Fan System Rules
+
+Fans are NOT admin users.
+
+Fans are organization-scoped entities.
+
+Future fan systems will include:
+
+* gamification
+* trivia
+* raffles
+* predictions
+* rankings
+* rewards
+* loyalty systems
+* engagement scoring
+
+Design future systems with:
+
+* scalability
+* event ingestion
+* mobile UX
+* real-time engagement
+
+in mind.

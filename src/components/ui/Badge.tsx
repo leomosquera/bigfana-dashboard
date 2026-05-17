@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type BadgeVariant = "brand" | "success" | "warning" | "info" | "ghost" | "vip" | "premium" | "core" | "casual";
+export type BadgeVariant = "brand" | "success" | "warning" | "info" | "ghost" | "vip" | "premium" | "core" | "casual";
 
 interface BadgeProps {
   children: React.ReactNode;

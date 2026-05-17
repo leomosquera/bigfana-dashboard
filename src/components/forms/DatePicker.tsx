@@ -24,6 +24,7 @@ import {
 import { DayPicker } from "react-day-picker";
 import type { ClassNames, DayPickerProps } from "react-day-picker";
 
+import { zLayerTw } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
 import { formatDate } from "@/lib/date-utils";
@@ -249,7 +250,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(
               align="start"
               forceMount
               onOpenAutoFocus={(e) => e.preventDefault()}
-              className="z-40 outline-none"
+              className={cn(zLayerTw("nestedOverlay"), "outline-none")}
             >
               <AnimatePresence>
                 {open && (

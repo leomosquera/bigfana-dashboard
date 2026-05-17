@@ -1,4 +1,5 @@
 import {
+  date,
   integer,
   pgEnum,
   pgTable,
@@ -9,6 +10,13 @@ import {
 import { organizations } from "./organizations";
 
 // --- Enums ---
+
+export const fanStatusEnum = pgEnum("fan_status", [
+  "active",
+  "inactive",
+  "suspended",
+  "archived",
+]);
 
 export const eepSyncStatusEnum = pgEnum("eep_sync_status", [
   "pending",
@@ -25,15 +33,32 @@ export const fans = pgTable("fans", {
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
 
+  // Lifecycle
+  /**
+   * Fan lifecycle status. All standard queries exclude 'archived'.
+   * UI actions: suspend, reactivate, archive. No physical deletes.
+   */
+  status: fanStatusEnum("status").notNull().default("active"),
+
   // Identity
   /**
    * Optional reference to an external source system (CRM import, CSV, etc.).
    * Not the same as eepContactId.
    */
   externalId: text("external_id"),
+  /**
+   * Source of truth: firstName + lastName. displayName is derived and persisted
+   * at write time for DataTable display and search compatibility.
+   */
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   displayName: text("display_name").notNull(),
   email: text("email"),
   phone: text("phone"),
+  birthDate: date("birth_date"),
+  gender: text("gender"),
+  city: text("city"),
+  country: text("country"),
 
   // Segmentation
   segment: text("segment"),
@@ -70,4 +95,5 @@ export const fans = pgTable("fans", {
 export type Fan = typeof fans.$inferSelect;
 export type NewFan = typeof fans.$inferInsert;
 
+export type FanStatus = (typeof fanStatusEnum.enumValues)[number];
 export type EepSyncStatus = (typeof eepSyncStatusEnum.enumValues)[number];

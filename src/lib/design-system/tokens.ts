@@ -154,13 +154,41 @@ export const motion = {
 } as const;
 
 // ─── Z-Index ──────────────────────────────────────────────────────────────────
+//
+// Document-level overlays (Radix portals): use `zLayers` + `zLayerTw()` so pickers,
+// menus, and modal/drawer chrome stay ordered. Local stacking (cards, sticky rows)
+// keeps using small z-* utilities (z-10, etc.) inside their own contexts.
 
+/** Ordered stack for portaled / fixed overlays on `document.body`. */
+export const zLayers = {
+  /** Dropdowns, combobox panels, generic popovers below modal chrome. */
+  dropdown: 40,
+  /** Same plane as `dropdown` — single-select pickers built on Popover. */
+  popover: 40,
+  /** Drawer backdrop + shell (matches modal chrome). */
+  drawer: 50,
+  /** Modal backdrop + shell. */
+  modal: 50,
+  /** Floating panels that must appear above drawer/modal (DatePicker, menus inside modal). */
+  nestedOverlay: 60,
+  /** Global notifications — above nested pickers. */
+  toast: 70,
+} as const;
+
+export type ZLayer = keyof typeof zLayers;
+
+/** Tailwind arbitrary z-index class for a document-level layer. */
+export function zLayerTw(layer: ZLayer): string {
+  return `z-[${zLayers[layer]}]`;
+}
+
+/** Relative / layout stacking — unchanged for sticky headers, table headers, etc. */
 export const zIndex = {
   base:     0,
   elevated: 10,
   sticky:   20,
   header:   30,
-  dropdown: 40,
-  modal:    50,
-  toast:    60,
+  dropdown: zLayers.dropdown,
+  modal:    zLayers.modal,
+  toast:    zLayers.toast,
 } as const;

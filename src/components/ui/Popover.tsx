@@ -27,8 +27,9 @@ import {
   useContext,
   useState,
 } from "react";
-import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
+import { zLayerTw } from "@/lib/design-system/tokens";
+import { cn } from "@/lib/utils";
 
 // ─── Internal open-state context ─────────────────────────────────────────────
 
@@ -119,7 +120,7 @@ export const PopoverContent = forwardRef<
           align={align}
           forceMount
           {...props}
-          className="z-40 outline-none"
+          className={cn(zLayerTw("nestedOverlay"), "outline-none")}
         >
           <AnimatePresence>
             {isOpen && (

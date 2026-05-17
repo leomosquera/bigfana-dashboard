@@ -28,6 +28,7 @@ import {
   useState,
 } from "react";
 
+import { zLayerTw } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
 import { type TimeValue, formatTime } from "@/lib/date-utils";
@@ -442,7 +443,7 @@ export function TimePicker({
             align="start"
             forceMount
             onOpenAutoFocus={(e) => e.preventDefault()}
-            className="z-40 outline-none"
+            className={cn(zLayerTw("nestedOverlay"), "outline-none")}
           >
             <AnimatePresence>
               {open && (

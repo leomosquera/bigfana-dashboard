@@ -28,8 +28,9 @@ import {
 import {
   useCallback, useId, useMemo, useRef, useState,
 } from "react";
-import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
+import { zLayerTw } from "@/lib/design-system/tokens";
+import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 
 // ─── Types (shared with Combobox) ─────────────────────────────────────────────
@@ -555,7 +556,7 @@ export function MultiSelect({
                 e.preventDefault();
               }
             }}
-            className="z-40 outline-none"
+            className={cn(zLayerTw("nestedOverlay"), "outline-none")}
             style={{ minWidth: "var(--radix-popover-trigger-width)" }}
           >
             <AnimatePresence>

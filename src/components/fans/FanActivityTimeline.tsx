@@ -1,0 +1,130 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import type { FanEvent } from "@/db/schema";
+
+// ─── Event type icon dot ──────────────────────────────────────────────────────
+
+const EVENT_TYPE_COLORS: Record<string, string> = {
+  match_attended:       "#FF2D55",
+  purchase:             "#3B82F6",
+  trivia_correct:       "#00D4A8",
+  trivia_answered:      "#8888AA",
+  prediction_submitted: "#C97B2E",
+  prediction_won:       "#00D4A8",
+  raffle_joined:        "#3B82F6",
+  daily_checkin:        "#00D4A8",
+  content_shared:       "#8888AA",
+  badge_earned:         "#FF2D55",
+  login:                "#55556A",
+};
+
+function eventColor(eventType: string): string {
+  return EVENT_TYPE_COLORS[eventType] ?? "#55556A";
+}
+
+function formatEventType(eventType: string): string {
+  return eventType
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// ─── Entry ────────────────────────────────────────────────────────────────────
+
+function ActivityEntry({
+  event,
+  isLast,
+}: {
+  event:  FanEvent;
+  isLast: boolean;
+}) {
+  const color = eventColor(event.eventType);
+  const hasPoints = event.points > 0;
+
+  return (
+    <div className={cn("flex gap-3 pb-3", !isLast && "border-b border-white/[0.04] mb-3")}>
+      {/* Timeline rail */}
+      <div className="flex flex-col items-center shrink-0 pt-0.5">
+        <div
+          className="w-2 h-2 rounded-full shrink-0 mt-1"
+          style={{ backgroundColor: color }}
+        />
+        {!isLast && (
+          <div className="w-px flex-1 mt-1.5 bg-white/[0.05]" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pb-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-[#C8C8E0] truncate">
+              {formatEventType(event.eventType)}
+            </p>
+            <p className="text-[10px] text-[#55556A] mt-0.5">
+              {event.source}
+              {event.sourceId && (
+                <span className="ml-1 opacity-50">· {event.sourceId}</span>
+              )}
+            </p>
+          </div>
+
+          <div className="shrink-0 text-right">
+            {hasPoints && (
+              <span className="inline-flex items-center px-1.5 py-px rounded-md text-[10px] font-bold bg-[#00D4A8]/[0.08] text-[#00D4A8] border border-[#00D4A8]/20 tabular-nums">
+                +{event.points}
+              </span>
+            )}
+            <p className="text-[10px] text-[#55556A] mt-0.5 tabular-nums">
+              {new Intl.DateTimeFormat("es", {
+                day:   "2-digit",
+                month: "short",
+                year:  "numeric",
+              }).format(new Date(event.occurredAt))}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+function EmptyActivity() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 gap-2">
+      <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+        <span className="text-[#55556A] text-sm">○</span>
+      </div>
+      <p className="text-sm font-semibold text-[#8888AA]">Sin actividad registrada</p>
+      <p className="text-xs text-[#55556A] text-center max-w-[200px]">
+        Los eventos de este fan aparecerán aquí cuando comiencen a interactuar.
+      </p>
+    </div>
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface FanActivityTimelineProps {
+  events:    FanEvent[];
+  className?: string;
+}
+
+export function FanActivityTimeline({ events, className }: FanActivityTimelineProps) {
+  if (!events.length) return <EmptyActivity />;
+
+  return (
+    <div className={cn("", className)}>
+      {events.map((event, i) => (
+        <ActivityEntry
+          key={event.id}
+          event={event}
+          isLast={i === events.length - 1}
+        />
+      ))}
+    </div>
+  );
+}

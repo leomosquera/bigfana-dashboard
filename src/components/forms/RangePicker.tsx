@@ -27,8 +27,9 @@ import { DayPicker } from "react-day-picker";
 import type { DateRange as RDPDateRange, DayPickerProps } from "react-day-picker";
 
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
+import { zLayerTw } from "@/lib/design-system/tokens";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useDatePresets } from "@/i18n/formatting";
 import {
@@ -279,7 +280,7 @@ export function RangePicker({
             align="start"
             forceMount
             onOpenAutoFocus={(e) => e.preventDefault()}
-            className="z-40 outline-none"
+            className={cn(zLayerTw("nestedOverlay"), "outline-none")}
           >
             <AnimatePresence>
               {open && (

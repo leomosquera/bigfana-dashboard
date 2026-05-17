@@ -10,6 +10,7 @@ import {
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Info, AlertTriangle, XCircle, X } from "lucide-react";
+import { zLayerTw } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -117,7 +118,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div
             aria-live="polite"
             aria-atomic="false"
-            className="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 pointer-events-none"
+            className={cn(
+              "fixed bottom-5 right-5 flex flex-col gap-2 pointer-events-none",
+              zLayerTw("toast"),
+            )}
           >
             <AnimatePresence mode="popLayout">
               {toasts.map((t) => (

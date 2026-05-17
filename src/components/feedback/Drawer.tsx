@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { zLayerTw } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -103,11 +104,20 @@ export function Drawer({
             exit={{    opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className={cn(
+              "fixed inset-0 bg-black/60 backdrop-blur-sm",
+              zLayerTw("drawer"),
+            )}
           />
 
           {/* Container */}
-          <div className={cn("fixed inset-0 z-50 flex overflow-hidden", config.container)}>
+          <div
+            className={cn(
+              "fixed inset-0 flex overflow-hidden",
+              zLayerTw("drawer"),
+              config.container,
+            )}
+          >
             <motion.div
               initial={config.initial}
               animate={config.animate}

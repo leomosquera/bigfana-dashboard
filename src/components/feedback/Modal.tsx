@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { zLayerTw } from "@/lib/design-system/tokens";
 import { cn } from "@/lib/utils";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -152,11 +153,19 @@ export function Modal({
             exit={{    opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className={cn(
+              "fixed inset-0 bg-black/60 backdrop-blur-sm",
+              zLayerTw("modal"),
+            )}
           />
 
           {/* Panel */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center p-4 pointer-events-none",
+              zLayerTw("modal"),
+            )}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1,    y: 0  }}

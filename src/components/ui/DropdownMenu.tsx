@@ -53,8 +53,9 @@ import {
   useState,
 } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
 import { scaleInProps } from "@/lib/design-system/motion";
+import { zLayerTw } from "@/lib/design-system/tokens";
+import { cn } from "@/lib/utils";
 
 // ─── Internal open-state context ─────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ export const DropdownMenuContent = forwardRef<
           align={align}
           forceMount
           {...props}
-          className="z-40 outline-none"
+          className={cn(zLayerTw("nestedOverlay"), "outline-none")}
           style={{ minWidth }}
         >
           <AnimatePresence>
@@ -359,7 +360,8 @@ export const DropdownMenuSubContent = forwardRef<
       alignOffset={alignOffset}
       {...props}
       className={cn(
-        "z-50 min-w-[160px] rounded-xl border border-white/[0.10]",
+        zLayerTw("nestedOverlay"),
+        "min-w-[160px] rounded-xl border border-white/[0.10]",
         "bg-[#1C1C2A]",
         "shadow-[0_16px_60px_rgba(0,0,0,0.55)]",
         "backdrop-blur-xl",

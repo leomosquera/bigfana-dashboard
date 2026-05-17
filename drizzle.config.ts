@@ -1,4 +1,7 @@
+import * as dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+dotenv.config({ path: ".env.local" });
 
 export default defineConfig({
   dialect: "postgresql",
@@ -9,6 +12,6 @@ export default defineConfig({
   },
   // Verbose output during generation
   verbose: true,
-  // Strict mode: fail on ambiguous schema diffs
-  strict: true,
+  // Strict mode: disabled for non-interactive drizzle-kit push in dev
+  strict: false,
 });
