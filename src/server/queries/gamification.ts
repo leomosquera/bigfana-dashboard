@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { fanPointsLedger, fanLevels, fans } from "@/db/schema";
-import { eq, and, ne, desc, asc } from "drizzle-orm";
+import { eq, and, ne, desc, asc, sql } from "drizzle-orm";
 import type { FanPointsLedger, FanLevel } from "@/db/schema";
 
 export type { FanPointsLedger, FanLevel };
@@ -27,6 +27,34 @@ export async function getFanLedger(
     )
     .orderBy(desc(fanPointsLedger.createdAt))
     .limit(limit);
+}
+
+/**
+ * Sum of all ledger deltas for the fan (org-scoped) plus entry count.
+ * When `entryCount === 0`, callers should fall back to `fans.engagement_score`
+ * for fans without ledger history yet.
+ */
+export async function getFanLedgerPointsAggregate(
+  organizationId: string,
+  fanId: string,
+): Promise<{ sumPoints: number; entryCount: number }> {
+  const [row] = await db
+    .select({
+      sumPoints: sql<number>`COALESCE(SUM(${fanPointsLedger.points}), 0)`,
+      entryCount: sql<number>`COUNT(*)::int`,
+    })
+    .from(fanPointsLedger)
+    .where(
+      and(
+        eq(fanPointsLedger.organizationId, organizationId),
+        eq(fanPointsLedger.fanId, fanId),
+      ),
+    );
+
+  return {
+    sumPoints: Number(row?.sumPoints ?? 0),
+    entryCount: Number(row?.entryCount ?? 0),
+  };
 }
 
 // ─── Levels ───────────────────────────────────────────────────────────────────

@@ -15,8 +15,9 @@ import {
 } from "@/server/queries/engagement-intelligence";
 import {
   computeLevelForScore,
-  getOrgLevels,
   getFanLedger,
+  getFanLedgerPointsAggregate,
+  getOrgLevels,
 } from "@/server/queries/gamification";
 import {
   listEligibleActiveCampaignsForFan,
@@ -135,14 +136,20 @@ function mapExperiences(
   }));
 }
 
-function fanSurface(fan: NonNullable<Awaited<ReturnType<typeof getFanById>>>): DemoFanExperienceFan {
+function fanSurface(
+  fan: NonNullable<Awaited<ReturnType<typeof getFanById>>>,
+  accumulatedPoints: number,
+  levelLabel: string | null,
+): DemoFanExperienceFan {
   return {
     id:               fan.id,
     displayName:      fan.displayName,
     email:            fan.email,
     segment:          fan.segment,
     tier:             fan.tier,
-    engagementScore:  fan.engagementScore,
+    engagementScore:  accumulatedPoints,
+    points:           accumulatedPoints,
+    level:            levelLabel,
     status:           fan.status,
   };
 }
@@ -216,13 +223,14 @@ export async function buildDemoFanExperiencePayload(
   const fan = await getFanById(organizationId, fanId);
   if (!fan) return null;
 
-  const score = fan.engagementScore ?? 0;
+  const fallbackScore = fan.engagementScore ?? 0;
 
   const [
     levels,
     behavioral,
     velocity,
     ledgerHead,
+    ledgerAggregate,
     campaigns,
     sponsors,
     segmentBlock,
@@ -232,15 +240,19 @@ export async function buildDemoFanExperiencePayload(
     getFanBehavioralProfile(organizationId, fanId),
     getEngagementVelocity(organizationId, fanId),
     getFanLedger(organizationId, fanId, 8),
+    getFanLedgerPointsAggregate(organizationId, fanId),
     listEligibleActiveCampaignsForFan(organizationId, fanId),
     listEligibleActiveSponsorAdsForFan(organizationId, fanId),
     resolveSegmentDetail(organizationId, fan.segment),
     getFanEligibleExperiences(organizationId, fan.segment),
   ]);
 
+  const accumulatedPoints =
+    ledgerAggregate.entryCount > 0 ? ledgerAggregate.sumPoints : fallbackScore;
+
   const sortedLevels = [...levels].sort((a, b) => a.minPoints - b.minPoints);
-  const currentLevel = computeLevelForScore(score, sortedLevels);
-  const nextLevel    = pickNextLevel(score, sortedLevels);
+  const currentLevel = computeLevelForScore(accumulatedPoints, sortedLevels);
+  const nextLevel    = pickNextLevel(accumulatedPoints, sortedLevels);
 
   const levelPayload: DemoFanExperienceLevel = {
     current: currentLevel
@@ -262,7 +274,7 @@ export async function buildDemoFanExperiencePayload(
         }
       : null,
     pointsToNextLevel:
-      nextLevel !== null ? Math.max(0, nextLevel.minPoints - score) : null,
+      nextLevel !== null ? Math.max(0, nextLevel.minPoints - accumulatedPoints) : null,
   };
 
   const questionBuckets = await loadFanFacingCampaignQuestionsByCampaignIds(
@@ -299,7 +311,8 @@ export async function buildDemoFanExperiencePayload(
   }));
 
   const statsPayload: DemoFanExperienceStats = {
-    engagementScore: score,
+    engagementScore: accumulatedPoints,
+    totalPoints:     accumulatedPoints,
     velocityTrend:   velocity.trend,
     points30d:       velocity.points30d,
     events30d:       velocity.events30d,
@@ -313,7 +326,7 @@ export async function buildDemoFanExperiencePayload(
   };
 
   return {
-    fan:          fanSurface(fan),
+    fan:          fanSurface(fan, accumulatedPoints, currentLevel?.name ?? null),
     segment:      segmentBlock,
     level:        levelPayload,
     campaigns:    campaignsPayload,

@@ -87,10 +87,13 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      ok: true,
-      recordedRows:       result.recordedRows,
-      totalPointsAwarded: result.totalPointsAwarded,
-      fanEventId:         result.fanEventId,
+      ok:                   true,
+      success:              true,
+      recordedRows:         result.recordedRows,
+      pointsAwarded:        result.totalPointsAwarded,
+      engagementDelta:      result.engagementDelta,
+      totalPointsAwarded:   result.totalPointsAwarded,
+      fanEventId:           result.fanEventId,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Error desconocido.";

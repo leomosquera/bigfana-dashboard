@@ -98,7 +98,12 @@ export interface DemoFanExperienceFan {
   email:            string | null;
   segment:          string | null;
   tier:             string | null;
+  /** Cumulative engagement / points balance (server — same economy as niveles). */
   engagementScore:  number;
+  /** Acumulado oficial de puntos (ledger cuando hay historial; si no, perfil del fan). */
+  points:            number;
+  /** Nivel actual derivado del acumulado (mismo criterio que `level.current`). */
+  level:            string | null;
   status:           string;
 }
 
@@ -113,6 +118,8 @@ export interface DemoFanExperienceLedgerPreviewRow {
 
 export interface DemoFanExperienceStats {
   engagementScore: number;
+  /** Igual que `fan.points` — total acumulado para vistas que lean `stats`. */
+  totalPoints:     number;
   velocityTrend:   "accelerating" | "stable" | "dormant";
   points30d:       number;
   events30d:       number;

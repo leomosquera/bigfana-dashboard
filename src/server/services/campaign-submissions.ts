@@ -36,9 +36,11 @@ export interface SubmitCampaignAnswersParams {
 }
 
 export interface SubmitCampaignAnswersResult {
-  recordedRows: number;
+  recordedRows:       number;
   totalPointsAwarded: number;
-  fanEventId: string;
+  fanEventId:         string;
+  /** Delta aplicado al balance en esta solicitud (= puntos concedidos aquí). */
+  engagementDelta:    number;
 }
 
 // ─── Audience ───────────────────────────────────────────────────────────────
@@ -307,7 +309,7 @@ export async function submitCampaignAnswers(
 
   const fanEventId = fanEventRecord.id;
 
-  await awardPoints({
+  const awardResult = await awardPoints({
     organizationId: input.organizationId,
     fanId:          input.fanId,
     points:         totalPoints,
@@ -325,5 +327,6 @@ export async function submitCampaignAnswers(
     recordedRows:       planned.length,
     totalPointsAwarded: totalPoints,
     fanEventId,
+    engagementDelta:    awardResult.points,
   };
 }

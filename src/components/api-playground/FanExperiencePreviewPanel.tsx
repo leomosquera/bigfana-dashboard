@@ -53,6 +53,8 @@ export function FanExperiencePreviewPanel({
 
   const { fan, segment, level, campaigns, experiences, sponsors, stats, intelligence } = data;
 
+  const levelName = fan.level ?? level.current?.name ?? null;
+
   const dtShort = new Intl.DateTimeFormat("es-AR", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -71,12 +73,12 @@ export function FanExperiencePreviewPanel({
               <p className="text-[11px] text-[#8888AA]">{fan.email ?? "Sin email"}</p>
             </Stack>
             <Stack gap={2} align="end">
-              {level.current?.name ? (
-                <LevelBadge level={level.current.name} />
+              {levelName ? (
+                <LevelBadge level={levelName} />
               ) : (
                 <Badge variant="ghost">Sin nivel</Badge>
               )}
-              <Badge variant="info">{nf.format(fan.engagementScore)} pts</Badge>
+              <Badge variant="info">{nf.format(fan.points)} pts</Badge>
             </Stack>
           </Inline>
 
