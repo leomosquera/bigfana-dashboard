@@ -23,7 +23,7 @@ import {
   listEligibleActiveSponsorAdsForFan,
 } from "@/server/queries/fan-facing-eligibility";
 import type {
-  DemoFanLoginResponse,
+  DemoFanLoginSnapshot,
   DemoFanExperienceResponse,
   DemoFanExperienceFan,
   DemoFanExperienceSegment,
@@ -148,7 +148,7 @@ async function resolveSegmentDetail(
 export async function demoFanLoginByEmail(
   organizationId: string,
   email: string,
-): Promise<DemoFanLoginResponse | null> {
+): Promise<DemoFanLoginSnapshot | null> {
   const fan = await getFanByEmail(organizationId, email);
   if (!fan) return null;
 

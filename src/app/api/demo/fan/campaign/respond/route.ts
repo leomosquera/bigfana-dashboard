@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
-import { getDashboardOrgContextForApi } from "@/server/queries/session";
 import {
   submitCampaignAnswers,
   type CampaignAnswerPayload,
 } from "@/server/services/campaign-submissions";
+import { requireDemoFanBearer } from "@/server/api/demo-fan-auth";
 
+/**
+ * Campaign participation — requires `Authorization: Bearer <demo-fan-token>`.
+ * `fanId` in the body is optional; if present it must match the token. Effective fanId is always from the token.
+ */
 export async function POST(req: Request) {
-  const ctx = await getDashboardOrgContextForApi();
-  if (!ctx) {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const auth = await requireDemoFanBearer(req);
+  if (!auth.ok) return auth.response;
+
+  const { claims } = auth;
+  const fanIdFromToken = claims.fanId;
 
   let body: unknown;
   try {
@@ -23,15 +28,19 @@ export async function POST(req: Request) {
   }
 
   const o          = body as Record<string, unknown>;
-  const fanId      = typeof o.fanId === "string" ? o.fanId.trim() : "";
+  const bodyFanId  = typeof o.fanId === "string" ? o.fanId.trim() : "";
   const campaignId = typeof o.campaignId === "string" ? o.campaignId.trim() : "";
   const answersRaw = o.answers;
 
-  if (!fanId || !campaignId) {
+  if (bodyFanId && bodyFanId !== fanIdFromToken) {
     return NextResponse.json(
-      { error: "fanId y campaignId son obligatorios." },
-      { status: 400 },
+      { error: "fanId no coincide con el token." },
+      { status: 403 },
     );
+  }
+
+  if (!campaignId) {
+    return NextResponse.json({ error: "campaignId es obligatorio." }, { status: 400 });
   }
 
   if (!Array.isArray(answersRaw)) {
@@ -71,8 +80,8 @@ export async function POST(req: Request) {
 
   try {
     const result = await submitCampaignAnswers({
-      organizationId: ctx.org.id,
-      fanId,
+      organizationId: claims.organizationId,
+      fanId:          fanIdFromToken,
       campaignId,
       answers:        normalized,
     });

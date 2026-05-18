@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
-import { getDashboardOrgContextForApi } from "@/server/queries/session";
 import { buildDemoFanExperiencePayload } from "@/server/services/demo-fan-api";
+import { requireDemoFanBearer } from "@/server/api/demo-fan-auth";
 
+/**
+ * Fan experience payload — requires `Authorization: Bearer <demo-fan-token>`.
+ * Fan identity comes from the token (org + fanId enforced).
+ */
 export async function GET(req: Request) {
-  const ctx = await getDashboardOrgContextForApi();
-  if (!ctx) {
-    return NextResponse.json({ error: "No autorizado." }, { status: 401 });
-  }
+  const auth = await requireDemoFanBearer(req);
+  if (!auth.ok) return auth.response;
 
-  const url   = new URL(req.url);
-  const fanId = url.searchParams.get("fanId")?.trim() ?? "";
+  const { claims } = auth;
 
-  if (!fanId) {
-    return NextResponse.json({ error: "fanId es obligatorio." }, { status: 400 });
-  }
+  const payload = await buildDemoFanExperiencePayload(
+    claims.organizationId,
+    claims.fanId,
+  );
 
-  const payload = await buildDemoFanExperiencePayload(ctx.org.id, fanId);
   if (!payload) {
     return NextResponse.json({ error: "Fan no encontrado." }, { status: 404 });
   }

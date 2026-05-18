@@ -14,12 +14,18 @@ import type { DemoFanExperienceResponse } from "@/lib/demo-fan-api-contract";
 import { fadeUpProps } from "@/lib/design-system/motion";
 import { cn } from "@/lib/utils";
 
-const LOGIN_DEFAULT = `{
-  "email": "demo@bigfana.com"
-}`;
+function makeLoginDefault(organizationId: string) {
+  return JSON.stringify(
+    {
+      email:          "demo@bigfana.com",
+      organizationId,
+    },
+    null,
+    2,
+  );
+}
 
 const RESPOND_DEFAULT = `{
-  "fanId": "<fan-id>",
   "campaignId": "<campaign-id>",
   "answers": [
     {
@@ -155,13 +161,18 @@ function EndpointShell({
   );
 }
 
-export function ApiPlaygroundClient() {
-  const [loginBody, setLoginBody] = useState(LOGIN_DEFAULT);
+export function ApiPlaygroundClient({
+  defaultOrganizationId,
+}: {
+  defaultOrganizationId: string;
+}) {
+  const [loginBody, setLoginBody] = useState(() => makeLoginDefault(defaultOrganizationId));
   const [loginResponse, setLoginResponse] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const [fanIdQuery, setFanIdQuery] = useState("");
+  const [fanAccessToken, setFanAccessToken] = useState<string | null>(null);
+
   const [experienceResponse, setExperienceResponse] = useState("");
   const [experiencePreview, setExperiencePreview] =
     useState<DemoFanExperienceResponse | null>(null);
@@ -208,6 +219,13 @@ export function ApiPlaygroundClient() {
             ? (data as { error: string }).error
             : `HTTP ${res.status}`;
         setLoginError(msg);
+      } else if (
+        typeof data === "object" &&
+        data !== null &&
+        "token" in data &&
+        typeof (data as { token?: unknown }).token === "string"
+      ) {
+        setFanAccessToken((data as { token: string }).token);
       }
     } catch {
       setLoginError("No se pudo completar la solicitud.");
@@ -218,20 +236,24 @@ export function ApiPlaygroundClient() {
   }, [loginBody]);
 
   const runExperience = useCallback(async () => {
-    const id = fanIdQuery.trim();
     setExperienceLoading(true);
     setExperienceError(null);
     setExperiencePreview(null);
 
-    if (!id) {
-      setExperienceError("Ingresá un fanId para consultar.");
+    if (!fanAccessToken) {
+      setExperienceError(
+        "Necesitás un token demo. Ejecutá Fan Login para obtener el Bearer.",
+      );
       setExperienceLoading(false);
       return;
     }
 
     try {
-      const url = `/api/demo/fan/experience?fanId=${encodeURIComponent(id)}`;
-      const res = await fetch(url, { method: "GET", credentials: "include" });
+      const res = await fetch("/api/demo/fan/experience", {
+        method:      "GET",
+        credentials: "include",
+        headers:     { Authorization: `Bearer ${fanAccessToken}` },
+      });
       const raw = await res.text();
       const data = await safeParseJson(raw);
 
@@ -259,12 +281,20 @@ export function ApiPlaygroundClient() {
     } finally {
       setExperienceLoading(false);
     }
-  }, [fanIdQuery]);
+  }, [fanAccessToken]);
 
   const runRespond = useCallback(async () => {
     setRespondLoading(true);
     setRespondError(null);
     try {
+      if (!fanAccessToken) {
+        setRespondError(
+          "Necesitás un token demo. Ejecutá Fan Login primero.",
+        );
+        setRespondLoading(false);
+        return;
+      }
+
       let parsed: unknown;
       try {
         parsed = JSON.parse(respondBody);
@@ -277,8 +307,11 @@ export function ApiPlaygroundClient() {
       const res = await fetch("/api/demo/fan/campaign/respond", {
         method:      "POST",
         credentials: "include",
-        headers:     { "Content-Type": "application/json" },
-        body:        JSON.stringify(parsed),
+        headers:     {
+          "Content-Type":  "application/json",
+          Authorization:   `Bearer ${fanAccessToken}`,
+        },
+        body: JSON.stringify(parsed),
       });
 
       const raw = await res.text();
@@ -302,7 +335,7 @@ export function ApiPlaygroundClient() {
     } finally {
       setRespondLoading(false);
     }
-  }, [respondBody]);
+  }, [respondBody, fanAccessToken]);
 
   return (
     <Stack gap={6}>
@@ -314,8 +347,9 @@ export function ApiPlaygroundClient() {
         <div className="space-y-1">
           <p className="text-sm font-semibold text-[#F0F0F8]">Fan Experience API · demo interna</p>
           <p className="text-xs text-[#55556A] leading-relaxed">
-            Endpoints organizados por club (sesión Better Auth). Sin JWT fan-facing — únicamente para pruebas
-            curadas dentro del panel.
+            Login demo público por email + organizationId devuelve un token firmado; Fan Experience y Campaign Response
+            requieren <code className="text-[#8888AA]">Authorization: Bearer</code>. El club actual prellená el{" "}
+            <code className="text-[#8888AA]">organizationId</code> en el ejemplo.
           </p>
         </div>
       </motion.div>
@@ -325,9 +359,9 @@ export function ApiPlaygroundClient() {
         method="POST"
         path="/api/demo/fan/login"
         title="Fan Login"
-        description="Identificá un fan por email dentro del tenant activo y obtené un snapshot compacto de identidad."
+        description="Sin sesión de administrador: email + organizationId del club. Respuesta incluye token Bearer firmado (demo) con fanId y organizationId."
         exampleLabel="Ejemplo de solicitud"
-        exampleBody={LOGIN_DEFAULT.trim()}
+        exampleBody={makeLoginDefault(defaultOrganizationId).trim()}
       >
         <Stack gap={4}>
           <div>
@@ -355,9 +389,10 @@ export function ApiPlaygroundClient() {
               size="sm"
               leftIcon={<RotateCcw size={14} />}
               onClick={() => {
-                setLoginBody(LOGIN_DEFAULT);
+                setLoginBody(makeLoginDefault(defaultOrganizationId));
                 setLoginResponse("");
                 setLoginError(null);
+                setFanAccessToken(null);
               }}
             >
               Reiniciar
@@ -376,24 +411,23 @@ export function ApiPlaygroundClient() {
       {/* Fan Experience */}
       <EndpointShell
         method="GET"
-        path="/api/demo/fan/experience?fanId="
+        path="/api/demo/fan/experience"
         title="Fan Experience"
-        description="Payload personalizado reutilizando intelligence, segmentación, campañas elegibles, sponsors y gamificación."
-        exampleLabel="Ejemplo de llamada"
-        exampleBody={`GET /api/demo/fan/experience?fanId=<uuid-fan>`}
+        description="Requiere encabezado Authorization: Bearer con el token devuelto por Fan Login. El fan se resuelve desde el token — org y fanId quedan alineados."
+        exampleLabel="Encabezado requerido"
+        exampleBody={`Authorization: Bearer <token>\nGET /api/demo/fan/experience`}
       >
         <Stack gap={4}>
-          <div>
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-[#55556A] mb-2 block">
-              fanId (query)
-            </label>
-            <Textarea
-              value={fanIdQuery}
-              onChange={(e) => setFanIdQuery(e.target.value)}
-              placeholder="Pegá el fanId devuelto por Fan Login…"
-              className="font-mono text-[11px] min-h-[72px] bg-[#0D0D14] border-white/[0.08]"
-            />
-          </div>
+          {fanAccessToken && (
+            <Surface variant="base" radius="lg" className="p-3 border border-[#00D4A8]/15 bg-[#00D4A8]/[0.04]">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#55556A] mb-1">
+                Token demo activo
+              </p>
+              <p className="text-[10px] font-mono text-[#C8C8DD] break-all line-clamp-2">
+                {fanAccessToken.slice(0, 48)}…
+              </p>
+            </Surface>
+          )}
           <Inline gap={2}>
             <Button
               intent="primary"
@@ -411,7 +445,6 @@ export function ApiPlaygroundClient() {
               size="sm"
               leftIcon={<RotateCcw size={14} />}
               onClick={() => {
-                setFanIdQuery("");
                 setExperienceResponse("");
                 setExperiencePreview(null);
                 setExperienceError(null);
@@ -479,7 +512,7 @@ export function ApiPlaygroundClient() {
         method="POST"
         path="/api/demo/fan/campaign/respond"
         title="Campaign Response"
-        description="Participación demo (trivia, encuesta, predicción, etc.) usando el mismo pipeline que producción: respuestas, fan_events y puntos."
+        description="Participación demo (trivia, encuesta, predicción, etc.) usando el mismo pipeline que producción. Mismo Bearer que Fan Experience; fanId se toma del token (opcional en el cuerpo si coincide)."
         exampleLabel="Ejemplo de solicitud"
         exampleBody={RESPOND_DEFAULT.trim()}
       >

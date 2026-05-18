@@ -10,7 +10,7 @@ export default async function ApiPlaygroundPage() {
       title="Playground API Fan"
       subtitle={`${org.name} · Demo curada Fan Experience (interno)`}
     >
-      <ApiPlaygroundClient />
+      <ApiPlaygroundClient defaultOrganizationId={org.id} />
     </PageShell>
   );
 }

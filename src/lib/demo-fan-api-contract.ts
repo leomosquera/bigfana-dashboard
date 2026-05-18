@@ -3,13 +3,20 @@
  * Client-safe — does not import server-only modules.
  */
 
-export interface DemoFanLoginResponse {
+export interface DemoFanLoginSnapshot {
   fanId:             string;
   displayName:       string;
   segment:           string | null;
   level:             string | null;
   engagementScore:   number;
   status:            string;
+}
+
+export interface DemoFanLoginResponse extends DemoFanLoginSnapshot {
+  /** Signed demo fan token — send as `Authorization: Bearer <token>` on fan APIs */
+  token:     string;
+  tokenType: "Bearer";
+  expiresIn: number;
 }
 
 export interface DemoFanExperienceSegment {
