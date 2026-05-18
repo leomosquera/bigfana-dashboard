@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import {
+  demoFanCorsPreflightResponse,
+  mergeDemoFanCorsHeaders,
+} from "@/lib/demo-fan-cors";
 
 /**
  * Cookie prefix used by Better Auth.
@@ -21,11 +25,14 @@ export function proxy(request: NextRequest) {
    * - GET  /api/demo/fan/experience, POST /api/demo/fan/campaign/respond → Authorization: Bearer
    *   validated inside route handlers (`requireDemoFanBearer`).
    *
-   * Matcher below must include this prefix so the proxy runs on these routes and skips the
-   * dashboard session gate (a broader “protect all /api” deployment would otherwise 401 here).
+   * CORS for browser clients (e.g. fan webapp on localhost:3000): OPTIONS preflight +
+   * response headers are applied in the proxy; see `@/lib/demo-fan-cors`.
    */
   if (pathname.startsWith("/api/demo/fan/")) {
-    return NextResponse.next();
+    if (request.method === "OPTIONS") {
+      return demoFanCorsPreflightResponse(request);
+    }
+    return mergeDemoFanCorsHeaders(request, NextResponse.next());
   }
 
   const session = getSessionCookie(request, { cookiePrefix: COOKIE_PREFIX });
