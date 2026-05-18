@@ -21,6 +21,7 @@ import {
 import {
   listEligibleActiveCampaignsForFan,
   listEligibleActiveSponsorAdsForFan,
+  loadFanFacingCampaignQuestionsByCampaignIds,
 } from "@/server/queries/fan-facing-eligibility";
 import type {
   DemoFanLoginSnapshot,
@@ -36,6 +37,48 @@ import type {
   DemoVelocitySnapshot,
   DemoEligibleExperienceSurface,
 } from "@/lib/demo-fan-api-contract";
+
+function fanCampaignPresentation(
+  campaignType: string,
+  metadata:     unknown,
+): { image: string | null; ctaLabel: string } {
+  const m =
+    metadata && typeof metadata === "object"
+      ? (metadata as Record<string, unknown>)
+      : {};
+
+  const rawImage =
+    typeof m.imageUrl === "string" && m.imageUrl.trim()
+      ? m.imageUrl.trim()
+      : typeof m.image === "string" && m.image.trim()
+        ? m.image.trim()
+        : null;
+
+  const fromMeta =
+    typeof m.ctaLabel === "string" && m.ctaLabel.trim()
+      ? m.ctaLabel.trim()
+      : typeof m.cta === "string" && m.cta.trim()
+        ? m.cta.trim()
+        : null;
+
+  if (fromMeta) {
+    return { image: rawImage, ctaLabel: fromMeta };
+  }
+
+  const defaults: Record<string, string> = {
+    survey:     "Responder encuesta",
+    poll:       "Votar",
+    trivia:     "Jugar trivia",
+    prediction: "Hacer pronóstico",
+    raffle:     "Participar",
+    reward:     "Ver recompensa",
+  };
+
+  return {
+    image: rawImage,
+    ctaLabel: defaults[campaignType] ?? "Participar",
+  };
+}
 
 function pickNextLevel(score: number, levels: FanLevel[]): FanLevel | null {
   const sorted = [...levels].sort((a, b) => a.minPoints - b.minPoints);
@@ -222,16 +265,28 @@ export async function buildDemoFanExperiencePayload(
       nextLevel !== null ? Math.max(0, nextLevel.minPoints - score) : null,
   };
 
-  const campaignsPayload: DemoFanExperienceCampaign[] = campaigns.map((c) => ({
-    id:               c.id,
-    title:            c.title,
-    description:      c.description,
-    type:             c.type,
-    pointsReward:     c.pointsReward,
-    startsAt:         c.startsAt.toISOString(),
-    endsAt:           c.endsAt.toISOString(),
-    alreadyResponded: c.alreadyResponded,
-  }));
+  const questionBuckets = await loadFanFacingCampaignQuestionsByCampaignIds(
+    organizationId,
+    campaigns.map((c) => c.id),
+  );
+
+  const campaignsPayload: DemoFanExperienceCampaign[] = campaigns.map((c) => {
+    const { image, ctaLabel } = fanCampaignPresentation(c.type, c.metadata);
+    return {
+      id:               c.id,
+      type:             c.type,
+      title:            c.title,
+      description:      c.description,
+      image,
+      pointsReward:     c.pointsReward,
+      startsAt:         c.startsAt.toISOString(),
+      endsAt:           c.endsAt.toISOString(),
+      status:           c.status,
+      ctaLabel,
+      alreadyResponded: c.alreadyResponded,
+      questions:        questionBuckets.get(c.id) ?? [],
+    };
+  });
 
   const sponsorsPayload: DemoFanExperienceSponsor[] = sponsors.map((s) => ({
     id:             s.id,

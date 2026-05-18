@@ -49,15 +49,37 @@ export interface DemoFanExperienceLevel {
   pointsToNextLevel: number | null;
 }
 
+/** Fan-facing option — no correctness hints (trivia answers stay server-side). */
+export interface DemoFanExperienceCampaignOption {
+  id:        string;
+  label:     string;
+  value:     string;
+  sortOrder: number;
+}
+
+export interface DemoFanExperienceCampaignQuestion {
+  id:        string;
+  /** `multiple_choice` | `short_text` — mirrors campaign_questions.type */
+  type:      string;
+  question:  string;
+  sortOrder: number;
+  options:   DemoFanExperienceCampaignOption[];
+}
+
 export interface DemoFanExperienceCampaign {
   id:               string;
+  type:             string;
   title:            string;
   description:      string | null;
-  type:             string;
+  /** Hero / cover — from campaign metadata when configured */
+  image:            string | null;
   pointsReward:     number;
   startsAt:         string;
   endsAt:           string;
+  status:           string;
+  ctaLabel:         string;
   alreadyResponded: boolean;
+  questions:        DemoFanExperienceCampaignQuestion[];
 }
 
 export interface DemoFanExperienceSponsor {

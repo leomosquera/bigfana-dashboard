@@ -6,10 +6,12 @@
 import { db } from "@/db";
 import {
   campaigns,
+  campaignQuestions,
+  campaignOptions,
   sponsorAds,
   campaignResponses,
 } from "@/db/schema";
-import { eq, and, lte, gte, desc, asc } from "drizzle-orm";
+import { eq, and, lte, gte, desc, asc, inArray } from "drizzle-orm";
 import { getFanById } from "./fans";
 import {
   normalizeCampaignAudience,
@@ -25,6 +27,8 @@ export interface EligibleCampaignSurface {
   pointsReward:     number;
   startsAt:         Date;
   endsAt:           Date;
+  /** Raw row metadata — fan API derives presentation fields server-side */
+  metadata:         unknown;
   segmentRules:     unknown;
   alreadyResponded: boolean;
 }
@@ -38,6 +42,103 @@ export interface EligibleSponsorAdSurface {
   destinationUrl: string | null;
   priority:       number;
   segmentRules:   unknown;
+}
+
+/** Fan-app surface for a question row (options omit `isCorrect`). */
+export interface FanFacingCampaignQuestionPayload {
+  id:        string;
+  type:      string;
+  question:  string;
+  sortOrder: number;
+  options:   {
+    id:        string;
+    label:     string;
+    value:     string;
+    sortOrder: number;
+  }[];
+}
+
+/**
+ * Loads ordered questions + options for campaigns already vetted as org-scoped + fan-eligible.
+ * Enforces organization_id on joins — do not pass arbitrary campaign ids from clients.
+ */
+export async function loadFanFacingCampaignQuestionsByCampaignIds(
+  organizationId: string,
+  campaignIds:  string[],
+): Promise<Map<string, FanFacingCampaignQuestionPayload[]>> {
+  const byCampaign = new Map<string, FanFacingCampaignQuestionPayload[]>();
+  if (campaignIds.length === 0) return byCampaign;
+
+  const qRows = await db
+    .select({
+      id:         campaignQuestions.id,
+      campaignId: campaignQuestions.campaignId,
+      question:   campaignQuestions.question,
+      type:       campaignQuestions.type,
+      sortOrder:  campaignQuestions.sortOrder,
+    })
+    .from(campaignQuestions)
+    .innerJoin(campaigns, eq(campaignQuestions.campaignId, campaigns.id))
+    .where(
+      and(
+        eq(campaigns.organizationId, organizationId),
+        inArray(campaignQuestions.campaignId, campaignIds),
+      ),
+    )
+    .orderBy(asc(campaignQuestions.campaignId), asc(campaignQuestions.sortOrder));
+
+  const questionIds = qRows.map((r) => r.id);
+
+  const optRows =
+    questionIds.length === 0
+      ? []
+      : await db
+          .select({
+            id:         campaignOptions.id,
+            questionId: campaignOptions.questionId,
+            label:      campaignOptions.label,
+            value:      campaignOptions.value,
+            sortOrder:  campaignOptions.sortOrder,
+          })
+          .from(campaignOptions)
+          .innerJoin(campaignQuestions, eq(campaignOptions.questionId, campaignQuestions.id))
+          .innerJoin(campaigns, eq(campaignQuestions.campaignId, campaigns.id))
+          .where(
+            and(
+              eq(campaigns.organizationId, organizationId),
+              inArray(campaignOptions.questionId, questionIds),
+            ),
+          )
+          .orderBy(asc(campaignOptions.questionId), asc(campaignOptions.sortOrder));
+
+  const optsByQuestion = new Map<string, FanFacingCampaignQuestionPayload["options"]>();
+  for (const o of optRows) {
+    const list = optsByQuestion.get(o.questionId) ?? [];
+    list.push({
+      id:        o.id,
+      label:     o.label,
+      value:     o.value,
+      sortOrder: o.sortOrder,
+    });
+    optsByQuestion.set(o.questionId, list);
+  }
+
+  for (const row of qRows) {
+    const options =
+      row.type === "multiple_choice" ? (optsByQuestion.get(row.id) ?? []) : [];
+    const payload: FanFacingCampaignQuestionPayload = {
+      id:        row.id,
+      type:      row.type,
+      question:  row.question,
+      sortOrder: row.sortOrder,
+      options,
+    };
+    const arr = byCampaign.get(row.campaignId) ?? [];
+    arr.push(payload);
+    byCampaign.set(row.campaignId, arr);
+  }
+
+  return byCampaign;
 }
 
 async function fanRespondedCampaignIds(
@@ -104,6 +205,7 @@ export async function listEligibleActiveCampaignsForFan(
       pointsReward:     c.pointsReward,
       startsAt:         c.startsAt,
       endsAt:           c.endsAt,
+      metadata:         c.metadata,
       segmentRules:     c.segmentRules,
       alreadyResponded: responded.has(c.id),
     });

@@ -158,6 +158,9 @@ export function FanExperiencePreviewPanel({
                   <p className="text-[10px] text-[#55556A] mt-2 tabular-nums">
                     {dtShort.format(new Date(c.startsAt))} — {dtShort.format(new Date(c.endsAt))}
                   </p>
+                  <p className="text-[10px] text-[#55556A] mt-1">
+                    {c.questions.length} pregunta{c.questions.length === 1 ? "" : "s"} · {c.ctaLabel}
+                  </p>
                 </Surface>
               ))}
             </Stack>
