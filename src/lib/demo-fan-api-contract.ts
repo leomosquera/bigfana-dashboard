@@ -17,6 +17,8 @@ export interface DemoFanLoginResponse extends DemoFanLoginSnapshot {
   token:     string;
   tokenType: "Bearer";
   expiresIn: number;
+  /** Acumulado oficial de puntos (ledger cuando hay historial; si no, engagementScore). */
+  points:    number;
 }
 
 export interface DemoFanExperienceSegment {

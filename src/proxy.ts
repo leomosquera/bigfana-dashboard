@@ -21,7 +21,7 @@ export function proxy(request: NextRequest) {
   /**
    * Fan Experience demo API — never enforce Better Auth cookies at the edge.
    *
-   * - POST /api/demo/fan/login → public (email + organizationId); used by Postman / fan webapp.
+   * - POST /api/demo/fan/login, POST /api/demo/fan/register → public; used by fan webapp.
    * - GET  /api/demo/fan/experience, POST /api/demo/fan/campaign/respond → Authorization: Bearer
    *   validated inside route handlers (`requireDemoFanBearer`).
    *

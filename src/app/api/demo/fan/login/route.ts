@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { organizations } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import {
+  issueDemoFanSession,
+  resolveDemoFanPoints,
+} from "@/server/api/demo-fan-session";
 import { demoFanLoginByEmail } from "@/server/services/demo-fan-api";
-import { signDemoFanToken } from "@/lib/demo-fan-token";
 
 /**
  * Public demo fan login (no Better Auth).
@@ -58,28 +61,16 @@ export async function POST(req: Request) {
     );
   }
 
-  try {
-    const { token, expiresIn } = signDemoFanToken(row.fanId, organizationId);
+  const points = await resolveDemoFanPoints(
+    organizationId,
+    row.fanId,
+    row.engagementScore,
+  );
 
-    return NextResponse.json({
-      token,
-      tokenType:       "Bearer" as const,
-      expiresIn,
-      fanId:           row.fanId,
-      displayName:     row.displayName,
-      segment:         row.segment,
-      level:           row.level,
-      engagementScore: row.engagementScore,
-      status:          row.status,
-    });
-  } catch (err) {
-    console.error("[demo fan login] token issue:", err);
-    return NextResponse.json(
-      {
-        error:
-          "No se pudo emitir el token. Verificá DEMO_FAN_TOKEN_SECRET o AUTH_SECRET.",
-      },
-      { status: 503 },
-    );
+  const session = issueDemoFanSession(organizationId, row, points);
+  if ("error" in session) {
+    return NextResponse.json({ error: session.error }, { status: 503 });
   }
+
+  return NextResponse.json(session.payload);
 }

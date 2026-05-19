@@ -1,9 +1,13 @@
 "use server";
 
 import { db } from "@/db";
-import { fans, integrationJobs } from "@/db/schema";
+import { fans } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getDashboardContext } from "@/server/queries/session";
+import {
+  createOrganizationFan,
+  enqueueFanEepJob,
+} from "@/server/services/fans";
 
 // ─── Input types ──────────────────────────────────────────────────────────────
 
@@ -39,32 +43,6 @@ export type ActionResult =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Enqueues an EEP integration job for a fan mutation.
- * Uses an idempotency key to prevent duplicate jobs.
- * Never throws — a failed enqueue should not block the primary mutation.
- */
-async function enqueueEepJob(
-  organizationId: string,
-  fanId: string,
-  operation: "create" | "update" | "delete",
-): Promise<void> {
-  const idempotencyKey = `eep:fan:${operation}:${fanId}`;
-
-  await db
-    .insert(integrationJobs)
-    .values({
-      organizationId,
-      entityType: "fan",
-      entityId: fanId,
-      provider: "eep",
-      operation,
-      status: "pending",
-      idempotencyKey,
-    })
-    .onConflictDoNothing({ target: integrationJobs.idempotencyKey });
-}
-
-/**
  * Verifies the fan belongs to the current org before mutation.
  * Returns the fan row or throws if not found / wrong org.
  */
@@ -89,27 +67,21 @@ export async function createFan(input: CreateFanInput): Promise<ActionResult> {
   try {
     const { org } = await getDashboardContext();
 
-    const displayName = `${input.firstName} ${input.lastName}`.trim();
+    const result = await createOrganizationFan({
+      organizationId: org.id,
+      firstName:      input.firstName,
+      lastName:       input.lastName,
+      email:          input.email,
+      phone:          input.phone,
+      birthDate:      input.birthDate,
+      gender:         input.gender,
+      city:           input.city,
+      country:        input.country,
+    });
 
-    const [fan] = await db
-      .insert(fans)
-      .values({
-        organizationId: org.id,
-        firstName: input.firstName,
-        lastName: input.lastName,
-        displayName,
-        email: input.email || null,
-        phone: input.phone || null,
-        birthDate: input.birthDate || null,
-        gender: input.gender || null,
-        city: input.city || null,
-        country: input.country || null,
-        status: "active",
-        eepSyncStatus: "pending",
-      })
-      .returning({ id: fans.id });
-
-    await enqueueEepJob(org.id, fan.id, "create");
+    if (!result.ok) {
+      return { success: false, error: result.error };
+    }
 
     return { success: true };
   } catch (err) {
@@ -143,7 +115,7 @@ export async function updateFan(input: UpdateFanInput): Promise<ActionResult> {
       })
       .where(and(eq(fans.id, input.id), eq(fans.organizationId, org.id)));
 
-    await enqueueEepJob(org.id, input.id, "update");
+    await enqueueFanEepJob(org.id, input.id, "update");
 
     return { success: true };
   } catch (err) {
@@ -163,7 +135,7 @@ export async function suspendFan(fanId: string): Promise<ActionResult> {
       .set({ status: "suspended", eepSyncStatus: "pending", updatedAt: new Date() })
       .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
 
-    await enqueueEepJob(org.id, fanId, "update");
+    await enqueueFanEepJob(org.id, fanId, "update");
 
     return { success: true };
   } catch (err) {
@@ -183,7 +155,7 @@ export async function reactivateFan(fanId: string): Promise<ActionResult> {
       .set({ status: "active", eepSyncStatus: "pending", updatedAt: new Date() })
       .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
 
-    await enqueueEepJob(org.id, fanId, "update");
+    await enqueueFanEepJob(org.id, fanId, "update");
 
     return { success: true };
   } catch (err) {
@@ -203,7 +175,7 @@ export async function archiveFan(fanId: string): Promise<ActionResult> {
       .set({ status: "archived", eepSyncStatus: "pending", updatedAt: new Date() })
       .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
 
-    await enqueueEepJob(org.id, fanId, "delete");
+    await enqueueFanEepJob(org.id, fanId, "delete");
 
     return { success: true };
   } catch (err) {
