@@ -55,7 +55,7 @@ const alertTypes = [
 ];
 
 const channels = [
-  { ch: "Email",    val: "admin@riverclub.com", active: true  },
+  { ch: "Email",    val: "admin@tolucafc.com", active: true  },
   { ch: "Slack",    val: "#bigfana-alerts",     active: true  },
   { ch: "WhatsApp", val: "+54 9 11 XXXX",       active: false },
   { ch: "Webhook",  val: "api.club.com/hook",   active: true  },

@@ -210,7 +210,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 exit={{ opacity: 0 }}
                 className="overflow-hidden"
               >
-                <p className="text-xs font-semibold text-[#F0F0F8] whitespace-nowrap">River Club</p>
+                <p className="text-xs font-semibold text-[#F0F0F8] whitespace-nowrap">toluca FC</p>
                 <p className="text-[10px] text-[#55556A] whitespace-nowrap">Admin</p>
               </motion.div>
             )}

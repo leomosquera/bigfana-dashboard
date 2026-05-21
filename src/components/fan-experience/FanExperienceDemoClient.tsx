@@ -83,7 +83,7 @@ function DemoPhoneExperience({ persona }: { persona: DemoFanPersona }) {
       {/* Status strip */}
       <Inline justify="between" className="px-1 pb-3 opacity-70">
         <span className="text-[10px] font-semibold text-[#55556A]">09:41</span>
-        <span className="text-[10px] font-semibold text-[#55556A]">River ID · demo</span>
+        <span className="text-[10px] font-semibold text-[#55556A]">Toluca ID · demo</span>
       </Inline>
 
       <Stack gap={4} className="flex-1 min-h-0 overflow-y-auto pr-1 -mr-1">

@@ -31,10 +31,10 @@ const integrations = [
 ];
 
 const clubFields = [
-  { label: "Nombre del club",  value: "River Club",                  name: "name"    },
-  { label: "País / Liga",      value: "Argentina · Primera División", name: "league"  },
-  { label: "Sitio web",        value: "https://riverclub.com.ar",    name: "website" },
-  { label: "Estadio",          value: "El Monumental",               name: "stadium" },
+  { label: "Nombre del club",  value: "Toluca FC",                   name: "name"    },
+  { label: "País / Liga",      value: "México · Primera División",   name: "league"  },
+  { label: "Sitio web",        value: "https://tolucafc.com",        name: "website" },
+  { label: "Estadio",          value: "Nemesio Diez",                name: "stadium" },
   { label: "Capacidad",        value: "84,567",                      name: "cap"     },
   { label: "Temporada activa", value: "2025/2026",                   name: "season"  },
 ];
@@ -47,8 +47,8 @@ function ClubSection() {
           RC
         </div>
         <div className="flex-1">
-          <p className="text-base font-bold text-[#F0F0F8]">River Club</p>
-          <p className="text-sm text-[#55556A]">club@riverclub.com · Buenos Aires, Argentina</p>
+          <p className="text-base font-bold text-[#F0F0F8]">Toluca FC</p>
+          <p className="text-sm text-[#55556A]">club@tolucafc.com · Toluca, México</p>
           <p className="text-xs text-[#FF2D55] mt-1">Plan Enterprise · Activo hasta Jun 2027</p>
         </div>
         <Button intent="secondary" size="sm">Editar logo</Button>

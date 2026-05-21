@@ -988,10 +988,10 @@ const clubOptions = [
   {
     group: "Liga Argentina",
     options: [
-      { value: "river",   label: "River Plate",    icon: <Shield size={13} />, description: "Buenos Aires · 89K fans" },
-      { value: "boca",    label: "Boca Juniors",   icon: <Shield size={13} />, description: "Buenos Aires · 112K fans" },
-      { value: "racing",  label: "Racing Club",    icon: <Shield size={13} />, description: "Avellaneda · 34K fans" },
-      { value: "sanlo",   label: "San Lorenzo",    icon: <Shield size={13} />, description: "CABA · 28K fans" },
+      { value: "river",   label: "Toluca FC",    icon: <Shield size={13} />, description: "Toluca · 4M fans" },
+      { value: "boca",    label: "América",   icon: <Shield size={13} />, description: "Ciudad de México · 18.4M fans" },
+      { value: "racing",  label: "Atlas",    icon: <Shield size={13} />, description: "Guadalajara · 1.6M fans" },
+      { value: "sanlo",   label: "Monterrey",    icon: <Shield size={13} />, description: "Guadalupe · 2.8M fans" },
     ],
   },
   {
@@ -2261,7 +2261,7 @@ applyTenantTheme(tenantPresets["club-azul"]);
 // Or with a full TenantTheme object from the DB:
 applyTenantTheme({
   id: "river-club",
-  displayName: "River Club",
+  displayName: "Toluca FC",
   brand: {
     primary:           "#FF2D55",
     primaryDim:        "#CC1F3F",

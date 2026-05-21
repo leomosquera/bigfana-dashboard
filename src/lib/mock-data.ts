@@ -443,8 +443,8 @@ export const communityPulse = [
 // ─── Last Match ───────────────────────────────────────────────────────────────
 
 export const lastMatch = {
-  homeTeam: { name: "River Club", abbr: "RIV", score: 3 },
-  awayTeam: { name: "Estudiantes", abbr: "EST", score: 1 },
+  homeTeam: { name: "Toluca FC", abbr: "TOL", score: 3 },
+  awayTeam: { name: "Monterrey", abbr: "MON", score: 1 },
   date: "Sáb 27 Abr 2026",
   time: "21:00",
   stadium: "El Monumental",
