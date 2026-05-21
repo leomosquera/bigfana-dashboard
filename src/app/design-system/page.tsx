@@ -1499,7 +1499,7 @@ function FeedbackSectionInner() {
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           title="Fan Profile"
-          subtitle="River Club — Active Member"
+          subtitle="Toluca FC — Active Member"
           footer={
             <>
               <Button intent="ghost"   size="sm" onClick={() => setDrawerOpen(false)}>Cancel</Button>
@@ -1674,7 +1674,7 @@ function LayoutSection() {
               </div>
               <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl">
                 <Avatar initials="RC" size="sm" color="brand" />
-                <span className="text-xs font-semibold text-[#F0F0F8]">River Club</span>
+                <span className="text-xs font-semibold text-[#F0F0F8]">toluca FC</span>
               </div>
             </div>
           </div>

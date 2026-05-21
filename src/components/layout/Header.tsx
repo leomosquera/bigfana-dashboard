@@ -549,7 +549,7 @@ export function Header({
                 font-semibold
                 text-[#F0F0F8]
               ">
-                River Club
+                Toluca FC
               </p>
 
               <p className="
@@ -641,14 +641,14 @@ export function Header({
                         font-semibold
                         text-[#F0F0F8]
                       ">
-                        River Club
+                        Toluca FC
                       </p>
 
                       <p className="
                         text-xs
                         text-[#55556A]
                       ">
-                        admin@riverclub.com
+                        admin@tolucafc.com
                       </p>
 
                     </div>
