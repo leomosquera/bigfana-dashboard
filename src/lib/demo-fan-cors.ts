@@ -10,7 +10,7 @@ import { NextResponse } from "next/server";
 function isAllowedOrigin(origin: string): boolean {
   return (
     origin === "http://localhost:3000" ||
-    origin === "https://bigfana-plataform.vercel.app" ||
+    origin === "https://bigfana-platform.vercel.app" ||
     origin.endsWith(".vercel.app")
   );
 }
