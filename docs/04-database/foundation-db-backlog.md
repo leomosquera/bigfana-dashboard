@@ -151,7 +151,7 @@ MANAGED
 
 ## Competition Memberships
 
-- [ ] Create competition_organizations
+- [x] Create competition_organizations
 - [ ] Create competition metadata structure
 
 ---
