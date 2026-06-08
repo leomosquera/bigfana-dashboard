@@ -323,16 +323,24 @@ If implementation and documentation diverge, documentation must be updated immed
 
 ---
 
+---
+
 # Foundation DB v1 Progress
 
 Completed migrations:
 
 - 001_create_fan_organizations
 
+Current migration:
+
+- 002_create_sports
+
 Current phase:
 
 Sports and Competition Hierarchy
 
-Next migration:
+Next migrations:
 
-002_create_sports
+- 002_create_sports
+- 003_create_competitions
+- 004_create_competition_organizations
