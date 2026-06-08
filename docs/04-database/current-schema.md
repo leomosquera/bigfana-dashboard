@@ -157,6 +157,8 @@ memberships.organization_id
 
 ```txt
 fans
+
+fan_organizations
 ```
 
 ---
@@ -188,7 +190,21 @@ fan_points_ledger
 
 ## Observations
 
-Current implementation assumes:
+Current implementation is transitioning from:
+
+```txt
+fans.organization_id
+```
+
+to:
+
+```txt
+fan_organizations
+```
+
+Both models currently coexist.
+
+Legacy model:
 
 ```txt
 One Fan
@@ -196,19 +212,27 @@ One Fan
 One Organization
 ```
 
-Future architecture introduces:
+Foundation Database v1 model:
+
+```txt
+One Fan
+    ↓
+Many Organizations
+```
+
+supported through:
 
 ```txt
 fan_organizations
 ```
 
-to support:
+Future development must use:
 
 ```txt
-Primary Organization
-
-Followed Organizations
+fan_organizations
 ```
+
+as the source of truth.
 
 Defined by:
 
@@ -540,6 +564,8 @@ Organizations
 
 Fans
 
+Fan Organization Relationships
+
 Campaigns
 
 Events
@@ -560,8 +586,6 @@ which aligns strongly with BigFana's Phase 1 roadmap.
 Current schema does not yet support:
 
 ```txt
-Multiple Fan Organizations
-
 Sports Hierarchy
 
 Competitions
