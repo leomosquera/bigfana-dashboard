@@ -1178,6 +1178,72 @@ segments
 
 ---
 
+# Global Catalog Rules
+
+## Sports
+
+Sport names are globally normalized and stored in English.
+
+UI translations are handled separately.
+
+Examples:
+
+```txt
+soccer
+
+american-football
+
+basketball
+
+rugby
+
+volleyball
+
+tennis
+
+padel
+
+golf
+
+motorsports
+
+esports
+```
+
+The database must use a single canonical sport definition regardless of the user's language.
+
+Examples:
+
+```txt
+Fútbol
+Football
+Calcio
+Fussball
+Soccer
+```
+
+must resolve to:
+
+```txt
+soccer
+```
+
+Likewise:
+
+```txt
+Football
+NFL Football
+American Football
+```
+
+must resolve to:
+
+```txt
+american-football
+```
+
+---
+
 # Related Documents
 
 - current-schema.md

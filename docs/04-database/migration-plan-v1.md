@@ -196,7 +196,7 @@ Examples:
 ```txt
 Soccer
 
-Football
+American Football
 
 Basketball
 
