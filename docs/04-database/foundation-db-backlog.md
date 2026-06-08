@@ -254,9 +254,17 @@ Migration references:
 
 ## Benefits
 
-- [ ] Create benefits table
+- [-] Create benefits table — SQL ready (`007_create_benefits.sql`)
 - [ ] Create benefit eligibility model
 - [ ] Create benefit usage tracking
+
+---
+
+## Execution
+
+- [x] Migration 007 SQL file created (`007_create_benefits.sql`)
+- [ ] Execute Migration 007 in Neon (pending)
+- [ ] Validate schema per design brief
 
 ---
 
