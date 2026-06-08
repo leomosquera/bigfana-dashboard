@@ -128,8 +128,8 @@ ADR-004
 
 ## Sports
 
-- [ ] Create sports table
-- [ ] Create sport catalog seed
+- [-] Create sports table
+- [-] Create sport catalog seed
 
 ---
 
