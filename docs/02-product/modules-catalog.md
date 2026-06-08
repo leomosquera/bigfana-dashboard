@@ -1,0 +1,846 @@
+# BigFana Modules Catalog
+
+## Purpose
+
+This document defines the official product modules of BigFana.
+
+The objective is to establish:
+
+- product boundaries
+- module ownership
+- future roadmap alignment
+- dashboard structure
+- database impact
+
+This document is the official source of truth for BigFana modules.
+
+---
+
+# Product Overview
+
+BigFana is composed of independent but connected modules.
+
+Modules may be:
+
+```txt
+Core Modules
+
+Premium Modules
+
+Future Modules
+```
+
+Organizations may enable or disable modules depending on their needs and subscription plan.
+
+---
+
+# Core Platform Modules
+
+These modules are part of every BigFana installation.
+
+---
+
+# Organizations
+
+## Purpose
+
+Manage sports organizations.
+
+Examples:
+
+```txt
+Clubs
+
+National Teams
+
+Leagues
+
+Competitions
+
+Sports Franchises
+```
+
+---
+
+## Capabilities
+
+```txt
+Organization Profile
+
+Brand Configuration
+
+Visual Identity
+
+Configuration
+
+Timezone
+
+Country
+
+Settings
+```
+
+---
+
+# Users & Permissions
+
+## Purpose
+
+Manage platform operators.
+
+Examples:
+
+```txt
+Administrators
+
+Marketing Teams
+
+Community Managers
+
+Sponsors
+
+Commercial Teams
+```
+
+---
+
+## Capabilities
+
+```txt
+Users
+
+Roles
+
+Permissions
+
+Memberships
+
+Organization Access
+```
+
+---
+
+# Fans
+
+## Purpose
+
+Manage fan identities and relationships.
+
+Defined by:
+
+```txt
+ADR-001
+
+ADR-002
+```
+
+---
+
+## Capabilities
+
+```txt
+Fan Profiles
+
+Primary Organization
+
+Followed Organizations
+
+Followed Competitions
+
+Followed Sports
+
+Preferences
+
+Engagement History
+```
+
+---
+
+# Engagement Modules
+
+---
+
+# Campaigns
+
+## Purpose
+
+Create engagement experiences.
+
+---
+
+## Supported Types
+
+```txt
+Trivia
+
+Poll
+
+Survey
+
+Prediction
+
+Quiz
+
+Sponsor Activation
+
+Challenge
+```
+
+---
+
+## Capabilities
+
+```txt
+Questions
+
+Options
+
+Responses
+
+Points
+
+Audience Targeting
+```
+
+---
+
+# Fan Experiences
+
+## Purpose
+
+Create premium fan experiences.
+
+Examples:
+
+```txt
+VIP Experiences
+
+Meet & Greet
+
+Exclusive Access
+
+Sponsor Experiences
+```
+
+---
+
+## Capabilities
+
+```txt
+Experience Management
+
+Eligibility Rules
+
+Audience Rules
+
+Availability Management
+```
+
+---
+
+# Loyalty Modules
+
+---
+
+# Points
+
+## Purpose
+
+Reward fan participation.
+
+---
+
+## Capabilities
+
+```txt
+Point Rules
+
+Point Ledger
+
+Point History
+
+Point Adjustments
+```
+
+---
+
+# Levels
+
+## Purpose
+
+Create progression systems.
+
+Examples:
+
+```txt
+Bronze
+
+Silver
+
+Gold
+
+Platinum
+```
+
+---
+
+## Capabilities
+
+```txt
+Level Configuration
+
+Threshold Rules
+
+Level Benefits
+```
+
+---
+
+# Benefits
+
+## Purpose
+
+Provide ongoing value to fans.
+
+Examples:
+
+```txt
+Discounts
+
+Priority Access
+
+Exclusive Content
+
+Sponsor Benefits
+```
+
+---
+
+## Capabilities
+
+```txt
+Benefit Catalog
+
+Eligibility Rules
+
+Usage Tracking
+```
+
+---
+
+# Rewards
+
+## Purpose
+
+Allow fans to redeem earned value.
+
+Examples:
+
+```txt
+Tickets
+
+Merchandise
+
+Experiences
+
+Digital Rewards
+```
+
+---
+
+## Capabilities
+
+```txt
+Reward Catalog
+
+Inventory
+
+Redemptions
+
+Fulfillment Tracking
+```
+
+---
+
+# Competition Modules
+
+---
+
+# Sports
+
+## Purpose
+
+Manage sports categories.
+
+Examples:
+
+```txt
+Football
+
+Basketball
+
+Rugby
+
+Volleyball
+
+Esports
+```
+
+Defined by:
+
+```txt
+ADR-004
+```
+
+---
+
+# Competitions
+
+## Purpose
+
+Manage sports competitions.
+
+Examples:
+
+```txt
+Liga Profesional
+
+La Liga
+
+Premier League
+
+NBA
+
+Kings League
+```
+
+---
+
+## Competition Types
+
+```txt
+Integrated
+
+Managed
+```
+
+Defined by:
+
+```txt
+ADR-005
+```
+
+---
+
+# Matches
+
+## Purpose
+
+Provide competition experiences.
+
+---
+
+## Capabilities
+
+```txt
+Fixtures
+
+Results
+
+Statistics
+
+Match Information
+```
+
+---
+
+# Standings
+
+## Purpose
+
+Display competition rankings.
+
+---
+
+## Capabilities
+
+```txt
+League Tables
+
+Group Tables
+
+Rankings
+```
+
+---
+
+# Content Modules
+
+---
+
+# News
+
+## Purpose
+
+Publish organization content.
+
+---
+
+## Content Types
+
+```txt
+News
+
+Articles
+
+Announcements
+
+Match Updates
+```
+
+---
+
+## Capabilities
+
+```txt
+Publishing
+
+Scheduling
+
+Categorization
+
+Audience Targeting
+```
+
+---
+
+# Media
+
+## Purpose
+
+Manage multimedia assets.
+
+---
+
+## Capabilities
+
+```txt
+Images
+
+Videos
+
+Documents
+
+Media Libraries
+```
+
+---
+
+# Notification Center
+
+## Purpose
+
+Communicate with fans.
+
+---
+
+## Channels
+
+```txt
+Push Notifications
+
+Email
+
+SMS
+
+In-App Notifications
+```
+
+---
+
+# Sponsor Modules
+
+---
+
+# Sponsors
+
+## Purpose
+
+Manage commercial partners.
+
+---
+
+## Capabilities
+
+```txt
+Sponsor Profiles
+
+Sponsor Relationships
+
+Sponsor Categories
+```
+
+---
+
+# Sponsor Campaigns
+
+## Purpose
+
+Create sponsor activations.
+
+---
+
+## Capabilities
+
+```txt
+Target Audiences
+
+Campaign Tracking
+
+Performance Measurement
+```
+
+---
+
+# Sponsor Ads
+
+## Purpose
+
+Manage advertisements.
+
+---
+
+## Capabilities
+
+```txt
+Ads
+
+Creatives
+
+Audience Rules
+
+Placement Rules
+```
+
+---
+
+# Intelligence Modules
+
+---
+
+# Audiences
+
+## Purpose
+
+Consume audiences generated by EEP.
+
+Examples:
+
+```txt
+VIP Fans
+
+International Fans
+
+Highly Engaged Fans
+```
+
+Ownership:
+
+```txt
+EEP
+```
+
+---
+
+# Segments
+
+## Purpose
+
+Consume behavioral segments generated by EEP.
+
+Ownership:
+
+```txt
+EEP
+```
+
+---
+
+# Insights
+
+## Purpose
+
+Provide actionable intelligence.
+
+Examples:
+
+```txt
+Engagement Insights
+
+Audience Insights
+
+Sponsor Insights
+```
+
+Ownership:
+
+```txt
+EEP
+```
+
+---
+
+# Integration Modules
+
+---
+
+# EEP Integration
+
+## Purpose
+
+Synchronize behavioral data.
+
+---
+
+## Capabilities
+
+```txt
+Event Sync
+
+Audience Sync
+
+Segment Sync
+```
+
+---
+
+# CRM Integrations
+
+## Purpose
+
+Connect customer management systems.
+
+Examples:
+
+```txt
+HubSpot
+
+Salesforce
+
+Zoho
+```
+
+---
+
+# Commerce Integrations
+
+## Purpose
+
+Connect e-commerce platforms.
+
+Examples:
+
+```txt
+Shopify
+
+WooCommerce
+
+VTEX
+
+Custom Commerce
+```
+
+---
+
+# Ticketing Integrations
+
+## Purpose
+
+Connect ticketing systems.
+
+Examples:
+
+```txt
+Ticketmaster
+
+Club Ticketing Systems
+
+League Ticketing Systems
+```
+
+---
+
+# ERP Integrations
+
+## Purpose
+
+Connect operational systems.
+
+Examples:
+
+```txt
+SAP
+
+Oracle
+
+Custom ERP
+```
+
+---
+
+# Future Modules
+
+These modules are intentionally deferred.
+
+Examples:
+
+```txt
+Marketplace
+
+Subscriptions
+
+Fantasy Sports
+
+Digital Collectibles
+
+Fan Wallet
+
+Global Rankings
+
+Cross Community Experiences
+```
+
+---
+
+# Dashboard Impact
+
+Every module may expose:
+
+```txt
+Dashboard Screens
+
+Permissions
+
+Reports
+
+Widgets
+
+Notifications
+```
+
+The administrative dashboard must be generated from the enabled modules available to each organization.
+
+---
+
+# Related Documents
+
+- business-model.md
+- fan-journey.md
+- system-architecture.md
+- foundation-db-v1.md
+- ADR-001
+- ADR-002
+- ADR-003
+- ADR-004
+- ADR-005
+- ADR-006

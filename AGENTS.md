@@ -1,6 +1,50 @@
 # BigFana — AGENTS.md
 
-## Product Context
+## Agent Entry Point
+
+Before performing any task, every AI agent must read:
+
+1. `AI_RULES.md`
+2. `PROJECT_STATE.md`
+3. `AGENTS.md`
+4. Relevant ADRs in `docs/decisions/`
+5. Relevant module documentation in `docs/`
+
+---
+
+# Purpose of this File
+
+`AGENTS.md` defines how agents must work inside the BigFana codebase.
+
+This file covers:
+
+- product context
+- technical stack
+- frontend architecture
+- UI rules
+- database principles
+- EEP integration principles
+- coding standards
+
+Project governance, documentation responsibilities, ADR rules, session summaries, and context continuity are defined in:
+
+```txt
+AI_RULES.md
+```
+
+The current project status is defined in:
+
+```txt
+PROJECT_STATE.md
+```
+
+Agents must not rely only on chat context.
+
+Official repository documentation is the source of truth.
+
+---
+
+# Product Context
 
 BigFana is a premium sports-tech SaaS platform focused on:
 - fan engagement
