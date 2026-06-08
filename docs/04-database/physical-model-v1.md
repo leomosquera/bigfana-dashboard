@@ -187,13 +187,15 @@ ADR-002
 
 Purpose:
 
-Global platform fan profile.
+Global platform fan identity and declarative profile.
 
 A fan exists independently from organizations.
 
+There is no separate `fan_profiles` table. Organization relationships are stored in `fan_organizations`.
+
 ---
 
-### Columns
+### Core Identity
 
 ```txt
 id UUID PK
@@ -202,16 +204,78 @@ first_name TEXT
 
 last_name TEXT
 
+display_name TEXT
+
 email TEXT
+```
 
+`display_name` is derived from `first_name` and `last_name` and persisted at write time for search and display compatibility.
+
+---
+
+### Profile
+
+```txt
 phone TEXT
-
-country_code TEXT
 
 birth_date DATE
 
-avatar_url TEXT
+gender TEXT
 
+city TEXT
+
+country_code TEXT
+
+avatar_url TEXT
+```
+
+`country_code` uses ISO 3166-1 alpha-2.
+
+---
+
+### Lifecycle
+
+```txt
+status TEXT
+```
+
+Allowed values align with the current Neon implementation:
+
+```txt
+active
+
+inactive
+
+suspended
+
+archived
+```
+
+---
+
+### Deprecated
+
+```txt
+organization_id UUID FK
+```
+
+Status:
+
+```txt
+DEPRECATED
+```
+
+Legacy organization ownership column. Retained during the transition phase.
+
+To be removed during future contract migrations after `fan_organizations` adoption is complete in the application layer.
+
+Do not use for new features. Read organization relationships from `fan_organizations`.
+
+---
+
+### Timestamps
+
+```txt
 created_at TIMESTAMP
 
 updated_at TIMESTAMP
@@ -222,8 +286,49 @@ updated_at TIMESTAMP
 ### Indexes
 
 ```txt
-fans_email_idx
+fans_email_normalized_unique_idx
+    UNIQUE
+    ON lower(trim(email))
+    WHERE email IS NOT NULL
 ```
+
+Canonical global email uniqueness index. Active in Neon (pre-Migration 006 baseline).
+
+Legacy indexes (unchanged):
+
+```txt
+idx_fans_email
+
+idx_fans_org
+```
+
+`idx_fans_org` supports deprecated `organization_id` queries during the transition phase.
+
+---
+
+### Notes
+
+The current Neon/Drizzle implementation also includes operational columns used by the dashboard and EEP integration:
+
+```txt
+external_id
+
+segment
+
+tier
+
+engagement_score
+
+eep_contact_id
+
+eep_sync_status
+
+eep_last_sync_at
+
+eep_last_error
+```
+
+These columns are not part of the declarative fan profile. Relocation of organization-scoped or EEP-owned fields belongs to future migrations.
 
 ---
 

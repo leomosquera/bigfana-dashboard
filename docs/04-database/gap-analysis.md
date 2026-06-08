@@ -54,7 +54,7 @@ EEP Synchronization
 The largest architectural gaps exist in:
 
 ```txt
-Global Fan Model (transition phase)
+Global Fan Model (application cutover — transition phase)
 
 Organization Sport Refactor
 
@@ -667,12 +667,56 @@ Medium
 
 ---
 
+# Fan Profile Foundation
+
+## Status
+
+```txt
+Implemented
+```
+
+---
+
+## Target
+
+```txt
+fans — global identity and declarative profile
+
+avatar_url
+
+country_code (ISO 3166-1 alpha-2)
+
+fans_email_normalized_unique_idx
+```
+
+---
+
+## Notes
+
+Migration 006 complete. No `fan_profiles` table.
+
+Legacy `country` and `organization_id` on `fans` remain deprecated.
+
+Application layer (Drizzle, services) pending alignment with Neon.
+
+---
+
+## Related ADRs
+
+```txt
+ADR-001
+
+ADR-002
+```
+
+---
+
 # Fan Interests
 
 ## Status
 
 ```txt
-Missing
+Implemented
 ```
 
 ---
@@ -932,25 +976,29 @@ Deferred
 Recommended order:
 
 ```txt
-1. Fan Ownership Model
+1. Fan Ownership Model (application cutover — transition phase)
 
-2. Sports Hierarchy
+2. Sports Hierarchy (complete)
 
-3. Competitions
+3. Competitions (complete)
 
-4. Benefits
+4. Fan Interests (complete)
 
-5. Rewards
+5. Fan Profile Foundation (complete)
 
-6. Redemptions
+6. Benefits
 
-7. Sponsors
+7. Rewards
 
-8. Audiences
+8. Redemptions
 
-9. Segments
+9. Sponsors
 
-10. Match Center
+10. Audiences
+
+11. Segments
+
+12. Match Center
 ```
 
 ---
@@ -981,27 +1029,11 @@ rather than large-scale redesign.
 
 # Next Step
 
-The next database document is:
+The next Foundation DB v1 migration is:
 
 ```txt
-physical-model-v1.md
+007 — Benefits (Loyalty Foundation)
 ```
-
-which defines:
-
-```txt
-Real Tables
-
-Real Columns
-
-Real Relationships
-
-Real Constraints
-
-Real Indexes
-```
-
-for Foundation Database v1.
 
 ---
 

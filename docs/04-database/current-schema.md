@@ -40,6 +40,10 @@ Memberships
 
 Fans
 
+Fan Organizations
+
+Fan Interests
+
 Sports
 
 Competitions
@@ -165,80 +169,164 @@ memberships.organization_id
 fans
 
 fan_organizations
+
+fan_sports
+
+fan_competitions
 ```
 
 ---
 
 ## Purpose
 
-Stores fan profiles.
+Stores global fan identity, declarative profile, organization relationships, and sport/competition interests.
+
+There is no `fan_profiles` table. Profile fields live on `fans`.
 
 ---
 
-## Relationships
+## fans
+
+Global platform fan identity and declarative profile.
+
+---
+
+### Core Identity
 
 ```txt
-fans.organization_id
-    → organizations.id
-```
+id UUID PK
 
-Referenced by:
+first_name TEXT
 
-```txt
-campaign_responses
+last_name TEXT
 
-fan_events
+display_name TEXT NOT NULL
 
-fan_points_ledger
+email TEXT
 ```
 
 ---
 
-## Observations
+### Profile
 
-Current implementation is transitioning from:
+```txt
+phone TEXT
+
+birth_date DATE
+
+gender TEXT
+
+city TEXT
+
+country_code TEXT
+
+avatar_url TEXT
+```
+
+---
+
+### Lifecycle
+
+```txt
+status fan_status NOT NULL DEFAULT active
+```
+
+Allowed values:
+
+```txt
+active
+
+inactive
+
+suspended
+
+archived
+```
+
+---
+
+### Deprecated Columns
+
+```txt
+organization_id UUID FK NOT NULL
+
+country TEXT
+```
+
+```txt
+organization_id → use fan_organizations (contract phase removal)
+
+country         → use country_code (contract phase removal)
+```
+
+---
+
+### Operational Columns
+
+```txt
+external_id TEXT
+
+segment TEXT
+
+tier TEXT
+
+engagement_score INTEGER NOT NULL DEFAULT 0
+
+eep_contact_id TEXT
+
+eep_sync_status eep_sync_status NOT NULL DEFAULT pending
+
+eep_last_sync_at TIMESTAMPTZ
+
+eep_last_error TEXT
+
+created_at TIMESTAMPTZ NOT NULL
+
+updated_at TIMESTAMPTZ NOT NULL
+```
+
+---
+
+### Constraints
+
+```txt
+fans_country_code_check
+    country_code IS NULL OR ISO 3166-1 alpha-2 (^[A-Z]{2}$)
+```
+
+---
+
+### Indexes
+
+```txt
+fans_email_normalized_unique_idx
+    UNIQUE ON lower(trim(email))
+    WHERE email IS NOT NULL
+
+idx_fans_email
+
+idx_fans_org
+```
+
+---
+
+### Relationships
 
 ```txt
 fans.organization_id
+    → organizations.id (DEPRECATED)
+
+Referenced by fan_organizations, fan_sports, fan_competitions,
+campaign_responses, fan_events, fan_points_ledger
 ```
 
-to:
+---
 
-```txt
-fan_organizations
-```
+### Observations
 
-Both models currently coexist.
+Migration 006 backfilled `country_code = 'AR'` from legacy `country` values matching Argentina variants. Legacy `country` values were not modified.
 
-Legacy model:
-
-```txt
-One Fan
-    ↓
-One Organization
-```
-
-Foundation Database v1 model:
-
-```txt
-One Fan
-    ↓
-Many Organizations
-```
-
-supported through:
-
-```txt
-fan_organizations
-```
-
-Future development must use:
-
-```txt
-fan_organizations
-```
-
-as the source of truth.
+Application layer (Drizzle) may lag Neon until schema and services are updated.
 
 Defined by:
 
@@ -246,6 +334,168 @@ Defined by:
 ADR-001
 
 ADR-002
+
+Migration 006
+```
+
+---
+
+## fan_organizations
+
+Relationship between fans and organizations.
+
+---
+
+### Columns
+
+```txt
+id UUID PK
+
+fan_id UUID FK
+
+organization_id UUID FK
+
+relationship_type VARCHAR(20)
+
+is_primary BOOLEAN
+
+joined_at TIMESTAMP
+
+metadata JSONB
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+### relationship_type
+
+```txt
+PRIMARY
+
+FOLLOWING
+```
+
+---
+
+### Relationships
+
+```txt
+fan_id
+    → fans.id
+
+organization_id
+    → organizations.id
+```
+
+---
+
+### Observations
+
+Source of truth for primary and followed organizations. Migrated from legacy `fans.organization_id` in Migration 001.
+
+Defined by:
+
+```txt
+ADR-001
+
+ADR-002
+
+Migration 001
+```
+
+---
+
+# Fan Interests
+
+## Tables
+
+```txt
+fan_sports
+
+fan_competitions
+```
+
+---
+
+## Purpose
+
+Sports and competitions explicitly followed by platform-level fans.
+
+---
+
+## fan_sports
+
+### Columns
+
+```txt
+id UUID PK
+
+fan_id UUID FK
+
+sport_id UUID FK
+
+joined_at TIMESTAMP
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+### Constraints
+
+```txt
+UNIQUE (fan_id, sport_id)
+
+fan_id   → fans.id ON DELETE CASCADE
+
+sport_id → sports.id ON DELETE RESTRICT
+```
+
+---
+
+## fan_competitions
+
+### Columns
+
+```txt
+id UUID PK
+
+fan_id UUID FK
+
+competition_id UUID FK
+
+joined_at TIMESTAMP
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+### Constraints
+
+```txt
+UNIQUE (fan_id, competition_id)
+
+fan_id         → fans.id ON DELETE CASCADE
+
+competition_id → competitions.id ON DELETE RESTRICT
+```
+
+---
+
+## Observations
+
+No seed data. Organization interests remain in `fan_organizations`.
+
+Defined by:
+
+```txt
+ADR-006
+
+Migration 005
 ```
 
 ---
@@ -860,7 +1110,11 @@ Organizations
 
 Fans
 
+Fan Profile Foundation
+
 Fan Organization Relationships
+
+Fan Interests
 
 Sports Catalog
 

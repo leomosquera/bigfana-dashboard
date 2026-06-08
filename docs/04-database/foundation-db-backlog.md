@@ -182,7 +182,7 @@ MANAGED
 
 ## Execution
 
-- [ ] Execute Migration 005 in Neon
+- [x] Execute Migration 005 in Neon
 
 ---
 
@@ -194,7 +194,61 @@ MANAGED
 
 ---
 
-# Phase 4 — Loyalty Expansion
+# Phase 4 — Fan Profile Foundation
+
+Defined by:
+
+```txt
+ADR-001
+
+ADR-002
+```
+
+Migration:
+
+```txt
+006 — Fan Profile Foundation
+```
+
+---
+
+## Fan Profile Model
+
+- [x] Align `fans` with physical-model-v1.md profile fields
+- [x] Add `avatar_url`
+- [x] Add `country_code` and migrate from legacy `country`
+- [x] Normalized email uniqueness (`fans_email_normalized_unique_idx` — active in Neon)
+- [x] Document `organization_id` as deprecated (no removal in this migration)
+- [x] Document `country` as deprecated (no removal in this migration)
+
+---
+
+## Execution
+
+- [x] Migration 006 SQL file created (`006_fan_profile_foundation.sql`)
+- [x] Execute Migration 006 in Neon
+- [x] Validate schema and backfill per design brief
+
+---
+
+## Documentation
+
+- [x] Update current-schema.md fan column inventory
+- [x] Update gap-analysis.md fan profile gaps
+
+---
+
+# Phase 5 — Loyalty Expansion
+
+Migration references:
+
+```txt
+007 — Benefits
+
+008 — Rewards
+
+009 — Redemptions
+```
 
 ---
 
@@ -222,7 +276,7 @@ MANAGED
 
 ---
 
-# Phase 5 — Sponsor Ecosystem
+# Phase 6 — Sponsor Ecosystem
 
 ---
 
@@ -251,7 +305,7 @@ MANAGED
 
 ---
 
-# Phase 6 — Content Platform
+# Phase 7 — Content Platform
 
 ---
 
@@ -279,7 +333,7 @@ MANAGED
 
 ---
 
-# Phase 7 — Match Center
+# Phase 8 — Match Center
 
 Defined by:
 
@@ -320,7 +374,7 @@ ADR-005
 
 ---
 
-# Phase 8 — EEP Intelligence
+# Phase 9 — EEP Intelligence
 
 Defined by:
 
@@ -362,7 +416,7 @@ ADR-003
 
 ---
 
-# Phase 9 — Integration Layer
+# Phase 10 — Integration Layer
 
 ---
 
@@ -393,7 +447,7 @@ Review existing structure:
 
 ---
 
-# Phase 10 — Audit and Events
+# Phase 11 — Audit and Events
 
 ---
 
@@ -462,6 +516,7 @@ Before any migration:
 Foundation Database v1 is complete when:
 
 - [ ] Global Fan Model exists
+- [x] Fan profile foundation exists
 - [ ] Sports hierarchy exists
 - [ ] Competition hierarchy exists
 - [ ] Loyalty expansion exists

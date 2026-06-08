@@ -307,7 +307,154 @@ fan_competitions
 
 ---
 
+# Migration Numbering Rationale
+
+Migrations 001–005 established the global fan relationship and interest model.
+
+Migration 006 introduces **Fan Profile Foundation** before loyalty catalog work because:
+
+```txt
+fans is the canonical identity and declarative profile entity
+
+No fan_profiles table will be introduced
+
+Benefits and rewards require a stable global fan profile
+
+Fan onboarding fields must be aligned before loyalty expansion
+```
+
+Benefits, rewards, and redemptions shift to Migrations 007–009 accordingly.
+
+---
+
 # Migration 006
+
+## Fan Profile Foundation
+
+Defined by:
+
+```txt
+ADR-001
+
+ADR-002
+```
+
+---
+
+## Objective
+
+Evolve the existing `fans` table toward the Foundation v1 fan profile model.
+
+Establish a complete global fan identity and declarative profile on `fans` without introducing a separate profile table.
+
+---
+
+## Scope
+
+Expand-only changes to `fans`:
+
+```txt
+avatar_url
+
+country_code
+
+country_code backfill (Argentina → AR)
+
+deprecation documentation
+```
+
+### Neon Baseline (Already Enforced)
+
+Normalized email uniqueness is **already active in Neon** and is not Migration 006 DDL:
+
+```txt
+fans_email_normalized_unique_idx
+    UNIQUE ON lower(trim(email))
+    WHERE email IS NOT NULL
+```
+
+Align existing profile fields with the physical model:
+
+```txt
+Core Identity
+    first_name
+    last_name
+    display_name
+    email
+
+Profile
+    phone
+    birth_date
+    gender
+    city
+    country_code
+    avatar_url
+
+Lifecycle
+    status
+```
+
+---
+
+## Data Migration
+
+Backfill legacy `country` values to `country_code` where applicable.
+
+Approved backfill:
+
+```txt
+Argentina variants → AR
+```
+
+Legacy `country` column retained and deprecated. Do not drop in Migration 006.
+
+---
+
+## Deprecation
+
+Document as deprecated (no DDL removal in Migration 006):
+
+```txt
+fans.organization_id   → use fan_organizations
+
+fans.country           → use country_code
+```
+
+Removal of `fans.organization_id` belongs to the future contract phase after application adoption of `fan_organizations` is complete.
+
+---
+
+## Out of Scope
+
+```txt
+fan_profiles table
+
+DROP or RENAME of fans.organization_id
+
+benefits
+
+rewards
+
+redemptions
+
+fan authentication linkage
+
+relocation of segment, tier, or engagement_score
+
+email uniqueness index (already active in Neon)
+```
+
+---
+
+## Application Changes
+
+Update Drizzle schema and documentation to reflect the evolved fan profile model.
+
+Plan application cutover from `fans.organization_id` to `fan_organizations` as a parallel track.
+
+---
+
+# Migration 007
 
 ## Benefits
 
@@ -341,7 +488,7 @@ Sponsor Benefits
 
 ---
 
-# Migration 007
+# Migration 008
 
 ## Rewards
 
@@ -375,7 +522,7 @@ Digital Rewards
 
 ---
 
-# Migration 008
+# Migration 009
 
 ## Redemptions
 
@@ -411,7 +558,7 @@ CANCELLED
 
 ---
 
-# Migration 009
+# Migration 010
 
 ## Sponsor Domain
 
@@ -449,7 +596,7 @@ for migration.
 
 ---
 
-# Migration 010
+# Migration 011
 
 ## Content Platform
 
@@ -473,7 +620,7 @@ content_tags
 
 ---
 
-# Migration 011
+# Migration 012
 
 ## Competition Operations
 
@@ -505,7 +652,7 @@ standings
 
 ---
 
-# Migration 012
+# Migration 013
 
 ## EEP Audiences
 
@@ -533,7 +680,7 @@ fan_audiences
 
 ---
 
-# Migration 013
+# Migration 014
 
 ## EEP Segments
 
@@ -561,7 +708,7 @@ fan_segments
 
 ---
 
-# Migration 014
+# Migration 015
 
 ## Integration Registry
 
@@ -591,7 +738,7 @@ integration_jobs
 
 ---
 
-# Migration 015
+# Migration 016
 
 ## Audit Layer
 
@@ -650,6 +797,8 @@ Foundation Database v1 is complete when:
 ```txt
 Global Fan Model
 
+Fan Profile Foundation
+
 Sports Hierarchy
 
 Competition Hierarchy
@@ -677,7 +826,7 @@ exist and are operational.
 
 # Future Contract Phase
 
-## Migration 016
+## Migration 017
 
 ### Deprecate Legacy Fan Ownership
 
@@ -697,7 +846,7 @@ fan_organizations
 
 ---
 
-## Migration 017
+## Migration 018
 
 ### Remove Legacy Fan Ownership
 
@@ -713,7 +862,7 @@ when no longer referenced by the application.
 
 ---
 
-## Migration 018
+## Migration 019
 
 ### Remove Legacy Organization Sport
 
