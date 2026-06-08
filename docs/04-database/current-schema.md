@@ -870,13 +870,17 @@ No major redesign currently planned.
 fan_levels
 
 fan_points_ledger
+
+benefits
+
+rewards
 ```
 
 ---
 
 ## Purpose
 
-Stores loyalty progression and point transactions.
+Stores loyalty progression, point transactions, and the organization-owned benefits and rewards catalogs.
 
 ---
 
@@ -894,6 +898,12 @@ fan_points_ledger.fan_id
 
 fan_points_ledger.fan_event_id
     → fan_events.id
+
+benefits.organization_id
+    → organizations.id
+
+rewards.organization_id
+    → organizations.id
 ```
 
 ---
@@ -907,12 +917,212 @@ Points
 
 Levels
 
-Rewards
+Benefits (catalog — Migration 007)
 
-Benefits
+Rewards (catalog — Migration 008)
 ```
 
-Future loyalty modules will expand this area.
+Redemptions remain pending (Migration 009).
+
+Benefit eligibility and usage tracking are deferred.
+
+Stock decrement and point debit on redemption are deferred to the application layer.
+
+---
+
+# Benefits
+
+## Tables
+
+```txt
+benefits
+```
+
+---
+
+## Purpose
+
+Organization-owned loyalty benefit catalog. Benefits are entitlements (discounts, priority access, exclusive content) — not point-priced redeemables.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+organization_id UUID FK NOT NULL
+
+name TEXT NOT NULL
+
+description TEXT
+
+status TEXT NOT NULL DEFAULT draft
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Constraints
+
+```txt
+benefits_organization_fk
+    organization_id → organizations.id (ON DELETE RESTRICT)
+
+benefits_status_check
+    status IN ('draft', 'active', 'paused', 'archived')
+```
+
+---
+
+## Indexes
+
+```txt
+benefits_organization_id_idx
+
+benefits_organization_status_idx
+```
+
+---
+
+## Relationships
+
+```txt
+benefits.organization_id
+    → organizations.id
+```
+
+---
+
+## Observations
+
+Catalog-only scope — no eligibility rules, usage tracking, sponsor linkage, or campaign FK.
+
+`active` status means catalog visibility only; fan eligibility is future work.
+
+`organization_id` uses ON DELETE RESTRICT — organizations are long-lived; soft deletion preferred.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+Migration 007
+```
+
+---
+
+# Rewards
+
+## Tables
+
+```txt
+rewards
+```
+
+---
+
+## Purpose
+
+Organization-owned loyalty rewards catalog. Rewards are point-priced redeemables (merchandise, tickets, experiences) — not entitlements (benefits belong to Migration 007).
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+organization_id UUID FK NOT NULL
+
+name TEXT NOT NULL
+
+description TEXT
+
+points_required INTEGER NOT NULL
+
+stock INTEGER
+
+status TEXT NOT NULL DEFAULT draft
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Constraints
+
+```txt
+rewards_organization_fk
+    organization_id → organizations.id (ON DELETE RESTRICT)
+
+rewards_status_check
+    status IN ('draft', 'active', 'paused', 'archived')
+
+rewards_points_required_check
+    points_required >= 1
+
+rewards_stock_check
+    stock IS NULL OR stock >= 0
+```
+
+---
+
+## Indexes
+
+```txt
+rewards_organization_id_idx
+
+rewards_organization_status_idx
+```
+
+---
+
+## Stock Semantics
+
+```txt
+NULL  → unlimited availability
+0     → out of stock (listed but not redeemable)
+> 0   → available units remaining
+```
+
+Stock decrement on redemption is not implemented in Migration 008. Decrement logic belongs to Migration 009 application layer.
+
+---
+
+## Relationships
+
+```txt
+rewards.organization_id
+    → organizations.id
+```
+
+---
+
+## Observations
+
+Catalog-only scope — no redemptions, ledger debits, eligibility rules, sponsor linkage, or campaign FK.
+
+`active` status means catalog visibility only; fan balance and stock checks occur at redemption time (Migration 009 application layer).
+
+Free rewards (`0` points) are not supported. Promotional free items belong in `benefits`, not `rewards`.
+
+`organization_id` uses ON DELETE RESTRICT — organizations are long-lived; soft deletion preferred.
+
+No unique constraint on `name` per organization — duplicate names permitted at DB level.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+Migration 008
+```
 
 ---
 
@@ -1130,6 +1340,10 @@ Points
 
 Levels
 
+Benefits Catalog
+
+Rewards Catalog
+
 EEP Integration Foundation
 ```
 
@@ -1146,9 +1360,9 @@ Matches
 
 Standings
 
-Rewards
+Redemptions
 
-Benefits
+Benefit eligibility and usage tracking
 
 Sponsors Domain
 

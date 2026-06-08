@@ -60,9 +60,7 @@ Organization Sport Refactor
 
 Sponsor Domain
 
-Benefits
-
-Rewards
+Redemptions
 
 EEP Audiences
 
@@ -267,6 +265,10 @@ Reusable
 fan_levels
 
 fan_points_ledger
+
+benefits
+
+rewards
 ```
 
 ---
@@ -280,12 +282,20 @@ Points
 
 Levels
 
-Benefits
+Benefits (catalog — Migration 007)
 
-Rewards
+Rewards (catalog — Migration 008)
 ```
 
+Redemptions remain pending (Migration 009).
+
+Benefit eligibility and usage tracking are deferred.
+
+Stock decrement and point debit on redemption are deferred to the application layer.
+
 Requires expansion, not replacement.
+
+Next step: Migration 009 Redemptions.
 
 ---
 
@@ -752,7 +762,7 @@ ADR-006
 ## Status
 
 ```txt
-Missing
+Implemented (catalog — Migration 007)
 ```
 
 ---
@@ -765,10 +775,22 @@ benefits
 
 ---
 
+## Notes
+
+Organization-owned benefit catalog. Status values: `draft`, `active`, `paused`, `archived`.
+
+`organization_id` → ON DELETE RESTRICT.
+
+No eligibility, usage tracking, sponsor linkage, or campaign FK in Migration 007.
+
+No seed data — validated: 0 rows.
+
+---
+
 ## Priority
 
 ```txt
-High
+High — catalog complete; eligibility and usage deferred
 ```
 
 ---
@@ -778,12 +800,12 @@ High
 ## Status
 
 ```txt
-Missing
+Implemented (catalog — Migration 008)
 ```
 
 ---
 
-## Required Tables
+## Existing Tables
 
 ```txt
 rewards
@@ -791,10 +813,20 @@ rewards
 
 ---
 
+## Notes
+
+Organization-owned point-priced rewards catalog. Catalog-only — no redemptions, ledger debits, eligibility rules, or stock decrement logic.
+
+`active` status means catalog visibility only; balance and stock checks at redemption time (Migration 009 application layer).
+
+No seed data — validated: 0 rows.
+
+---
+
 ## Priority
 
 ```txt
-High
+High — catalog complete; redemptions deferred to Migration 009
 ```
 
 ---
@@ -986,9 +1018,9 @@ Recommended order:
 
 5. Fan Profile Foundation (complete)
 
-6. Benefits
+6. Benefits (complete)
 
-7. Rewards
+7. Rewards (complete)
 
 8. Redemptions
 
@@ -1032,7 +1064,7 @@ rather than large-scale redesign.
 The next Foundation DB v1 migration is:
 
 ```txt
-007 — Benefits (Loyalty Foundation)
+009 — Redemptions (Loyalty Redemptions Foundation)
 ```
 
 ---

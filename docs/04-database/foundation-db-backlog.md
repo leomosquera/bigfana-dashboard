@@ -254,7 +254,7 @@ Migration references:
 
 ## Benefits
 
-- [-] Create benefits table — SQL ready (`007_create_benefits.sql`)
+- [x] Create benefits table (`007_create_benefits.sql`)
 - [ ] Create benefit eligibility model
 - [ ] Create benefit usage tracking
 
@@ -263,24 +263,56 @@ Migration references:
 ## Execution
 
 - [x] Migration 007 SQL file created (`007_create_benefits.sql`)
-- [ ] Execute Migration 007 in Neon (pending)
-- [ ] Validate schema per design brief
+- [x] Execute Migration 007 in Neon
+- [x] Validate schema per design brief
+
+---
+
+## Documentation
+
+- [x] Update current-schema.md benefits inventory
+- [x] Update gap-analysis.md benefits status
+- [x] Update PROJECT_STATE.md
 
 ---
 
 ## Rewards
 
-- [ ] Create rewards table
+- [x] Create rewards table (`008_create_rewards.sql`)
 - [ ] Create reward inventory structure
 - [ ] Create reward metadata model
 
 ---
 
+## Execution (Migration 008)
+
+- [x] Migration 008 SQL file created (`008_create_rewards.sql`)
+- [x] Execute Migration 008 in Neon
+- [x] Validate schema per design brief
+
+---
+
+## Documentation (Migration 008)
+
+- [x] Update current-schema.md rewards inventory
+- [x] Update gap-analysis.md rewards status
+- [x] Update PROJECT_STATE.md
+
+---
+
 ## Redemptions
 
-- [ ] Create redemptions table
+- [-] Create redemptions table — SQL ready (`009_create_redemptions.sql`)
 - [ ] Create redemption status workflow
 - [ ] Create redemption audit history
+
+---
+
+## Execution (Migration 009)
+
+- [x] Migration 009 SQL file created (`009_create_redemptions.sql`)
+- [ ] Execute Migration 009 in Neon (pending)
+- [ ] Validate schema per design brief
 
 ---
 

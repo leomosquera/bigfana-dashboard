@@ -10,8 +10,7 @@ The project is actively implementing Foundation Database v1 in Neon.
 
 Current focus:
 
-- executing and validating Foundation DB v1 migrations
-- preparing Loyalty Foundation (Benefits / Rewards / Redemptions)
+- Migration 009 Redemptions
 - aligning schema documentation after each migration
 
 ---
@@ -100,7 +99,7 @@ Current priority:
 ```txt
 Continue Foundation DB v1 execution
 
-Loyalty Foundation (Migration 007+)
+Loyalty Redemptions Foundation (Migration 009)
 
 Align documentation after each migration
 ```
@@ -288,7 +287,7 @@ The current project priority is:
 ```txt
 Foundation Database v1
 
-Loyalty Foundation
+Loyalty Redemptions Foundation
 
 Dashboard Definition
 
@@ -333,17 +332,17 @@ Completed migrations:
 - 004_create_competition_organizations (executed and validated)
 - 005_create_fan_interests (executed and validated)
 - 006_fan_profile_foundation (executed and validated)
+- 007_create_benefits (executed and validated)
+- 008_create_rewards (executed and validated)
 
 Current migration:
 
-- 007_benefits
+- 009_redemptions
 
 Current phase:
 
-Loyalty Foundation
+Loyalty Redemptions Foundation
 
 Next migrations:
 
-- 007_benefits
-- 008_rewards
 - 009_redemptions
