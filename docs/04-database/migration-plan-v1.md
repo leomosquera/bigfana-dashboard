@@ -681,6 +681,68 @@ exist and are operational.
 
 ---
 
+# Future Contract Phase
+
+## Migration 016
+
+### Deprecate Legacy Fan Ownership
+
+Objective:
+
+Deprecate:
+
+```txt
+fans.organization_id
+```
+
+after all services use:
+
+```txt
+fan_organizations
+```
+
+---
+
+## Migration 017
+
+### Remove Legacy Fan Ownership
+
+Objective:
+
+Remove:
+
+```txt
+fans.organization_id
+```
+
+when no longer referenced by the application.
+
+---
+
+## Migration 018
+
+### Remove Legacy Organization Sport
+
+Objective:
+
+Remove:
+
+```txt
+organizations.sport
+```
+
+after migration to:
+
+```txt
+sports
+
+competitions
+
+competition_organizations
+```
+
+---
+
 # Related Documents
 
 - current-schema.md

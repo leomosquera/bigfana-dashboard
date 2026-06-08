@@ -538,3 +538,5 @@ A migration is considered completed only when:
 - Validation completed
 - Documentation updated
 - Commit generated
+
+Creating a migration file alone does not mark a migration as completed.
