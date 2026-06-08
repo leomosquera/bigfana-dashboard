@@ -194,7 +194,8 @@ Data Mapping
 
 Rules:
 
-- All business data queries must be organization-scoped.
+- Organization-owned business data queries must be organization-scoped.
+- Global entities (`fans`, `sports`, `competitions`, `sponsors`) require explicit access patterns documented per module.
 - Database logic must not be duplicated across UI components.
 - Repositories should expose clear methods.
 - Avoid raw query logic scattered across the application.
@@ -485,7 +486,13 @@ before accessing or modifying organization-owned data.
 Applies to:
 
 ```txt
-fans
+fan_organizations
+
+fan_events
+
+campaign_responses
+
+fan_points_ledger
 
 campaigns
 
@@ -498,8 +505,6 @@ content
 sponsors
 
 integrations
-
-events
 ```
 
 Global platform queries must be explicitly justified and documented.
@@ -666,6 +671,8 @@ Every migration must update:
 
 ```txt
 docs/04-database/current-schema.md
+
+docs/04-database/domain-model.md
 
 docs/04-database/gap-analysis.md
 

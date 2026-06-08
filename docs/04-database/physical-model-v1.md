@@ -1040,6 +1040,46 @@ segment_id UUID FK
 
 ---
 
+## Existing Segmentation Rules
+
+Purpose:
+
+Business-defined segmentation criteria.
+
+---
+
+### Existing Table
+
+```txt
+fan_segment_rules
+```
+
+---
+
+### Ownership
+
+```txt
+BigFana
+```
+
+---
+
+### Notes
+
+These rules define segmentation criteria.
+
+They do not represent EEP segments.
+
+EEP remains the owner of:
+
+```txt
+segments
+
+audiences
+```
+
+---
+
 # Events Domain
 
 ---

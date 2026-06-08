@@ -194,27 +194,21 @@ sports
 Examples:
 
 ```txt
-Soccer
+### Canonical Seed
 
-American Football
-
-Basketball
-
-Rugby
-
-Volleyball
-
-Tennis
-
-Padel
-
-Golf
-
-Motorsports
-
-Esports
-
-Other
+| Name | Slug |
+|--------|--------|
+| Soccer | soccer |
+| American Football | american-football |
+| Basketball | basketball |
+| Rugby | rugby |
+| Volleyball | volleyball |
+| Tennis | tennis |
+| Padel | padel |
+| Golf | golf |
+| Motorsports | motorsports |
+| Esports | esports |
+| Other | other |
 ```
 
 ---

@@ -29,11 +29,11 @@ Implementation always starts with context acquisition.
 Before starting any task, AI agents must read:
 
 ```txt
-AGENTS.md
-
 AI_RULES.md
 
 PROJECT_STATE.md
+
+AGENTS.md
 ```
 
 ---
@@ -74,6 +74,8 @@ docs/04-database/migration-plan-v1.md
 docs/04-database/database-decisions-review.md
 ```
 
+For Migration 002+, also read physical-model-v1.md → Global Catalog Rules.
+
 before generating SQL.
 
 ---
@@ -84,6 +86,8 @@ Always read:
 
 ```txt
 docs/05-eep/eep-architecture.md
+
+docs/05-eep/eep-segmentation-strategy.md
 ```
 
 before implementing EEP functionality.
@@ -222,14 +226,14 @@ Request approval before execution when required.
 
 After successful execution:
 
-Update:
+Update per `AI_RULES.md`:
 
 ```txt
-current-schema.md
+docs/04-database/current-schema.md
 
-gap-analysis.md
+docs/04-database/domain-model.md
 
-foundation-db-backlog.md
+relevant module docs
 
 PROJECT_STATE.md
 ```
@@ -238,7 +242,7 @@ PROJECT_STATE.md
 
 ## Step 9
 
-Generate commit.
+Suggest commit message.
 
 ---
 
@@ -336,13 +340,17 @@ Contract
 
 # Git Workflow
 
-AI agents may generate commits.
+AI agents may suggest commit messages.
+
+Humans review and execute commits.
 
 ---
 
 ## Commit Language
 
-Use Spanish.
+Use Spanish for commit message descriptions.
+
+Use English technical prefixes per AI_RULES.md.
 
 Examples:
 
@@ -363,6 +371,8 @@ refactor: adapta consultas al nuevo modelo de fans
 Create commits:
 
 ```txt
+Commit messages should be generated:
+
 Per Goal
 
 Per Migration
@@ -370,6 +380,8 @@ Per Migration
 Per Feature
 
 Per Refactor
+
+Humans are responsible for executing commits.
 ```
 
 Avoid giant commits.
@@ -513,7 +525,7 @@ Session Created
 
 Validation Completed
 
-Commit Generated
+Commit message suggested
 ```
 
 ---
@@ -537,6 +549,6 @@ A migration is considered completed only when:
 - SQL executed successfully
 - Validation completed
 - Documentation updated
-- Commit generated
+- Commit message suggested
 
 Creating a migration file alone does not mark a migration as completed.

@@ -160,17 +160,25 @@ sports
 
 ## Examples
 
+Canonical catalog per `migration-plan-v1.md` Migration 002:
+
 ```txt
-Football
-
-Basketball
-
-Rugby
-
-Volleyball
-
-Esports
+| Name              | Slug              |
+|-------------------|-------------------|
+| Soccer            | soccer            |
+| American Football | american-football |
+| Basketball        | basketball        |
+| Rugby             | rugby             |
+| Volleyball        | volleyball        |
+| Tennis            | tennis            |
+| Padel             | padel             |
+| Golf              | golf              |
+| Motorsports       | motorsports       |
+| Esports           | esports           |
+| Other             | other             |
 ```
+
+Canonical slugs and i18n normalization rules are defined in `physical-model-v1.md` → Global Catalog Rules.
 
 ---
 

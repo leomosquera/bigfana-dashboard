@@ -221,8 +221,6 @@ Real Madrid
 Each organization owns:
 
 ```txt
-Fans
-
 Campaigns
 
 Benefits
@@ -232,6 +230,8 @@ Rewards
 Content
 
 Sponsors
+
+Fan Relationships
 ```
 
 while sharing the same platform infrastructure.

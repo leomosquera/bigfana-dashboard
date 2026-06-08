@@ -98,13 +98,9 @@ foundation-db-v1.md
 Current priority:
 
 ```txt
-Validate current Neon schema
+Execute Foundation DB v1 migrations
 
-Update current-schema.md
-
-Update gap-analysis.md
-
-Prepare Foundation DB v1 migration plan
+Align documentation after each migration
 ```
 
 No major schema redesign should occur before documentation remains aligned.
@@ -329,7 +325,7 @@ If implementation and documentation diverge, documentation must be updated immed
 
 Completed migrations:
 
-- 001_create_fan_organizations
+- 001_create_fan_organizations (executed and validated)
 
 Current migration:
 
@@ -341,6 +337,5 @@ Sports and Competition Hierarchy
 
 Next migrations:
 
-- 002_create_sports
 - 003_create_competitions
 - 004_create_competition_organizations

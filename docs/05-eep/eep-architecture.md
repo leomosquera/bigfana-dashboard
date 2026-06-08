@@ -431,15 +431,7 @@ These features belong to BigFana.
 
 # Database Direction
 
-BigFana stores:
-
-```txt
-fan_events
-
-integration_jobs
-```
-
-EEP stores:
+EEP owns:
 
 ```txt
 audiences
@@ -448,10 +440,34 @@ segments
 
 scores
 
-behavioral models
+recommendations
 ```
 
-BigFana consumes audience and segment information.
+BigFana stores:
+
+```txt
+fan_events
+
+integration_jobs
+
+audiences
+
+fan_audiences
+
+segments
+
+fan_segments
+```
+
+Audience and segment tables in BigFana are local EEP caches.
+
+BigFana consumes audience and segment information via synchronization.
+
+Defined in:
+
+```txt
+docs/05-eep/eep-segmentation-strategy.md
+```
 
 ---
 
@@ -470,6 +486,7 @@ The integration is successful when:
 # Related Documents
 
 - system-architecture.md
+- eep-segmentation-strategy.md
 - foundation-db-v1.md
 - ADR-003 EEP Responsibilities
 - PROJECT_STATE.md

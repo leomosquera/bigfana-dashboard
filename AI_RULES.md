@@ -125,15 +125,35 @@ The AI agent may suggest commit messages.
 
 The human developer is responsible for reviewing and committing.
 
-Suggested commit messages should use English technical prefixes:
+Commit message descriptions should use Spanish.
 
-- `feat:`
-- `fix:`
-- `refactor:`
-- `docs:`
-- `chore:`
+Use English technical prefixes:
+
+* feat:
+* fix:
+* refactor:
+* docs:
+* chore:
 
 Example:
 
 ```txt
 feat: add followed organizations model
+```
+
+---
+
+# Git Safety Rules
+
+AI agents may propose commit messages.
+
+AI agents must never:
+
+- execute git commit
+- execute git push
+- execute git merge
+- execute git rebase
+
+without explicit user approval.
+
+Humans remain responsible for repository history.
