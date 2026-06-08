@@ -38,6 +38,8 @@ Users
 
 Fans
 
+Sports Catalog
+
 Campaigns
 
 Loyalty
@@ -50,9 +52,7 @@ EEP Synchronization
 The largest architectural gaps exist in:
 
 ```txt
-Global Fan Model
-
-Sports Hierarchy
+Global Fan Model (transition phase)
 
 Competition Management
 
@@ -470,16 +470,26 @@ These entities do not currently exist.
 ## Status
 
 ```txt
-Missing
+Implemented (catalog)
 ```
 
 ---
 
-## Required Tables
+## Existing Tables
 
 ```txt
 sports
 ```
+
+---
+
+## Notes
+
+Global sports catalog seeded with 11 canonical sports.
+
+`slug` is the canonical global sport identifier per Global Catalog Rules.
+
+`organizations.sport` refactor remains pending.
 
 ---
 

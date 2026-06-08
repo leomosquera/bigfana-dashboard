@@ -4,9 +4,7 @@
 
 This document describes the current state of the BigFana database.
 
-The objective is to document the existing Neon schema before Foundation Database v1 migrations begin.
-
-This document represents the current implementation.
+This document represents the current Neon implementation as Foundation Database v1 migrations progress.
 
 Future target architecture is documented in:
 
@@ -41,6 +39,8 @@ Users
 Memberships
 
 Fans
+
+Sports
 
 Campaigns
 
@@ -116,6 +116,8 @@ Real Madrid
 ## Observations
 
 Current implementation assumes organizations are the primary tenant boundary.
+
+`organizations.sport` remains a legacy free-text field pending migration to the `sports` catalog.
 
 This remains aligned with Foundation Database v1.
 
@@ -240,6 +242,88 @@ Defined by:
 ADR-001
 
 ADR-002
+```
+
+---
+
+# Sports
+
+## Tables
+
+```txt
+sports
+```
+
+---
+
+## Purpose
+
+Global sports catalog.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+name TEXT UNIQUE
+
+slug TEXT UNIQUE
+
+is_active BOOLEAN
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Seed Catalog
+
+Eleven canonical sports seeded per Global Catalog Rules:
+
+```txt
+soccer
+
+american-football
+
+basketball
+
+rugby
+
+volleyball
+
+tennis
+
+padel
+
+golf
+
+motorsports
+
+esports
+
+other
+```
+
+---
+
+## Observations
+
+`sports` is a global entity with no `organization_id`.
+
+`slug` is the canonical global sport identifier.
+
+`name` is the unique English display label.
+
+Defined by:
+
+```txt
+ADR-004
+
+Migration 002
 ```
 
 ---
@@ -566,6 +650,8 @@ Fans
 
 Fan Organization Relationships
 
+Sports Catalog
+
 Campaigns
 
 Events
@@ -586,9 +672,9 @@ which aligns strongly with BigFana's Phase 1 roadmap.
 Current schema does not yet support:
 
 ```txt
-Sports Hierarchy
-
 Competitions
+
+Competition Organizations
 
 Matches
 

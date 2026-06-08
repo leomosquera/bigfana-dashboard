@@ -326,10 +326,11 @@ If implementation and documentation diverge, documentation must be updated immed
 Completed migrations:
 
 - 001_create_fan_organizations (executed and validated)
+- 002_create_sports (executed and validated)
 
 Current migration:
 
-- 002_create_sports
+- 003_create_competitions
 
 Current phase:
 
@@ -339,3 +340,4 @@ Next migrations:
 
 - 003_create_competitions
 - 004_create_competition_organizations
+- 005_fan_interests
