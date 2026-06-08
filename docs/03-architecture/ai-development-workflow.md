@@ -526,3 +526,15 @@ Commit Generated
 - foundation-db-v1.md
 - migration-plan-v1.md
 - database-decisions-review.md
+
+---
+
+# Completion Rule
+
+A migration is considered completed only when:
+
+- SQL file exists
+- SQL executed successfully
+- Validation completed
+- Documentation updated
+- Commit generated

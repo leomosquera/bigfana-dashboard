@@ -194,6 +194,8 @@ sports
 Examples:
 
 ```txt
+Soccer
+
 Football
 
 Basketball
@@ -202,7 +204,17 @@ Rugby
 
 Volleyball
 
+Tennis
+
+Padel
+
+Golf
+
+Motorsports
+
 Esports
+
+Other
 ```
 
 ---
