@@ -170,13 +170,19 @@ MANAGED
 
 ## Fan Sports
 
-- [ ] Create fan_sports
+- [x] Create fan_sports
 
 ---
 
 ## Fan Competitions
 
-- [ ] Create fan_competitions
+- [x] Create fan_competitions
+
+---
+
+## Execution
+
+- [ ] Execute Migration 005 in Neon
 
 ---
 
