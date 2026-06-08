@@ -40,6 +40,8 @@ Fans
 
 Sports Catalog
 
+Competitions Catalog
+
 Campaigns
 
 Loyalty
@@ -54,7 +56,9 @@ The largest architectural gaps exist in:
 ```txt
 Global Fan Model (transition phase)
 
-Competition Management
+Competition Organizations
+
+Organization Sport Refactor
 
 Sponsor Domain
 
@@ -514,18 +518,38 @@ ADR-004
 ## Status
 
 ```txt
-Missing
+Implemented (catalog — partial)
 ```
 
 ---
 
-## Required Tables
+## Existing Tables
 
 ```txt
 competitions
+```
 
+---
+
+## Pending Tables
+
+```txt
 competition_organizations
 ```
+
+---
+
+## Notes
+
+Global competition catalog implemented with no seed data.
+
+`slug` is the canonical competition identifier.
+
+`competition_type` supports `INTEGRATED` and `MANAGED`.
+
+`competition_organizations` remains pending (Migration 004).
+
+`organizations.sport` refactor remains pending.
 
 ---
 

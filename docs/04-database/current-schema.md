@@ -42,6 +42,8 @@ Fans
 
 Sports
 
+Competitions
+
 Campaigns
 
 Loyalty
@@ -324,6 +326,117 @@ Defined by:
 ADR-004
 
 Migration 002
+```
+
+---
+
+# Competitions
+
+## Tables
+
+```txt
+competitions
+```
+
+---
+
+## Purpose
+
+Global competition catalog.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+sport_id UUID FK
+
+name TEXT
+
+slug TEXT UNIQUE
+
+competition_type TEXT
+
+country_code TEXT
+
+is_active BOOLEAN
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Constraints
+
+```txt
+competitions_sport_fk
+    sport_id → sports.id (ON DELETE RESTRICT)
+
+competitions_slug_unique
+    UNIQUE (slug)
+
+competitions_competition_type_check
+    competition_type IN ('INTEGRATED', 'MANAGED')
+
+competitions_country_code_check
+    country_code IS NULL OR ISO 3166-1 alpha-2 (^[A-Z]{2}$)
+```
+
+---
+
+## Indexes
+
+```txt
+competitions_sport_idx
+
+competitions_type_idx
+
+competitions_active_idx
+```
+
+---
+
+## Relationships
+
+```txt
+competitions.sport_id
+    → sports.id
+```
+
+---
+
+## Observations
+
+`competitions` is a global entity with no `organization_id`.
+
+`slug` is the canonical competition identifier.
+
+`name` uses the official international display name and is not globally unique.
+
+`country_code` is nullable; use `NULL` for international competitions.
+
+No seed data — catalog starts empty (validated: 0 rows).
+
+Supported competition types:
+
+```txt
+INTEGRATED
+
+MANAGED
+```
+
+Defined by:
+
+```txt
+ADR-004
+
+ADR-005
+
+Migration 003
 ```
 
 ---
@@ -652,6 +765,8 @@ Fan Organization Relationships
 
 Sports Catalog
 
+Competitions Catalog
+
 Campaigns
 
 Events
@@ -672,8 +787,6 @@ which aligns strongly with BigFana's Phase 1 roadmap.
 Current schema does not yet support:
 
 ```txt
-Competitions
-
 Competition Organizations
 
 Matches

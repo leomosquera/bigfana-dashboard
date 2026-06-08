@@ -137,6 +137,7 @@ ADR-004
 
 - [x] Create competitions table
 - [x] Create competition types
+- [x] Execute Migration 003 in Neon (validated: 0 rows, no seed)
 
 Supported:
 
