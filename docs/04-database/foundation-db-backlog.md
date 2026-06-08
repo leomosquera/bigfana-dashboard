@@ -95,7 +95,7 @@ fan_organizations
 
 ### New Entities
 
-- [-] Create fan_organizations
+- [x] Create fan_organizations
 
 ---
 
