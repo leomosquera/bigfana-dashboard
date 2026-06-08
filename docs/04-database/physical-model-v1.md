@@ -1021,18 +1021,65 @@ Global sponsor catalog.
 ```txt
 id UUID PK
 
-name TEXT
+name TEXT NOT NULL
 
-slug TEXT UNIQUE
+slug TEXT NOT NULL
 
 website_url TEXT
 
 logo_url TEXT
 
-status TEXT
+status TEXT NOT NULL DEFAULT draft
 
-created_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+---
+
+### status
+
+```txt
+draft
+
+active
+
+paused
+
+archived
+```
+
+Default: `draft`
+
+`active` means catalog visibility only — not org partnership validity.
+
+---
+
+### slug
+
+```txt
+sponsors_slug_unique
+    UNIQUE INDEX ON lower(slug)
+```
+
+Case-insensitive canonical slug enforcement. No table-level `UNIQUE (slug)` constraint.
+
+---
+
+### Relationships
+
+```txt
+Referenced by sponsor_organizations
+```
+
+---
+
+### Notes
+
+Global entity — no `organization_id`.
+
+No seed data in Migration 010.
 
 ---
 
@@ -1049,14 +1096,53 @@ Sponsor relationships with organizations.
 ```txt
 id UUID PK
 
-sponsor_id UUID FK
+sponsor_id UUID FK NOT NULL
 
-organization_id UUID FK
+organization_id UUID FK NOT NULL
 
-starts_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
 
-ends_at TIMESTAMP
+updated_at TIMESTAMP NOT NULL
 ```
+
+---
+
+### Relationships
+
+```txt
+sponsor_id
+    → sponsors.id ON DELETE RESTRICT
+
+organization_id
+    → organizations.id ON DELETE RESTRICT
+```
+
+---
+
+### Constraints
+
+```txt
+sponsor_organizations_unique_membership
+    UNIQUE (sponsor_id, organization_id)
+```
+
+---
+
+### Indexes
+
+```txt
+sponsor_organizations_sponsor_idx
+
+sponsor_organizations_organization_idx
+```
+
+---
+
+### Notes
+
+No `starts_at` / `ends_at` in Migration 010 — deferred.
+
+One row per sponsor–organization pair.
 
 ---
 
@@ -1065,6 +1151,14 @@ ends_at TIMESTAMP
 Purpose:
 
 Sponsor relationships with competitions.
+
+Status:
+
+```txt
+Deferred — not executed in Migration 010
+```
+
+Target anchor: future 010b or Migration 012.
 
 ---
 
@@ -1090,13 +1184,49 @@ Purpose:
 
 Advertising assets.
 
+Status:
+
+```txt
+Pre-Foundation — sponsor_id FK not yet applied in Neon
+```
+
 ---
 
-### Columns
+### Columns (executed — Neon)
 
 ```txt
 id UUID PK
 
+organization_id UUID FK
+
+sponsor_name TEXT NOT NULL
+
+title TEXT
+
+description TEXT
+
+image_url TEXT
+
+destination_url TEXT
+
+priority INTEGER
+
+segment_rules JSONB
+
+status TEXT
+
+metadata JSONB
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+### Columns (target — post reconciliation)
+
+```txt
 sponsor_id UUID FK
 
 organization_id UUID FK

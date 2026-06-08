@@ -331,26 +331,44 @@ Migration references:
 
 ## Sponsors
 
-- [ ] Create sponsors table
+- [x] Create sponsors table (`010_create_sponsors.sql`)
 
 ---
 
 ## Organization Sponsors
 
-- [ ] Create sponsor_organizations
+- [x] Create sponsor_organizations
 
 ---
 
 ## Competition Sponsors
 
-- [ ] Create sponsor_competitions
+- [ ] Create sponsor_competitions (deferred — 010b or Migration 012)
 
 ---
 
 ## Sponsor Metadata
 
 - [ ] Define sponsor categories
-- [ ] Define sponsor status model
+- [x] Define sponsor status model (`draft`, `active`, `paused`, `archived`)
+
+---
+
+## Execution (Migration 010)
+
+- [x] Migration 010 SQL file created (`010_create_sponsors.sql`)
+- [x] Execute Migration 010 in Neon
+- [x] Validate schema per design brief
+
+---
+
+## Documentation (Migration 010)
+
+- [x] Update current-schema.md sponsors inventory
+- [x] Update gap-analysis.md sponsors status
+- [x] Update physical-model-v1.md sponsors domain
+- [x] Update foundation-db-backlog.md
+- [x] Update PROJECT_STATE.md
 
 ---
 
@@ -569,7 +587,7 @@ Foundation Database v1 is complete when:
 - [ ] Sports hierarchy exists
 - [ ] Competition hierarchy exists
 - [x] Loyalty expansion exists
-- [ ] Sponsor ecosystem exists
+- [x] Sponsor foundation exists (sponsor_competitions and sponsor_ads reconciliation deferred)
 - [ ] Content platform exists
 - [ ] Match center exists
 - [ ] EEP audiences and segments exist

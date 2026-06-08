@@ -46,6 +46,8 @@ Campaigns
 
 Loyalty
 
+Sponsors
+
 Events
 
 EEP Synchronization
@@ -57,8 +59,6 @@ The largest architectural gaps exist in:
 Global Fan Model (application cutover — transition phase)
 
 Organization Sport Refactor
-
-Sponsor Domain
 
 EEP Audiences
 
@@ -428,22 +428,12 @@ ADR-004
 ## Status
 
 ```txt
-Refactor Required
+Implemented (Migration 010 — foundation)
 ```
 
 ---
 
-## Current Model
-
-```txt
-sponsor_ads
-
-campaign_ads
-```
-
----
-
-## Target Model
+## Existing Tables
 
 ```txt
 sponsors
@@ -451,20 +441,32 @@ sponsors
 sponsor_organizations
 
 sponsor_ads
+
+campaign_ads
 ```
 
 ---
 
-## Reason
+## Notes
 
-Sponsor becomes a first-class domain.
+Global sponsor catalog and org partnership junction complete at DDL level (Migration 010).
+
+`sponsors.slug` — case-insensitive uniqueness via `sponsors_slug_unique ON lower(slug)`.
+
+Status values: `draft`, `active`, `paused`, `archived`.
+
+`sponsor_ads` still uses denormalized `sponsor_name` — `sponsor_id` FK reconciliation deferred.
+
+`sponsor_competitions` deferred to future 010b or Migration 012.
+
+No seed data — validated: 0 rows.
 
 ---
 
 ## Priority
 
 ```txt
-Medium
+Medium — foundation DDL complete; sponsor_ads reconciliation and competition sponsorship deferred
 ```
 
 ---
@@ -876,12 +878,12 @@ High — DDL complete; application workflow deferred
 ## Status
 
 ```txt
-Missing
+Implemented (Migration 010)
 ```
 
 ---
 
-## Required Tables
+## Existing Tables
 
 ```txt
 sponsors
@@ -891,10 +893,32 @@ sponsor_organizations
 
 ---
 
+## Notes
+
+Global sponsor catalog and organization sponsorship relationships.
+
+`sponsor_organizations.sponsor_id` → `sponsors.id` ON DELETE RESTRICT.
+
+`sponsor_organizations.organization_id` → `organizations.id` ON DELETE RESTRICT.
+
+UNIQUE `(sponsor_id, organization_id)`.
+
+Remaining gaps:
+
+```txt
+sponsor_competitions (deferred)
+sponsor_ads.sponsor_id reconciliation
+sponsor categories
+```
+
+No seed data — validated: 0 rows.
+
+---
+
 ## Priority
 
 ```txt
-Medium
+Medium — foundation complete; ads reconciliation and competition sponsorship deferred
 ```
 
 ---
@@ -1038,13 +1062,15 @@ Recommended order:
 
 8. Redemptions (complete)
 
-9. Sponsors
+9. Sponsors (complete)
 
-10. Audiences
+10. Content
 
-11. Segments
+11. Audiences
 
-12. Match Center
+12. Segments
+
+13. Match Center
 ```
 
 ---
@@ -1054,7 +1080,7 @@ Recommended order:
 Current implementation already covers approximately:
 
 ```txt
-75% of Phase 1
+~80% of Phase 1
 ```
 
 The foundation is considered strong.
@@ -1078,7 +1104,7 @@ rather than large-scale redesign.
 The next Foundation DB v1 migration is:
 
 ```txt
-010 — Sponsors (Sponsors Foundation)
+011 — Content (Content Foundation)
 ```
 
 ---

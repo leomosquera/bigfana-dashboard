@@ -10,7 +10,7 @@ The project is actively implementing Foundation Database v1 in Neon.
 
 Current focus:
 
-- Migration 010 Sponsors
+- Migration 011 Content
 - aligning schema documentation after each migration
 
 ---
@@ -99,7 +99,7 @@ Current priority:
 ```txt
 Continue Foundation DB v1 execution
 
-Sponsors Foundation (Migration 010)
+Content Foundation (Migration 011)
 
 Align documentation after each migration
 ```
@@ -287,7 +287,7 @@ The current project priority is:
 ```txt
 Foundation Database v1
 
-Sponsors Foundation
+Content Foundation
 
 Dashboard Definition
 
@@ -335,15 +335,16 @@ Completed migrations:
 - 007_create_benefits (executed and validated)
 - 008_create_rewards (executed and validated)
 - 009_create_redemptions (executed and validated)
+- 010_create_sponsors (executed and validated)
 
 Current migration:
 
-- 010_sponsors
+- 011_content
 
 Current phase:
 
-Sponsors Foundation
+Content Foundation
 
 Next migrations:
 
-- 010_sponsors
+- 011_content

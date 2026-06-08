@@ -56,6 +56,8 @@ Loyalty
 
 Sponsors
 
+Sponsor Organizations
+
 Events
 
 Integrations
@@ -1425,6 +1427,10 @@ eep-architecture.md
 ## Tables
 
 ```txt
+sponsors
+
+sponsor_organizations
+
 sponsor_ads
 
 campaign_ads
@@ -1434,7 +1440,205 @@ campaign_ads
 
 ## Purpose
 
-Stores sponsor advertisements and campaign associations.
+Global sponsor catalog, organization sponsorship relationships, and org-scoped sponsor advertisements.
+
+Sponsor Foundation (Migrations 010) introduces the global catalog and org partnership junction. Ad creatives (`sponsor_ads`) remain on the pre-Foundation model until `sponsor_id` reconciliation.
+
+---
+
+## Relationships
+
+```txt
+sponsor_organizations.sponsor_id
+    → sponsors.id
+
+sponsor_organizations.organization_id
+    → organizations.id
+
+sponsor_ads.organization_id
+    → organizations.id
+
+campaign_ads.campaign_id
+    → campaigns.id
+
+campaign_ads.sponsor_ad_id
+    → sponsor_ads.id
+```
+
+---
+
+# sponsors
+
+## Purpose
+
+Global platform catalog of commercial partners (brands). A sponsor exists independently from organizations.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+name TEXT NOT NULL
+
+slug TEXT NOT NULL
+
+website_url TEXT
+
+logo_url TEXT
+
+status TEXT NOT NULL DEFAULT draft
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
+```
+
+---
+
+## Constraints
+
+```txt
+sponsors_status_check
+    status IN ('draft', 'active', 'paused', 'archived')
+```
+
+---
+
+## Indexes
+
+```txt
+sponsors_slug_unique
+    UNIQUE ON lower(slug)
+```
+
+Case-insensitive canonical slug enforcement. No table-level `UNIQUE (slug)` constraint.
+
+---
+
+## Relationships
+
+```txt
+Referenced by sponsor_organizations
+```
+
+---
+
+## Observations
+
+`sponsors` is a global entity with no `organization_id`.
+
+`slug` is the canonical global sponsor identifier (case-insensitive uniqueness via `lower(slug)`).
+
+`name` is not globally unique — duplicate display names permitted.
+
+`active` status means catalog visibility only — not org partnership validity.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+Migration 010
+```
+
+---
+
+# sponsor_organizations
+
+## Purpose
+
+Junction table linking global sponsors to tenant organizations.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+sponsor_id UUID FK NOT NULL
+
+organization_id UUID FK NOT NULL
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
+```
+
+---
+
+## Constraints
+
+```txt
+sponsor_organizations_sponsor_fk
+    sponsor_id → sponsors.id (ON DELETE RESTRICT)
+
+sponsor_organizations_organization_fk
+    organization_id → organizations.id (ON DELETE RESTRICT)
+
+sponsor_organizations_unique_membership
+    UNIQUE (sponsor_id, organization_id)
+```
+
+---
+
+## Indexes
+
+```txt
+sponsor_organizations_sponsor_idx
+
+sponsor_organizations_organization_idx
+```
+
+---
+
+## Relationships
+
+```txt
+sponsor_organizations.sponsor_id
+    → sponsors.id
+
+sponsor_organizations.organization_id
+    → organizations.id
+```
+
+---
+
+## Observations
+
+One membership row per sponsor–organization pair.
+
+No `starts_at` / `ends_at` in Migration 010 — partnership windows deferred.
+
+Both foreign keys use ON DELETE RESTRICT — preserve partnership history.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+Migration 010
+```
+
+---
+
+# Sponsor Ads
+
+## Tables
+
+```txt
+sponsor_ads
+
+campaign_ads
+```
+
+---
+
+## Purpose
+
+Org-scoped sponsor advertisements and campaign associations. Pre-Foundation table — uses denormalized `sponsor_name` until `sponsor_id` FK is added in a future migration.
 
 ---
 
@@ -1455,14 +1659,14 @@ campaign_ads.sponsor_ad_id
 
 ## Observations
 
-The sponsor domain exists but remains incomplete.
+`sponsor_ads` does not yet reference `sponsors.id`. Brand identity is stored in `sponsor_name` text per organization.
 
-Future architecture introduces:
+`sponsor_competitions` deferred to future 010b or Migration 012.
+
+Defined by:
 
 ```txt
-sponsors
-
-sponsor_organizations
+Pre-Foundation campaign engine
 ```
 
 ---
@@ -1502,6 +1706,8 @@ Rewards Catalog
 
 Redemptions
 
+Sponsor Foundation
+
 EEP Integration Foundation
 ```
 
@@ -1519,8 +1725,6 @@ Matches
 Standings
 
 Benefit eligibility and usage tracking
-
-Sponsors Domain
 
 EEP Audiences
 
