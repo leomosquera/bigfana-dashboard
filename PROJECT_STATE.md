@@ -320,3 +320,19 @@ docs/07-dashboard/*
 ```
 
 If implementation and documentation diverge, documentation must be updated immediately.
+
+---
+
+# Foundation DB v1 Progress
+
+Completed migrations:
+
+- 001_create_fan_organizations
+
+Current phase:
+
+Sports and Competition Hierarchy
+
+Next migration:
+
+002_create_sports
