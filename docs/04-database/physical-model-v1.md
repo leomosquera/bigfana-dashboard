@@ -777,7 +777,7 @@ created_at TIMESTAMP
 
 Purpose:
 
-Redeemable rewards.
+Organization-owned point-priced redeemable rewards catalog.
 
 ---
 
@@ -786,19 +786,84 @@ Redeemable rewards.
 ```txt
 id UUID PK
 
-organization_id UUID FK
+organization_id UUID FK NOT NULL
 
-name TEXT
+name TEXT NOT NULL
 
 description TEXT
 
-points_required INTEGER
+points_required INTEGER NOT NULL
 
 stock INTEGER
 
-status TEXT
+status TEXT NOT NULL DEFAULT draft
 
-created_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
+```
+
+---
+
+### status
+
+```txt
+draft
+
+active
+
+paused
+
+archived
+```
+
+Default: `draft`
+
+`active` means catalog visibility only — not fan eligibility or balance check.
+
+---
+
+### points_required
+
+```txt
+points_required >= 1
+```
+
+Free rewards (`0` points) are not supported. Promotional free items belong in `benefits`.
+
+---
+
+### stock
+
+```txt
+NULL  → unlimited availability
+0     → out of stock (listed but not redeemable)
+> 0   → available units remaining
+```
+
+```txt
+stock IS NULL OR stock >= 0
+```
+
+Stock decrement on redemption is application-layer — not enforced by DDL.
+
+---
+
+### Relationships
+
+```txt
+organization_id
+    → organizations.id ON DELETE RESTRICT
+```
+
+---
+
+### Indexes
+
+```txt
+rewards_organization_id_idx
+
+rewards_organization_status_idx
 ```
 
 ---
@@ -807,7 +872,7 @@ created_at TIMESTAMP
 
 Purpose:
 
-Reward redemption history.
+Organization-scoped transactional record of a fan claiming a reward.
 
 ---
 
@@ -816,15 +881,97 @@ Reward redemption history.
 ```txt
 id UUID PK
 
-reward_id UUID FK
+organization_id UUID FK NOT NULL
 
-fan_id UUID FK
+fan_id UUID FK NOT NULL
 
-organization_id UUID FK
+reward_id UUID FK NOT NULL
 
-status TEXT
+status TEXT NOT NULL DEFAULT pending
 
-redeemed_at TIMESTAMP
+points_cost INTEGER NOT NULL
+
+redeemed_at TIMESTAMP NOT NULL
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
+```
+
+---
+
+### status
+
+```txt
+pending
+
+approved
+
+fulfilled
+
+rejected
+
+cancelled
+```
+
+Default: `pending`
+
+Status transitions are enforced at the application layer. Terminal statuses: `fulfilled`, `rejected`, `cancelled`.
+
+---
+
+### points_cost
+
+Snapshot of `rewards.points_required` at claim time.
+
+```txt
+points_cost >= 1
+```
+
+Application copies `rewards.points_required` on insert. Catalog values may change after redemption is recorded.
+
+---
+
+### redeemed_at
+
+Fan submission timestamp. Default `NOW()` on insert.
+
+---
+
+### Relationships
+
+```txt
+organization_id
+    → organizations.id ON DELETE RESTRICT
+
+fan_id
+    → fans.id ON DELETE RESTRICT
+
+reward_id
+    → rewards.id ON DELETE RESTRICT
+```
+
+Tenant invariant (application-layer): `redemptions.organization_id` must equal `rewards.organization_id`.
+
+---
+
+### Indexes
+
+```txt
+redemptions_organization_redeemed_at_idx
+    ON (organization_id, redeemed_at)
+
+redemptions_organization_status_idx
+    ON (organization_id, status)
+
+redemptions_fan_id_idx
+    ON (fan_id)
+
+redemptions_reward_id_idx
+    ON (reward_id)
+
+redemptions_organization_fan_idx
+    ON (organization_id, fan_id)
 ```
 
 ---

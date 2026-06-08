@@ -302,7 +302,7 @@ Migration references:
 
 ## Redemptions
 
-- [-] Create redemptions table — SQL ready (`009_create_redemptions.sql`)
+- [x] Create redemptions table (`009_create_redemptions.sql`)
 - [ ] Create redemption status workflow
 - [ ] Create redemption audit history
 
@@ -311,8 +311,17 @@ Migration references:
 ## Execution (Migration 009)
 
 - [x] Migration 009 SQL file created (`009_create_redemptions.sql`)
-- [ ] Execute Migration 009 in Neon (pending)
-- [ ] Validate schema per design brief
+- [x] Execute Migration 009 in Neon
+- [x] Validate schema per design brief
+
+---
+
+## Documentation (Migration 009)
+
+- [x] Update current-schema.md redemptions inventory
+- [x] Update gap-analysis.md redemptions status
+- [x] Update physical-model-v1.md redemptions domain
+- [x] Update PROJECT_STATE.md
 
 ---
 
@@ -559,7 +568,7 @@ Foundation Database v1 is complete when:
 - [x] Fan profile foundation exists
 - [ ] Sports hierarchy exists
 - [ ] Competition hierarchy exists
-- [ ] Loyalty expansion exists
+- [x] Loyalty expansion exists
 - [ ] Sponsor ecosystem exists
 - [ ] Content platform exists
 - [ ] Match center exists

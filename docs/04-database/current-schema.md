@@ -874,13 +874,15 @@ fan_points_ledger
 benefits
 
 rewards
+
+redemptions
 ```
 
 ---
 
 ## Purpose
 
-Stores loyalty progression, point transactions, and the organization-owned benefits and rewards catalogs.
+Stores loyalty progression, point transactions, organization-owned benefits and rewards catalogs, and fan reward redemption transactions.
 
 ---
 
@@ -904,6 +906,15 @@ benefits.organization_id
 
 rewards.organization_id
     → organizations.id
+
+redemptions.organization_id
+    → organizations.id
+
+redemptions.fan_id
+    → fans.id
+
+redemptions.reward_id
+    → rewards.id
 ```
 
 ---
@@ -920,13 +931,15 @@ Levels
 Benefits (catalog — Migration 007)
 
 Rewards (catalog — Migration 008)
+
+Redemptions (transactions — Migration 009)
 ```
 
-Redemptions remain pending (Migration 009).
+Loyalty Foundation (Migrations 007–009) is complete at the DDL level.
 
 Benefit eligibility and usage tracking are deferred.
 
-Stock decrement and point debit on redemption are deferred to the application layer.
+Points debit, stock decrement, and redemption workflow implementation are deferred to the application layer.
 
 ---
 
@@ -1106,9 +1119,9 @@ rewards.organization_id
 
 ## Observations
 
-Catalog-only scope — no redemptions, ledger debits, eligibility rules, sponsor linkage, or campaign FK.
+Catalog-only scope — no ledger debits, eligibility rules, sponsor linkage, or campaign FK.
 
-`active` status means catalog visibility only; fan balance and stock checks occur at redemption time (Migration 009 application layer).
+`active` status means catalog visibility only; fan balance and stock checks occur at redemption time (application layer).
 
 Free rewards (`0` points) are not supported. Promotional free items belong in `benefits`, not `rewards`.
 
@@ -1122,6 +1135,149 @@ Defined by:
 
 ```txt
 Migration 008
+```
+
+---
+
+# Redemptions
+
+## Tables
+
+```txt
+redemptions
+```
+
+---
+
+## Purpose
+
+Organization-scoped transactional record of a fan claiming a reward. Redemptions are fan claim instances against the rewards catalog — not entitlements (benefits) and not catalog configuration (rewards).
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+organization_id UUID FK NOT NULL
+
+fan_id UUID FK NOT NULL
+
+reward_id UUID FK NOT NULL
+
+status TEXT NOT NULL DEFAULT pending
+
+points_cost INTEGER NOT NULL
+
+redeemed_at TIMESTAMP NOT NULL DEFAULT NOW()
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Constraints
+
+```txt
+redemptions_organization_fk
+    organization_id → organizations.id (ON DELETE RESTRICT)
+
+redemptions_fan_fk
+    fan_id → fans.id (ON DELETE RESTRICT)
+
+redemptions_reward_fk
+    reward_id → rewards.id (ON DELETE RESTRICT)
+
+redemptions_status_check
+    status IN ('pending', 'approved', 'fulfilled', 'rejected', 'cancelled')
+
+redemptions_points_cost_check
+    points_cost >= 1
+```
+
+---
+
+## Indexes
+
+```txt
+redemptions_organization_redeemed_at_idx
+
+redemptions_organization_status_idx
+
+redemptions_fan_id_idx
+
+redemptions_reward_id_idx
+
+redemptions_organization_fan_idx
+```
+
+---
+
+## Relationships
+
+```txt
+redemptions.organization_id
+    → organizations.id
+
+redemptions.fan_id
+    → fans.id
+
+redemptions.reward_id
+    → rewards.id
+```
+
+---
+
+## Points Cost Snapshot
+
+`points_cost` stores the point cost at claim time — a snapshot of `rewards.points_required` when the redemption is created.
+
+| Rule | Value |
+|------|-------|
+| Nullability | NOT NULL |
+| Constraint | `points_cost >= 1` |
+| Source | Application copies `rewards.points_required` on insert |
+| Rationale | Catalog `points_required` may change after redemption is recorded |
+
+Migration 009 does not validate that `points_cost` matches `rewards.points_required` at insert time. That belongs to the redemption service.
+
+---
+
+## Status Workflow
+
+| Status | Meaning | Terminal? |
+|--------|---------|-----------|
+| `pending` | Fan submitted claim; default on insert | No |
+| `approved` | Organization accepted claim; fulfillment in progress | No |
+| `fulfilled` | Reward delivered or digitally issued | Yes |
+| `rejected` | Organization denied claim | Yes |
+| `cancelled` | Fan or system withdrew before fulfillment | Yes |
+
+Status transitions are enforced at the application layer. The database only constrains valid status values via CHECK.
+
+Fast-path (`pending` → `fulfilled`) is permitted in application logic.
+
+---
+
+## Observations
+
+DDL transaction storage only — no `ledger_entry_id`, `fan_event_id`, triggers, or procedures.
+
+Points debit timing, stock decrement timing, and full redemption workflow are deferred to the application layer.
+
+`organization_id` must equal `rewards.organization_id` for the linked reward — enforced at application layer, not DB CHECK.
+
+All FKs use ON DELETE RESTRICT — preserve redemption history.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+Migration 009
 ```
 
 ---
@@ -1344,6 +1500,8 @@ Benefits Catalog
 
 Rewards Catalog
 
+Redemptions
+
 EEP Integration Foundation
 ```
 
@@ -1359,8 +1517,6 @@ Current schema does not yet support:
 Matches
 
 Standings
-
-Redemptions
 
 Benefit eligibility and usage tracking
 

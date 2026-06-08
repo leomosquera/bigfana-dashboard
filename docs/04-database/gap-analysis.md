@@ -60,8 +60,6 @@ Organization Sport Refactor
 
 Sponsor Domain
 
-Redemptions
-
 EEP Audiences
 
 EEP Segments
@@ -254,7 +252,7 @@ No major redesign required.
 ## Status
 
 ```txt
-Reusable
+Complete (DDL — Migrations 007–009)
 ```
 
 ---
@@ -269,13 +267,15 @@ fan_points_ledger
 benefits
 
 rewards
+
+redemptions
 ```
 
 ---
 
 ## Notes
 
-Current implementation provides a strong starting point for:
+Loyalty Foundation is complete at the DDL level:
 
 ```txt
 Points
@@ -285,17 +285,15 @@ Levels
 Benefits (catalog — Migration 007)
 
 Rewards (catalog — Migration 008)
-```
 
-Redemptions remain pending (Migration 009).
+Redemptions (transactions — Migration 009)
+```
 
 Benefit eligibility and usage tracking are deferred.
 
-Stock decrement and point debit on redemption are deferred to the application layer.
+Points debit, stock decrement, and redemption workflow implementation are deferred to the application layer.
 
-Requires expansion, not replacement.
-
-Next step: Migration 009 Redemptions.
+Requires application-layer expansion, not schema replacement.
 
 ---
 
@@ -815,9 +813,9 @@ rewards
 
 ## Notes
 
-Organization-owned point-priced rewards catalog. Catalog-only — no redemptions, ledger debits, eligibility rules, or stock decrement logic.
+Organization-owned point-priced rewards catalog. Catalog-only — no ledger debits, eligibility rules, or stock decrement logic.
 
-`active` status means catalog visibility only; balance and stock checks at redemption time (Migration 009 application layer).
+`active` status means catalog visibility only; balance and stock checks at redemption time (application layer).
 
 No seed data — validated: 0 rows.
 
@@ -826,7 +824,7 @@ No seed data — validated: 0 rows.
 ## Priority
 
 ```txt
-High — catalog complete; redemptions deferred to Migration 009
+High — catalog complete
 ```
 
 ---
@@ -836,12 +834,12 @@ High — catalog complete; redemptions deferred to Migration 009
 ## Status
 
 ```txt
-Missing
+Implemented (Migration 009)
 ```
 
 ---
 
-## Required Tables
+## Existing Tables
 
 ```txt
 redemptions
@@ -849,10 +847,26 @@ redemptions
 
 ---
 
+## Notes
+
+Organization-scoped transactional record of a fan claiming a reward.
+
+DDL transaction storage only — no `ledger_entry_id`, `fan_event_id`, triggers, or procedures.
+
+`points_cost` snapshots `rewards.points_required` at claim time.
+
+Status workflow: `pending`, `approved`, `fulfilled`, `rejected`, `cancelled` (lowercase). Transitions enforced at application layer.
+
+Points debit timing, stock decrement timing, and redemption service are deferred to application layer.
+
+No seed data — validated: 0 rows.
+
+---
+
 ## Priority
 
 ```txt
-High
+High — DDL complete; application workflow deferred
 ```
 
 ---
@@ -1022,7 +1036,7 @@ Recommended order:
 
 7. Rewards (complete)
 
-8. Redemptions
+8. Redemptions (complete)
 
 9. Sponsors
 
@@ -1040,7 +1054,7 @@ Recommended order:
 Current implementation already covers approximately:
 
 ```txt
-70% of Phase 1
+75% of Phase 1
 ```
 
 The foundation is considered strong.
@@ -1064,7 +1078,7 @@ rather than large-scale redesign.
 The next Foundation DB v1 migration is:
 
 ```txt
-009 — Redemptions (Loyalty Redemptions Foundation)
+010 — Sponsors (Sponsors Foundation)
 ```
 
 ---
