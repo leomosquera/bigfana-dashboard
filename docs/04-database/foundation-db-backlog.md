@@ -135,8 +135,8 @@ ADR-004
 
 ## Competitions
 
-- [ ] Create competitions table
-- [ ] Create competition types
+- [x] Create competitions table
+- [x] Create competition types
 
 Supported:
 

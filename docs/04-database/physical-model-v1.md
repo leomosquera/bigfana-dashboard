@@ -342,23 +342,65 @@ name TEXT
 
 slug TEXT UNIQUE
 
-type TEXT
+competition_type TEXT
 
 country_code TEXT
 
 is_active BOOLEAN
 
 created_at TIMESTAMP
+
+updated_at TIMESTAMP
 ```
 
 ---
 
-### type
+### competition_type
+
+Allowed values:
 
 ```txt
 INTEGRATED
 
 MANAGED
+```
+
+Defined by:
+
+```txt
+ADR-005
+```
+
+---
+
+### country_code
+
+ISO 3166-1 alpha-2.
+
+Nullable.
+
+Examples:
+
+```txt
+AR
+
+MX
+
+US
+
+BR
+
+ES
+```
+
+Use `NULL` for international competitions.
+
+Examples:
+
+```txt
+UEFA Champions League
+
+Copa Libertadores
 ```
 
 ---
@@ -369,6 +411,32 @@ MANAGED
 sport_id
     → sports.id
 ```
+
+---
+
+### Migration 003 Scope
+
+Migration 003 introduces:
+
+```txt
+competitions
+```
+
+only.
+
+Migration 003 does not introduce:
+
+```txt
+competition_organizations
+
+fan_competitions
+
+seasons
+
+matches
+```
+
+Those belong to later migrations.
 
 ---
 
@@ -1280,6 +1348,30 @@ must resolve to:
 
 ```txt
 american-football
+```
+
+---
+
+## Competitions
+
+Competition names are stored using their official international name.
+
+Competition slugs are globally unique.
+
+`slug` is the canonical competition identifier.
+
+Examples:
+
+```txt
+premier-league
+
+liga-mx
+
+mls
+
+copa-libertadores
+
+uefa-champions-league
 ```
 
 ---
