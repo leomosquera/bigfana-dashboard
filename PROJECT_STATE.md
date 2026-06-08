@@ -328,16 +328,16 @@ Completed migrations:
 - 001_create_fan_organizations (executed and validated)
 - 002_create_sports (executed and validated)
 - 003_create_competitions (executed and validated)
+- 004_create_competition_organizations (executed and validated)
 
 Current migration:
 
-- 004_create_competition_organizations
+- 005_fan_interests
 
 Current phase:
 
-Sports and Competition Hierarchy
+Fan Interest Model
 
 Next migrations:
 
-- 004_create_competition_organizations
 - 005_fan_interests

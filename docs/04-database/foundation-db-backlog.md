@@ -152,6 +152,7 @@ MANAGED
 ## Competition Memberships
 
 - [x] Create competition_organizations
+- [x] Execute Migration 004 in Neon (validated: 0 rows, FKs, indexes, unique constraint)
 - [ ] Create competition metadata structure
 
 ---

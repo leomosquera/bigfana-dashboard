@@ -44,6 +44,8 @@ Sports
 
 Competitions
 
+Competition Organizations
+
 Campaigns
 
 Loyalty
@@ -407,6 +409,12 @@ competitions.sport_id
     → sports.id
 ```
 
+Referenced by:
+
+```txt
+competition_organizations
+```
+
 ---
 
 ## Observations
@@ -437,6 +445,97 @@ ADR-004
 ADR-005
 
 Migration 003
+```
+
+---
+
+# Competition Organizations
+
+## Tables
+
+```txt
+competition_organizations
+```
+
+---
+
+## Purpose
+
+Links organizations to competitions they participate in.
+
+---
+
+## Columns
+
+```txt
+id UUID PK
+
+competition_id UUID FK
+
+organization_id UUID FK
+
+joined_at TIMESTAMP
+
+created_at TIMESTAMP
+
+updated_at TIMESTAMP
+```
+
+---
+
+## Constraints
+
+```txt
+competition_organizations_competition_fk
+    competition_id → competitions.id (ON DELETE RESTRICT)
+
+competition_organizations_organization_fk
+    organization_id → organizations.id (ON DELETE RESTRICT)
+
+competition_organizations_unique_membership
+    UNIQUE (competition_id, organization_id)
+```
+
+---
+
+## Indexes
+
+```txt
+competition_organizations_competition_idx
+
+competition_organizations_organization_idx
+```
+
+---
+
+## Relationships
+
+```txt
+competition_organizations.competition_id
+    → competitions.id
+
+competition_organizations.organization_id
+    → organizations.id
+```
+
+---
+
+## Observations
+
+Junction table completing Sport → Competition → Organization hierarchy.
+
+One membership per organization per competition.
+
+Both foreign keys use ON DELETE RESTRICT — organizations are long-lived; soft deletion preferred.
+
+No seed data — validated: 0 rows.
+
+Defined by:
+
+```txt
+ADR-004
+
+Migration 004
 ```
 
 ---
@@ -767,6 +866,8 @@ Sports Catalog
 
 Competitions Catalog
 
+Competition Organization Memberships
+
 Campaigns
 
 Events
@@ -787,8 +888,6 @@ which aligns strongly with BigFana's Phase 1 roadmap.
 Current schema does not yet support:
 
 ```txt
-Competition Organizations
-
 Matches
 
 Standings
