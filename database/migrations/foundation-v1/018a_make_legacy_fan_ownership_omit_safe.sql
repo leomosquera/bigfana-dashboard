@@ -1,0 +1,203 @@
+BEGIN;
+
+-- =====================================================
+-- Make Legacy Fan Ownership Omit-Safe
+-- Foundation DB v1 — Migration 018a (Contract Phase)
+-- migration-plan-v1.md → Migration 018a (staged)
+-- docs/sessions/2026-07-18-migration-018a-make-legacy-fan-ownership-omit-safe-design.md
+-- ADR-009 (Accepted — Frozen)
+-- ADR-001 / ADR-002
+-- =====================================================
+--
+-- Business reason:
+--   Make fans.organization_id omit-safe so old and new
+--   application versions can coexist against the same Neon
+--   database during staged ADR-009 cutover (Option B).
+--
+--   OLD APP may continue writing the PRIMARY compatibility
+--   projection onto fans.organization_id.
+--   NEW APP (Phase F2) may omit fans.organization_id.
+--   Shared DB must accept BOTH behaviors during rollout.
+--
+-- Scope:
+--   ALTER fans.organization_id DROP NOT NULL only
+--     (NOT NULL → NULLABLE).
+--   No DROP COLUMN.
+--   No DROP of fans_organization_id_fkey.
+--   No DROP of idx_fans_org.
+--   No RENAME.
+--   No type change (remains UUID).
+--   No DEFAULT introduced.
+--   No COMMENT rewrite (Migration 017 DEPRECATED comment retained).
+--   No changes to fan_organizations.
+--   No data mutation or backfill.
+--   No application / Drizzle cutover in this migration.
+--
+-- Contract (ADR-009):
+--   fans.organization_id is DEPRECATED and non-authoritative.
+--   Sole authoritative relationship is fan_organizations.
+--   Any temporary write to fans.organization_id is a
+--   compatibility projection of the canonical PRIMARY
+--   relationship only (implementation detail; never a
+--   second business persistence model).
+--   Transition invariant still applies:
+--     If fans.organization_id IS NOT NULL, it must equal
+--     the fan's PRIMARY organization_id in fan_organizations
+--     OR no approved consumer remains.
+--
+-- Frozen sequence:
+--   017  = deprecation — COMPLETE
+--   018a = omit-safe (this migration)
+--   F2   = stop projection write + remove Drizzle mapping
+--   018b = physical DROP — BLOCKED until post-F2 gates PASS
+--   019  = organizations.sport — unchanged
+--
+-- Tables affected: fans (nullability of organization_id only)
+-- EEP impact: none
+-- Existing data impact: none (values unchanged)
+--
+-- Idempotency:
+--   Re-run ALTER COLUMN ... DROP NOT NULL succeeds when the
+--   column is already nullable (Postgres no-op / success).
+--   Safe to re-execute; does not mutate row values.
+--
+-- Rollback (soft, conditional):
+--   ALTER TABLE fans
+--     ALTER COLUMN organization_id SET NOT NULL;
+--   Only safe if zero rows have organization_id IS NULL.
+-- =====================================================
+
+ALTER TABLE fans
+  ALTER COLUMN organization_id DROP NOT NULL;
+
+-- =====================================================
+-- Post-migration validation (manual)
+-- =====================================================
+-- Record baseline counts BEFORE validation inserts.
+-- Migration DDL itself must not change production row values.
+--
+-- 0. Pre/post row-count sanity (must match; DDL does not rewrite rows)
+--   SELECT COUNT(*) AS total_fans FROM fans;
+--   SELECT COUNT(*) AS fans_with_null_org
+--   FROM fans WHERE organization_id IS NULL;
+--   -- Immediately after 018a DDL (before validation inserts):
+--   --   fans_with_null_org should equal pre-018a null count
+--   --   (expected 0 if Phase G baseline still holds)
+--
+-- 1. Column still exists; type UUID; nullable = YES; no default
+--   SELECT column_name, data_type, udt_name, is_nullable, column_default
+--   FROM information_schema.columns
+--   WHERE table_schema = 'public'
+--     AND table_name = 'fans'
+--     AND column_name = 'organization_id';
+--   -- expect:
+--   --   data_type/udt_name = uuid
+--   --   is_nullable = 'YES'
+--   --   column_default IS NULL
+--
+-- 2. DEPRECATED comment retained (Migration 017)
+--   SELECT col_description('public.fans'::regclass,
+--     (SELECT attnum FROM pg_attribute
+--      WHERE attrelid = 'public.fans'::regclass
+--        AND attname = 'organization_id'
+--        AND NOT attisdropped));
+--   -- expect text containing DEPRECATED, ADR-009, fan_organizations
+--
+-- 3. FK unchanged
+--   SELECT con.conname, pg_get_constraintdef(con.oid) AS definition
+--   FROM pg_constraint con
+--   JOIN pg_class rel ON rel.oid = con.conrelid
+--   JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+--   WHERE nsp.nspname = 'public'
+--     AND rel.relname = 'fans'
+--     AND con.contype = 'f'
+--     AND con.conname = 'fans_organization_id_fkey';
+--   -- expect:
+--   --   FOREIGN KEY (organization_id) REFERENCES organizations(id)
+--   --   ON DELETE CASCADE
+--
+-- 4. idx_fans_org unchanged
+--   SELECT indexname, indexdef
+--   FROM pg_indexes
+--   WHERE schemaname = 'public'
+--     AND tablename = 'fans'
+--     AND indexname = 'idx_fans_org';
+--   -- expect:
+--   --   CREATE INDEX idx_fans_org ON public.fans USING btree (organization_id)
+--
+-- 5. fan_organizations unchanged (exists; column list stable)
+--   SELECT to_regclass('public.fan_organizations');
+--   SELECT column_name, data_type, is_nullable
+--   FROM information_schema.columns
+--   WHERE table_schema = 'public'
+--     AND table_name = 'fan_organizations'
+--   ORDER BY ordinal_position;
+--
+-- 6. Consistency: divergent legacy vs PRIMARY = 0 (non-null legacy only)
+--   SELECT COUNT(*) AS divergent
+--   FROM fans f
+--   LEFT JOIN fan_organizations fo
+--     ON fo.fan_id = f.id
+--    AND fo.is_primary = TRUE
+--   WHERE f.organization_id IS NOT NULL
+--     AND (fo.organization_id IS NULL
+--          OR fo.organization_id <> f.organization_id);
+--   -- expect: 0
+--
+-- 7. Insert behavior (temporary validation rows — MUST CLEAN UP)
+--    Requires at least one row in organizations.
+--    Uses distinctive display_name markers; delete by those markers.
+--
+-- 7a. Old-style INSERT supplying organization_id — must succeed
+--   INSERT INTO fans (organization_id, display_name, status, eep_sync_status)
+--   SELECT o.id,
+--          '__bf_018a_validation_old__',
+--          'active',
+--          'pending'
+--   FROM organizations o
+--   ORDER BY o.created_at NULLS LAST, o.id
+--   LIMIT 1
+--   RETURNING id, organization_id;
+--
+-- 7b. New-style INSERT omitting organization_id — must succeed
+--   INSERT INTO fans (display_name, status, eep_sync_status)
+--   VALUES ('__bf_018a_validation_omit__', 'active', 'pending')
+--   RETURNING id, organization_id;
+--   -- expect: organization_id IS NULL
+--
+-- 7c. Cleanup validation rows (mandatory)
+--   DELETE FROM fans
+--   WHERE display_name IN (
+--     '__bf_018a_validation_old__',
+--     '__bf_018a_validation_omit__'
+--   );
+--   -- confirm zero remain:
+--   SELECT COUNT(*) AS leftover_validation_fans
+--   FROM fans
+--   WHERE display_name IN (
+--     '__bf_018a_validation_old__',
+--     '__bf_018a_validation_omit__'
+--   );
+--   -- expect: 0
+--
+-- 8. Idempotency check (optional re-run of DDL)
+--   ALTER TABLE fans
+--     ALTER COLUMN organization_id DROP NOT NULL;
+--   -- expect: succeeds; column remains nullable; no row mutation
+--
+-- =====================================================
+-- Rollback (soft, conditional — manual; not executed by this file)
+-- =====================================================
+-- Only safe if no NULL organization_id values exist:
+--
+--   SELECT COUNT(*) AS null_org_count
+--   FROM fans
+--   WHERE organization_id IS NULL;
+--   -- must be 0 before:
+--
+--   ALTER TABLE fans
+--     ALTER COLUMN organization_id SET NOT NULL;
+--
+-- If null_org_count > 0, do NOT SET NOT NULL without data remediation.
+
+COMMIT;

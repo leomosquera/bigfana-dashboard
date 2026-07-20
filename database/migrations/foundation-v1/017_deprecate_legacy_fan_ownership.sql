@@ -1,0 +1,104 @@
+BEGIN;
+
+-- =====================================================
+-- Deprecate Legacy Fan Ownership
+-- Foundation DB v1 — Migration 017 (Contract Phase)
+-- migration-plan-v1.md → Migration 017
+-- docs/sessions/2026-07-17-migration-017-deprecate-legacy-fan-ownership-design.md
+-- ADR-009 (Accepted — Frozen)
+-- ADR-001 / ADR-002
+-- =====================================================
+--
+-- Business reason:
+--   Formalize database-level deprecation of
+--   fans.organization_id under ADR-009.
+--   fan_organizations is the sole authoritative
+--   fan↔organization relationship.
+--
+-- Scope:
+--   COMMENT ON COLUMN fans.organization_id only.
+--   No DROP.
+--   No RENAME.
+--   No structural ALTER.
+--   No changes to fan_organizations.
+--   No changes to idx_fans_org.
+--   No data mutation or backfill.
+--   No application cutover work in this migration.
+--
+-- Contract (ADR-009):
+--   fans.organization_id is DEPRECATED and non-authoritative.
+--   Business commands write only to fan_organizations.
+--   Any temporary write to fans.organization_id is a
+--   compatibility projection of the canonical PRIMARY
+--   relationship only (implementation detail; never a
+--   second business persistence model).
+--   Projection consistency required while any approved
+--   consumer exists.
+--
+-- Physical removal:
+--   Migration 018 only — blocked until ADR-009 hard
+--   cutover gates are satisfied.
+--
+-- Tables affected: fans (COMMENT ON COLUMN only)
+-- EEP impact: none
+-- Existing data impact: none
+--
+-- Rollback (soft):
+--   COMMENT ON COLUMN fans.organization_id IS NULL;
+-- =====================================================
+
+COMMENT ON COLUMN fans.organization_id IS
+'DEPRECATED (ADR-009 / Migration 017). Non-authoritative. Sole source of truth for fan↔organization relationships is fan_organizations. May exist only as a compatibility projection of the canonical PRIMARY relationship. Must not be used as a business persistence model. Physical removal is Migration 018 only.';
+
+-- =====================================================
+-- Post-migration validation (manual)
+-- =====================================================
+-- 1. Column still exists (not dropped)
+--   SELECT column_name, data_type, is_nullable
+--   FROM information_schema.columns
+--   WHERE table_schema = 'public'
+--     AND table_name = 'fans'
+--     AND column_name = 'organization_id';
+--
+-- 2. Comment present
+--   SELECT col_description('public.fans'::regclass,
+--     (SELECT attnum FROM pg_attribute
+--      WHERE attrelid = 'public.fans'::regclass
+--        AND attname = 'organization_id'
+--        AND NOT attisdropped));
+--   -- expect text containing DEPRECATED, ADR-009, fan_organizations
+--
+-- 3. fan_organizations unchanged
+--   SELECT to_regclass('public.fan_organizations');
+--   SELECT column_name FROM information_schema.columns
+--   WHERE table_name = 'fan_organizations'
+--   ORDER BY ordinal_position;
+--
+-- 4. idx_fans_org unchanged (still present if it existed)
+--   SELECT indexname FROM pg_indexes
+--   WHERE schemaname = 'public'
+--     AND tablename = 'fans'
+--     AND indexname = 'idx_fans_org';
+--
+-- 5. No structural change to fans.organization_id
+--   -- compare data_type / is_nullable to pre-017 baseline
+--
+-- 6. Informational consistency (zero not required for 017)
+--   SELECT COUNT(*) AS divergent
+--   FROM fans f
+--   LEFT JOIN fan_organizations fo
+--     ON fo.fan_id = f.id
+--    AND fo.is_primary = TRUE
+--   WHERE f.organization_id IS NOT NULL
+--     AND (fo.organization_id IS NULL
+--          OR fo.organization_id <> f.organization_id);
+--
+-- Idempotency:
+--   Re-run COMMENT ON COLUMN — succeeds; comment overwritten
+
+-- =====================================================
+-- Rollback (soft)
+-- =====================================================
+-- COMMENT ON COLUMN fans.organization_id IS NULL;
+
+COMMIT;
