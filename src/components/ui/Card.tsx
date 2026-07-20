@@ -138,17 +138,33 @@ interface StatCardProps {
   period?:  string;
   icon:     React.ReactNode;
   accent?:  boolean;
+  /** Compact executive density for Command Center KPI grids. */
+  dense?:   boolean;
 }
 
-export function StatCard({ label, value, change, period, icon, accent = false }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  change,
+  period,
+  icon,
+  accent = false,
+  dense = false,
+}: StatCardProps) {
   const isPositive = change !== undefined && change >= 0;
 
   return (
-    <Card hover className="p-6">
-      <div className="flex items-start justify-between mb-4">
+    <Card hover className={dense ? "p-4" : "p-6"}>
+      <div
+        className={cn(
+          "flex items-start justify-between",
+          dense ? "mb-3" : "mb-4",
+        )}
+      >
         <div
           className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center",
+            "rounded-xl flex items-center justify-center",
+            dense ? "w-8 h-8" : "w-10 h-10",
             accent
               ? "bg-[#FF2D55]/15 text-[#FF2D55]"
               : "bg-white/[0.05] text-[#8888AA]"
@@ -169,10 +185,26 @@ export function StatCard({ label, value, change, period, icon, accent = false }:
           </span>
         )}
       </div>
-      <div className="space-y-1">
-        <p className="text-2xl font-bold text-[#F0F0F8] tracking-tight">{value}</p>
-        <p className="text-sm font-medium text-[#8888AA]">{label}</p>
-        {period && <p className="text-xs text-[#55556A]">{period}</p>}
+      <div className={dense ? "space-y-0.5" : "space-y-1"}>
+        <p
+          className={cn(
+            "font-bold text-[#F0F0F8] tracking-tight tabular-nums",
+            dense ? "text-xl" : "text-2xl",
+          )}
+        >
+          {value}
+        </p>
+        <p
+          className={cn(
+            "font-medium text-[#8888AA]",
+            dense ? "text-xs" : "text-sm",
+          )}
+        >
+          {label}
+        </p>
+        {period && (
+          <p className="text-[11px] text-[#55556A] leading-snug">{period}</p>
+        )}
       </div>
     </Card>
   );

@@ -10,20 +10,27 @@ interface PageShellProps {
   subtitle: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function PageShell({ title, subtitle, actions, children }: PageShellProps) {
+export function PageShell({
+  title,
+  subtitle,
+  actions,
+  children,
+  className,
+}: PageShellProps) {
   return (
-    <div className="p-6 space-y-6 w-full">
+    <div className={cn("p-6 space-y-6 w-full", className)}>
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
         className="flex items-start justify-between gap-4"
       >
-        <div>
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-[#F0F0F8]">{title}</h1>
-          <p className="text-sm text-[#55556A] mt-0.5">{subtitle}</p>
+          <p className="text-sm text-[#8888AA] mt-0.5 truncate">{subtitle}</p>
         </div>
         {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
       </motion.div>

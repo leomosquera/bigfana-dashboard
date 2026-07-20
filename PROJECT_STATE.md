@@ -19,24 +19,14 @@ Foundation Database v1 physical model in Neon is ready with non-blocking technic
 
 Current focus:
 
-- Migration 019 COMPLETE (019a + App cutover + 019b)
-- organizations.sport physically REMOVED from Neon
-- organizations.sport_id ABSENT
-- Canonical sport path: organization -> competition_organizations -> competitions -> sports (soccer)
-- Post-019 Technical Audit COMPLETE — verdict B (READY WITH NON-BLOCKING TECHNICAL DEBT)
-- Documentation alignment after Migrations 017-019 COMPLETE
-- Drizzle Representation Cleanup COMPLETE (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
-  - Neon physical schema UNCHANGED
-  - Drizzle/application representation ALIGNED for in-scope findings
-- Block A / NEW-F17 COMPLETE — remaining mapped-runtime timestamp representation verified
-  - auth / campaigns / gamification / EIL: live Neon timestamptz; Drizzle withTimezone ALIGNED
-  - No Drizzle field changes required; intentional timestamptz preserved
-- F08 COMPLETE (Block B) — sports / competitions / competition_organizations mapped in Drizzle
-  - Competition application features: NOT IMPLEMENTED
-- Block D COMPLETE — fans.country_code application SoT
-- Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered; not Migration 020)
+- Product cycle: Dashboard Home / Command Center Phase 1
+- Phase 1A + 1B + 1C + 1D + 1E COMPLETE — Dashboard Home V1
+- Real org-scoped Command Center on `/dashboard` (Neon)
+- Foundation Database v1 closed (non-blocking debt only)
+- Fan ownership SoT: fan_organizations
 - Fan geography SoT: fans.country_code
 - Migration 020: NOT STARTED / NO FROZEN SCOPE
+
 ---
 
 # Product Vision
@@ -121,30 +111,13 @@ foundation-db-v1.md
 Current priority:
 
 ```txt
-Foundation DB READY WITH NON-BLOCKING TECHNICAL DEBT
+Dashboard Home V1 COMPLETE (Phases 1A–1E)
 
-ADR-009 Contract Phase COMPLETE
+Next product cycle: Fan Intelligence / Fans (module depth)
 
-Migration 019 COMPLETE - Remove Legacy Organization Sport
-  (019a + App cutover + 019b EXECUTED AND VALIDATED)
-
-Post-019 documentation alignment COMPLETE
-
-Drizzle Representation Cleanup COMPLETE
-  (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
-
-Block A / NEW-F17 COMPLETE
-  (auth / campaigns / gamification / EIL timestamptz verified ALIGNED)
-
-F08 / Block B COMPLETE
-  (sports / competitions / competition_organizations Drizzle mapped; features NOT implemented)
+Foundation DB READY WITH NON-BLOCKING TECHNICAL DEBT (closed)
 
 Migration 020 NOT STARTED / NO FROZEN SCOPE
-
-Remaining representation debt (not Migration 020):
-  Optional: unused fan_status PG type hygiene
-  Legacy fans.country physical DROP: COMPLETE — EXECUTED AND VALIDATED
-    (unnumbered; Migration 020 NOT STARTED / NO FROZEN SCOPE)
 ```
 
 No major schema redesign should occur without an explicitly approved migration scope.
@@ -227,20 +200,22 @@ Documented in:
 
 ```txt
 dashboard-information-architecture.md
+docs/sessions/2026-07-20-dashboard-home-command-center-audit.md
+docs/sessions/2026-07-20-dashboard-home-phase-1a-1b.md
+docs/sessions/2026-07-20-dashboard-home-phase-1c-1d-1e.md
 ```
 
-Future work:
+Current Home (`/dashboard`):
 
 ```txt
-Dashboard UX
-
-Dashboard UI
-
-Module Screens
-
-Permission Matrix
-
-Navigation Components
+DASHBOARD HOME V1 COMPLETE
+  Executive KPIs (real)
+  Fan Growth + Activity charts (real)
+  Segments + Campaigns summaries (reuse)
+  Gamification + Integration health (real)
+  Geographic top countries (country_code)
+  Recent Activity (real)
+  Zero Home mock-data dependency
 ```
 
 ---
@@ -328,19 +303,12 @@ Future architecture decisions must be documented using ADRs.
 The current project priority is:
 
 ```txt
-Foundation Database v1 — READY WITH NON-BLOCKING TECHNICAL DEBT
+Dashboard Home / Command Center V1 COMPLETE
 
-ADR-009 Contract Phase COMPLETE
+Recommended next product area: Fan Intelligence / Fans
 
-Migration 019 COMPLETE
-
-Drizzle Representation Cleanup COMPLETE (F05-F07 / F09 / NEW-F15 / NEW-F16)
-
+Foundation Database v1 closed (non-blocking debt only)
 Migration 020 NOT STARTED / NO FROZEN SCOPE
-
-Dashboard Definition
-
-V1 Development Planning
 ```
 
 No implementation should bypass documented architecture decisions.
