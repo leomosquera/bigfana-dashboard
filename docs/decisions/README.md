@@ -164,6 +164,50 @@ ADR-004-sports-competitions-organizations.md
 ADR-005-managed-vs-integrated-competitions.md
 
 ADR-006-global-sports-community-vision.md
+
+ADR-007-eep-audience-identity.md
+
+ADR-008-eep-segment-identity.md
+
+ADR-009-legacy-fan-ownership-deprecation.md
 ```
 
 These ADRs define the foundation of the platform and should be created before major database redesign work begins.
+
+---
+
+# ADR-007 Note
+
+```txt
+ADR-007 EEP Audience Identity — Status: Accepted
+```
+
+Contract: globally unique, stable, never-reused EEP Audience ID.
+
+---
+
+# ADR-008 Note
+
+```txt
+ADR-008 EEP Segment Identity — Status: Accepted
+```
+
+Contract: globally unique, stable, never-reused EEP Segment ID; idempotent sync key.  
+`segments.id` is a BigFana surrogate key; `eep_id` is the canonical external sync identifier.  
+Migration 014 (EEP Segments) Design Brief is unblocked.
+
+---
+
+# ADR-009 Note
+
+```txt
+ADR-009 Legacy Fan Ownership Deprecation Contract — Status: Accepted — Frozen
+```
+
+Contract: `fan_organizations` is sole authoritative fan↔org relationship;  
+`fans.organization_id` is DEPRECATED / non-authoritative.  
+Business commands write only to `fan_organizations`; legacy column may be a derived PRIMARY projection only.  
+Compatibility projection is an implementation detail only — never a second business persistence model.  
+“Approved consumer” is defined in ADR-009; projection must stay consistent while any remain.  
+Migration 017 = deprecation only; Migration 018 = exclusive physical removal.  
+Migration 017 Design Brief is unblocked.
