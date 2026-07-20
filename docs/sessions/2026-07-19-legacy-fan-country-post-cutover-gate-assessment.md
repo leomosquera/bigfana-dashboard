@@ -180,3 +180,86 @@ No application / Drizzle changes
 No physical DROP
 Migration 020 NOT STARTED / NO FROZEN SCOPE
 ```
+
+---
+
+## Addendum — Greenfield operational re-evaluation (2026-07-20)
+
+Corrected lifecycle context:
+
+```txt
+BigFana is a greenfield development project.
+No production environment with real users/customers.
+No legacy production app backward-compatibility requirement.
+No rolling production deployment gate applies.
+```
+
+Verified deployable application:
+
+```txt
+Branch:  feature/foundation-db-v1
+HEAD:    165640f (contains Block D via ancestor ecc515f)
+Vercel Preview: READY (operator-confirmed)
+```
+
+Reclassified gates under greenfield context:
+
+```txt
+Production rolling-deploy gate:     NOT APPLICABLE
+Legacy production rollback gate:    NOT APPLICABLE
+Block D Preview deployed:           PASS (operator-confirmed READY)
+Current app zero legacy surface:    PASS
+Active in-repo legacy writers:      PASS (none)
+Historical migrate-fans-v1.ts:      REVIEW only — does not block DROP
+EEP geography dependency:           PASS — NO GEOGRAPHIC CONTRACT
+Known external writers:             NO KNOWN EXTERNAL WRITER
+Canonical country_code integrity:   PASS (prior live Gate Assessment)
+Sole geographic data loss risk:     PASS (legacy-only = 0)
+SQL technical readiness:            PASS
+Explicit irreversible DROP approval: NOT YET
+```
+
+Verdict of this re-evaluation:
+
+```txt
+A. READY FOR EXPLICIT HUMAN DROP APPROVAL
+```
+
+Only remaining step before Neon execution: explicit human irreversible DROP approval.
+Neon DROP was NOT executed in this addendum.
+Migration 020 remains NOT STARTED / NO FROZEN SCOPE.
+
+---
+
+## Closure — DROP completed (2026-07-20)
+
+Subsequent to the greenfield re-evaluation above:
+
+```txt
+Explicit irreversible human DROP approval: GRANTED
+fans.country physical DROP: EXECUTED in Neon
+Post-execution validation: PASS
+Idempotency re-run: PASS
+fans.country_code remains canonical geographic SoT
+```
+
+Final current state:
+
+```txt
+fans.country:
+REMOVED FROM NEON
+
+fans.country_code:
+CANONICAL FAN GEOGRAPHIC SoT
+
+Legacy fan country cleanup:
+COMPLETE — EXECUTED AND VALIDATED
+
+Migration 020:
+NOT STARTED
+NO FROZEN SCOPE
+```
+
+Completion documentation:
+
+`docs/sessions/2026-07-20-legacy-fan-country-physical-removal.md`
