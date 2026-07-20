@@ -26,14 +26,14 @@ import { Button } from "@/components/ui/Button";
 import { FanForm } from "@/components/fans/FanForm";
 import { FanRowActions } from "@/components/fans/FanRowActions";
 import { FanActivityTimeline } from "@/components/fans/FanActivityTimeline";
+import { FanActivityTrendChart } from "@/components/fans/FanActivityTrendChart";
+import { FanActivityBreakdown } from "@/components/fans/FanActivityBreakdown";
 import { PointsTimeline } from "@/components/gamification/PointsTimeline";
 import { FanLevelBadge } from "@/components/gamification/FanLevelBadge";
-import {
-  formatEventTypeLabel,
-  formatRelativeTimeEs,
-} from "@/lib/dashboard-home-format";
+import { formatRelativeTimeEs } from "@/lib/dashboard-home-format";
 import {
   FAN_STATUS_LABELS,
+  formatFanEventTypeLabel,
   getEepSyncStatusLabel,
   getEepSyncStatusVariant,
   getLocalSegmentLabel,
@@ -266,10 +266,12 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
           </div>
         </section>
 
-        {/* B. KPI strip */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5">
+        {/* B. KPI strip — equal card height via reserved period slot + stretch */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 items-stretch">
           <StatCard
             dense
+            reservePeriodSlot
+            className="h-full"
             accent={gamification.eligible}
             label="Puntos actuales"
             value={
@@ -282,6 +284,8 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
           />
           <StatCard
             dense
+            reservePeriodSlot
+            className="h-full"
             label="Nivel"
             value={
               gamification.eligible
@@ -292,12 +296,17 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
           />
           <StatCard
             dense
+            reservePeriodSlot
+            className="h-full"
             label="Interacciones 30d"
             value={activity.summary.interactionsLast30d.toLocaleString("es")}
             icon={<Activity size={15} />}
+            period="fan_events · esta org"
           />
           <StatCard
             dense
+            reservePeriodSlot
+            className="h-full"
             label="Última actividad"
             value={
               activity.summary.lastActivityAt
@@ -305,10 +314,13 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
                 : "—"
             }
             icon={<Radio size={15} />}
+            period={activity.recencyLabel}
           />
-          <div className="col-span-2 md:col-span-1 min-w-0">
+          <div className="col-span-2 md:col-span-1 min-w-0 h-full">
             <StatCard
               dense
+              reservePeriodSlot
+              className="h-full"
               label="Segmento BigFana"
               value={getLocalSegmentLabel(segmentation.localSegment)}
               icon={<Layers size={15} />}
@@ -320,7 +332,7 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] gap-4 items-start">
           {/* LEFT: Activity + Campaigns */}
           <div className="space-y-4 min-w-0">
-            {/* C. Activity */}
+            {/* C. Activity Intelligence (F3A) */}
             <Card>
               <Card.Header
                 className={sectionHeaderClass}
@@ -332,27 +344,87 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
                 }
                 icon={<Activity size={13} />}
               />
-              <Card.Content className={sectionContentClass}>
-                {activity.summary.mostFrequentEventType && (
-                  <p className="text-[11px] text-[#55556A] mb-2.5">
-                    Tipo más frecuente:{" "}
-                    <span className="text-[#8888AA] font-medium">
-                      {formatEventTypeLabel(
-                        activity.summary.mostFrequentEventType,
-                      )}
-                    </span>
+              <Card.Content className={cn(sectionContentClass, "space-y-4")}>
+                {/* Summary metrics */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="rounded-lg border border-white/[0.05] bg-white/[0.015] px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold">
+                      Totales
+                    </p>
+                    <p className="text-sm font-bold text-[#F0F0F8] tabular-nums mt-0.5">
+                      {activity.summary.totalInteractions.toLocaleString("es")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.05] bg-white/[0.015] px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold">
+                      Últimos {activity.windowDays}d
+                    </p>
+                    <p className="text-sm font-bold text-[#F0F0F8] tabular-nums mt-0.5">
+                      {activity.summary.interactionsLast30d.toLocaleString("es")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.05] bg-white/[0.015] px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold">
+                      Días activos
+                    </p>
+                    <p className="text-sm font-bold text-[#F0F0F8] tabular-nums mt-0.5">
+                      {activity.summary.activeDaysLast30d.toLocaleString("es")}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.05] bg-white/[0.015] px-2.5 py-2 min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold">
+                      Tipo frecuente
+                    </p>
+                    <p className="text-xs font-semibold text-[#C8C8E0] mt-0.5 truncate">
+                      {activity.summary.mostFrequentEventType
+                        ? formatFanEventTypeLabel(
+                            activity.summary.mostFrequentEventType,
+                          )
+                        : "Sin actividad"}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-[#8888AA] -mt-1">
+                  {activity.recencyLabel}
+                </p>
+
+                {/* Trend 30d */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold mb-1.5">
+                    Actividad — últimos {activity.windowDays} días
                   </p>
-                )}
-                <div
-                  className={cn(
-                    activityScrollable &&
-                      "max-h-[360px] overflow-y-auto pr-1 -mr-1",
-                  )}
-                >
-                  <FanActivityTimeline
-                    events={activity.events}
-                    compact
+                  <FanActivityTrendChart
+                    data={activity.trend}
+                    windowDays={activity.windowDays}
                   />
+                </div>
+
+                {/* Breakdown */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold mb-1.5">
+                    Actividad por tipo
+                  </p>
+                  <FanActivityBreakdown rows={activity.breakdown} />
+                </div>
+
+                {/* Timeline — fan_events only */}
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold mb-1.5">
+                    Timeline reciente
+                  </p>
+                  <div
+                    className={cn(
+                      activityScrollable &&
+                        "max-h-[280px] overflow-y-auto pr-1 -mr-1",
+                    )}
+                  >
+                    <FanActivityTimeline
+                      events={activity.events}
+                      compact
+                      showPoints={gamification.eligible}
+                    />
+                  </div>
                 </div>
               </Card.Content>
             </Card>
@@ -455,6 +527,18 @@ export function Fan360Client({ profile, orgName }: Fan360ClientProps) {
                           </p>
                         )}
                       </div>
+                    </div>
+
+                    {/* Points earned 30d — ledger economy, not activity */}
+                    <div className="rounded-lg border border-white/[0.05] bg-white/[0.015] px-3 py-2 flex items-center justify-between gap-3">
+                      <p className="text-[10px] uppercase tracking-wider text-[#55556A] font-semibold">
+                        Puntos obtenidos · 30d
+                      </p>
+                      <p className="text-sm font-bold text-[#00D4A8] tabular-nums">
+                        {(gamification.velocity?.points30d ?? 0).toLocaleString(
+                          "es",
+                        )}
+                      </p>
                     </div>
 
                     {/* B. Historial */}

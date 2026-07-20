@@ -1,10 +1,11 @@
 /**
- * Fan Intelligence V1 query contracts (F1 list + F2 Fan 360).
+ * Fan Intelligence V1 query contracts (F1 list + F2 Fan 360 + F3A Activity).
  *
  * Ownership SoT: fan_organizations (ADR-009).
  * Geography SoT: fans.country_code.
  * List default cohort: PRIMARY, non-archived.
  * Fan 360 access: ANY membership (PRIMARY | FOLLOWING).
+ * Activity metrics: fan_events only (never ledger as interaction proxy).
  */
 
 import { db } from "@/db";
@@ -16,7 +17,7 @@ import type {
   FanPointsLedger,
   FanView,
 } from "@/db/schema";
-import { and, eq, inArray, max } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, max, sql } from "drizzle-orm";
 import { getFansByOrg, getFanById } from "./fans";
 import { hasFanOrgMembership } from "./fan-organizations";
 import { getFanEventsByFan } from "./fan-events";
@@ -27,9 +28,7 @@ import {
 } from "./gamification";
 import {
   getEngagementVelocity,
-  getFanBehavioralProfile,
   getFanEligibleExperiences,
-  type BehavioralProfile,
   type EligibleExperience,
   type EngagementVelocity,
 } from "./engagement-intelligence";
@@ -38,16 +37,26 @@ import {
   type FanCampaignHistory,
 } from "./fan-campaigns";
 import {
+  ACTIVITY_WINDOW_DAYS,
+  buildFanActivityBreakdown,
   buildFanActivitySummary,
+  buildFanActivityTrendSeries,
+  formatActivityRecency,
   isLoyaltyEligible,
   mergeLastActivityAt,
   normalizeRelationshipType,
+  type FanActivityBreakdownRow,
   type FanActivitySummaryView,
+  type FanActivityTrendPoint,
   type FanRelationshipType,
 } from "@/lib/fan-intelligence";
 
 export type { FanCampaignHistory };
-export { buildFanActivitySummary, normalizeRelationshipType };
+export {
+  buildFanActivitySummary,
+  normalizeRelationshipType,
+  ACTIVITY_WINDOW_DAYS,
+};
 
 // ─── List types ───────────────────────────────────────────────────────────────
 
@@ -65,11 +74,22 @@ export interface FanOrgRelationshipView {
 
 export type FanActivitySummary = FanActivitySummaryView;
 
+export interface Fan360ActivityIntelligence {
+  events: FanEvent[];
+  summary: FanActivitySummary;
+  trend: FanActivityTrendPoint[];
+  breakdown: FanActivityBreakdownRow[];
+  /** Factual recency phrase from lastActivityAt — not a score. */
+  recencyLabel: string;
+  windowDays: number;
+}
+
 export interface Fan360Gamification {
   eligible: boolean;
   score: number | null;
   level: FanLevel | null;
   ledger: FanPointsLedger[];
+  /** Ledger velocity — points economy only; never used as interaction counts. */
   velocity: EngagementVelocity | null;
 }
 
@@ -83,11 +103,7 @@ export interface Fan360EepState {
 export interface Fan360Profile {
   fan: FanView;
   relationship: FanOrgRelationshipView;
-  activity: {
-    events: FanEvent[];
-    summary: FanActivitySummary;
-    behavioral: BehavioralProfile;
-  };
+  activity: Fan360ActivityIntelligence;
   gamification: Fan360Gamification;
   segmentation: {
     localSegment: string | null;
@@ -184,6 +200,113 @@ export async function getFanOrgRelationship(
   };
 }
 
+// ─── F3A — Activity Intelligence (fan_events) ─────────────────────────────────
+
+const eventDaySql = sql<string>`to_char(date_trunc('day', ${fanEvents.occurredAt}), 'YYYY-MM-DD')`;
+
+function activityWindowStart(windowDays: number, now = new Date()): Date {
+  return new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Org + fan scoped activity aggregates from fan_events only.
+ * Interactions ≠ ledger rows.
+ */
+export async function getFanActivityIntelligence(
+  organizationId: string,
+  fanId: string,
+  windowDays: number = ACTIVITY_WINDOW_DAYS,
+  now: Date = new Date(),
+): Promise<Omit<Fan360ActivityIntelligence, "events">> {
+  const days =
+    Number.isFinite(windowDays) && windowDays > 0
+      ? Math.floor(windowDays)
+      : ACTIVITY_WINDOW_DAYS;
+  const windowStart = activityWindowStart(days, now);
+
+  const fanScope = and(
+    eq(fanEvents.organizationId, organizationId),
+    eq(fanEvents.fanId, fanId),
+  );
+
+  const [totalsRow, breakdownRows, dailyRows] = await Promise.all([
+    db
+      .select({
+        totalInteractions: sql<number>`count(*)::int`,
+        interactionsLast30d: sql<number>`count(*) FILTER (WHERE ${fanEvents.occurredAt} >= ${windowStart})::int`,
+        lastActivityAt: max(fanEvents.occurredAt),
+      })
+      .from(fanEvents)
+      .where(fanScope),
+
+    db
+      .select({
+        eventType: fanEvents.eventType,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(fanEvents)
+      .where(fanScope)
+      .groupBy(fanEvents.eventType)
+      .orderBy(desc(sql`count(*)`)),
+
+    db
+      .select({
+        date: eventDaySql.as("date"),
+        count: sql<number>`count(*)::int`,
+      })
+      .from(fanEvents)
+      .where(and(fanScope, gte(fanEvents.occurredAt, windowStart)))
+      .groupBy(eventDaySql)
+      .orderBy(eventDaySql),
+  ]);
+
+  const totals = totalsRow[0];
+  const totalInteractions = Number(totals?.totalInteractions ?? 0);
+  const interactionsLast30d = Number(totals?.interactionsLast30d ?? 0);
+  // Distinct calendar days with ≥1 event in window (same day bucket as trend).
+  const activeDaysLast30d = dailyRows.length;
+  const lastActivityAt = totals?.lastActivityAt
+    ? new Date(totals.lastActivityAt)
+    : null;
+
+  const typeCounts = breakdownRows.map((row) => ({
+    eventType: row.eventType,
+    count: Number(row.count ?? 0),
+  }));
+
+  const mostFrequentEventType =
+    typeCounts.length > 0 ? typeCounts[0].eventType : null;
+
+  const summary = buildFanActivitySummary({
+    totalInteractions,
+    interactionsLast30d,
+    activeDaysLast30d,
+    mostFrequentEventType,
+    lastActivityAt,
+    now,
+  });
+
+  const trend = buildFanActivityTrendSeries(
+    dailyRows.map((row) => ({
+      date: String(row.date),
+      count: Number(row.count ?? 0),
+    })),
+    days,
+    now,
+  );
+
+  return {
+    summary,
+    trend,
+    breakdown: buildFanActivityBreakdown(typeCounts),
+    recencyLabel: formatActivityRecency({
+      lastActivityAt: summary.lastActivityAt,
+      daysSinceLast: summary.daysSinceLast,
+    }),
+    windowDays: days,
+  };
+}
+
 // ─── F2 — Fan 360 Profile ─────────────────────────────────────────────────────
 
 /**
@@ -207,25 +330,20 @@ export async function getFan360Profile(
 
   const loyaltyEligible = isLoyaltyEligible(relationship.type);
 
-  const [
-    events,
-    ledger,
-    behavioral,
-    velocity,
-    experiences,
-    orgLevels,
-    campaigns,
-  ] = await Promise.all([
-    getFanEventsByFan(organizationId, fanId),
-    loyaltyEligible
-      ? getFanLedger(organizationId, fanId)
-      : Promise.resolve([] as FanPointsLedger[]),
-    getFanBehavioralProfile(organizationId, fanId),
-    getEngagementVelocity(organizationId, fanId),
-    getFanEligibleExperiences(organizationId, fan.segment),
-    getOrgLevels(organizationId),
-    getFanCampaignHistory(organizationId, fanId),
-  ]);
+  const [events, ledger, activityIntel, velocity, experiences, orgLevels, campaigns] =
+    await Promise.all([
+      getFanEventsByFan(organizationId, fanId),
+      loyaltyEligible
+        ? getFanLedger(organizationId, fanId)
+        : Promise.resolve([] as FanPointsLedger[]),
+      getFanActivityIntelligence(organizationId, fanId),
+      loyaltyEligible
+        ? getEngagementVelocity(organizationId, fanId)
+        : Promise.resolve(null as EngagementVelocity | null),
+      getFanEligibleExperiences(organizationId, fan.segment),
+      getOrgLevels(organizationId),
+      getFanCampaignHistory(organizationId, fanId),
+    ]);
 
   const score = fan.engagementScore ?? 0;
 
@@ -234,8 +352,7 @@ export async function getFan360Profile(
     relationship,
     activity: {
       events,
-      summary: buildFanActivitySummary(behavioral, velocity),
-      behavioral,
+      ...activityIntel,
     },
     gamification: loyaltyEligible
       ? {

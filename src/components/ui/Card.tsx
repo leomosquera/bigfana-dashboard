@@ -140,6 +140,14 @@ interface StatCardProps {
   accent?:  boolean;
   /** Compact executive density for Command Center KPI grids. */
   dense?:   boolean;
+  /**
+   * Always reserve one secondary line (period slot), even when `period` is empty.
+   * Opt-in for aligned KPI strips (e.g. Fan 360). Default false — no visual change
+   * for Dashboard Home / other callers that omit period inconsistently.
+   */
+  reservePeriodSlot?: boolean;
+  /** Merged onto the root Card (e.g. `h-full` in equal-height grids). */
+  className?: string;
 }
 
 export function StatCard({
@@ -150,11 +158,17 @@ export function StatCard({
   icon,
   accent = false,
   dense = false,
+  reservePeriodSlot = false,
+  className,
 }: StatCardProps) {
   const isPositive = change !== undefined && change >= 0;
+  const showPeriodSlot = reservePeriodSlot || Boolean(period);
 
   return (
-    <Card hover className={dense ? "p-3.5" : "p-6"}>
+    <Card
+      hover
+      className={cn(dense ? "p-3.5" : "p-6", className)}
+    >
       <div
         className={cn(
           "flex items-start justify-between",
@@ -203,9 +217,12 @@ export function StatCard({
         >
           {label}
         </p>
-        {period && (
-          <p className="text-[11px] text-[#55556A] leading-snug truncate">
-            {period}
+        {showPeriodSlot && (
+          <p
+            className="text-[11px] text-[#55556A] leading-snug truncate min-h-[1.25rem]"
+            title={period || undefined}
+          >
+            {period || "\u00A0"}
           </p>
         )}
       </div>

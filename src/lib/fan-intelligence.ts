@@ -5,6 +5,11 @@
 
 import type { EepSyncStatus, FanStatus } from "@/db/schema";
 import { getCountryLabel } from "@/lib/country-codes";
+import {
+  buildDateKeys,
+  type DailyCountPoint,
+} from "@/lib/dashboard-home-series";
+import { formatEventTypeLabel } from "@/lib/dashboard-home-format";
 
 // ─── Relationship ─────────────────────────────────────────────────────────────
 
@@ -219,28 +224,161 @@ export function normalizeRelationshipType(
   return "FOLLOWING";
 }
 
+// ─── Activity Intelligence (F3A — fan_events only) ─────────────────────────────
+
+export const ACTIVITY_WINDOW_DAYS = 30;
+
+/**
+ * Known implemented fan_events.event_type → Spanish UI label.
+ * Only map types with a real application writer. Unknown types use fallback.
+ */
+const FAN_EVENT_TYPE_LABELS: Record<string, string> = {
+  campaign_engagement: "Participación en campañas",
+};
+
+/**
+ * Central event-type label helper for Fan Intelligence.
+ * Does not invent product categories for unimplemented types.
+ */
+export function formatFanEventTypeLabel(eventType: string): string {
+  const key = eventType?.trim();
+  if (!key) return "Evento";
+  return FAN_EVENT_TYPE_LABELS[key] ?? formatEventTypeLabel(key);
+}
+
 export interface FanActivitySummaryView {
   totalInteractions: number;
   interactionsLast30d: number;
+  /** Distinct calendar days with ≥1 event in the 30d window (DB day bucket). */
+  activeDaysLast30d: number;
   mostFrequentEventType: string | null;
   lastActivityAt: Date | null;
+  daysSinceLast: number | null;
+}
+
+export interface FanActivityTrendPoint {
+  /** YYYY-MM-DD */
+  date: string;
+  interactions: number;
+}
+
+export interface FanActivityBreakdownRow {
+  eventType: string;
+  label: string;
+  count: number;
+  /** Share of totalInteractions (0–100). Not an engagement rate. */
+  percentage: number;
 }
 
 /**
- * Compose honest activity summary from existing behavioral + velocity contracts.
+ * Compose activity summary exclusively from fan_events aggregates.
+ * Never accepts ledger velocity as interaction counts.
  */
-export function buildFanActivitySummary(
-  behavioral: {
-    totalEvents: number;
-    topEventTypes: Array<{ eventType: string }>;
-    lastEventAt: Date | null;
-  },
-  velocity: { events30d: number },
-): FanActivitySummaryView {
+export function buildFanActivitySummary(input: {
+  totalInteractions: number;
+  interactionsLast30d: number;
+  activeDaysLast30d: number;
+  mostFrequentEventType: string | null;
+  lastActivityAt: Date | null;
+  daysSinceLast?: number | null;
+  now?: Date;
+}): FanActivitySummaryView {
+  const lastActivityAt = input.lastActivityAt
+    ? new Date(input.lastActivityAt)
+    : null;
+
+  let daysSinceLast = input.daysSinceLast ?? null;
+  if (daysSinceLast === null && lastActivityAt) {
+    const now = input.now ?? new Date();
+    daysSinceLast = Math.floor(
+      (now.getTime() - lastActivityAt.getTime()) / (1000 * 60 * 60 * 24),
+    );
+  }
+  if (!lastActivityAt) daysSinceLast = null;
+
   return {
-    totalInteractions: behavioral.totalEvents,
-    interactionsLast30d: velocity.events30d,
-    mostFrequentEventType: behavioral.topEventTypes[0]?.eventType ?? null,
-    lastActivityAt: behavioral.lastEventAt,
+    totalInteractions: Math.max(0, input.totalInteractions),
+    interactionsLast30d: Math.max(0, input.interactionsLast30d),
+    activeDaysLast30d: Math.max(0, input.activeDaysLast30d),
+    mostFrequentEventType: input.mostFrequentEventType,
+    lastActivityAt,
+    daysSinceLast,
   };
+}
+
+/**
+ * Zero-filled daily interactions series (same day-key continuum as Dashboard Home).
+ */
+export function buildFanActivityTrendSeries(
+  daily: DailyCountPoint[],
+  windowDays: number = ACTIVITY_WINDOW_DAYS,
+  end: Date = new Date(),
+): FanActivityTrendPoint[] {
+  const keys = buildDateKeys(windowDays, end);
+  const byDay = new Map(daily.map((p) => [p.date, p.count]));
+  return keys.map((date) => ({
+    date,
+    interactions: byDay.get(date) ?? 0,
+  }));
+}
+
+/**
+ * Lifetime event-type distribution. Percentage denominator = total event count.
+ * Top-N with optional "Otros" rollup.
+ */
+export function buildFanActivityBreakdown(
+  typeCounts: Array<{ eventType: string; count: number }>,
+  topN = 5,
+): FanActivityBreakdownRow[] {
+  const cleaned = typeCounts
+    .map((row) => ({
+      eventType: row.eventType.trim(),
+      count: Math.max(0, Number(row.count) || 0),
+    }))
+    .filter((row) => row.eventType && row.count > 0)
+    .sort((a, b) => b.count - a.count || a.eventType.localeCompare(b.eventType));
+
+  const total = cleaned.reduce((sum, row) => sum + row.count, 0);
+  if (total === 0) return [];
+
+  const head = cleaned.slice(0, topN);
+  const rest = cleaned.slice(topN);
+  const rows: FanActivityBreakdownRow[] = head.map((row) => ({
+    eventType: row.eventType,
+    label: formatFanEventTypeLabel(row.eventType),
+    count: row.count,
+    percentage: Math.round((row.count / total) * 1000) / 10,
+  }));
+
+  if (rest.length > 0) {
+    const otherCount = rest.reduce((sum, row) => sum + row.count, 0);
+    rows.push({
+      eventType: "__other__",
+      label: "Otros",
+      count: otherCount,
+      percentage: Math.round((otherCount / total) * 1000) / 10,
+    });
+  }
+
+  return rows;
+}
+
+/**
+ * Factual recency copy from lastActivityAt / daysSinceLast.
+ * Not a score — descriptive only (F3 audit vocabulary).
+ */
+export function formatActivityRecency(input: {
+  lastActivityAt: Date | null;
+  daysSinceLast: number | null;
+}): string {
+  if (!input.lastActivityAt || input.daysSinceLast === null) {
+    return "Sin actividad registrada";
+  }
+
+  const days = input.daysSinceLast;
+  if (days <= 0) return "Activo hoy";
+  if (days === 1) return "Última actividad hace 1 día";
+  if (days < 7) return `Última actividad hace ${days} días`;
+  if (days < 30) return "Sin actividad reciente";
+  return `Sin actividad hace ${days} días`;
 }

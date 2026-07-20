@@ -2,32 +2,17 @@
 
 import { cn } from "@/lib/utils";
 import type { FanEvent } from "@/db/schema";
+import { formatFanEventTypeLabel } from "@/lib/fan-intelligence";
 
 // ─── Event type icon dot ──────────────────────────────────────────────────────
 
+/** Accent for known implemented types only; unknowns share a neutral default. */
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  match_attended:       "#FF2D55",
-  purchase:             "#3B82F6",
-  trivia_correct:       "#00D4A8",
-  trivia_answered:      "#8888AA",
-  prediction_submitted: "#C97B2E",
-  prediction_won:       "#00D4A8",
-  raffle_joined:        "#3B82F6",
-  daily_checkin:        "#00D4A8",
-  content_shared:       "#8888AA",
-  badge_earned:         "#FF2D55",
-  login:                "#55556A",
+  campaign_engagement: "#FF2D55",
 };
 
 function eventColor(eventType: string): string {
   return EVENT_TYPE_COLORS[eventType] ?? "#55556A";
-}
-
-function formatEventType(eventType: string): string {
-  return eventType
-    .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
 }
 
 // ─── Entry ────────────────────────────────────────────────────────────────────
@@ -35,12 +20,15 @@ function formatEventType(eventType: string): string {
 function ActivityEntry({
   event,
   isLast,
+  showPoints,
 }: {
-  event:  FanEvent;
+  event: FanEvent;
   isLast: boolean;
+  /** Loyalty deltas — hide for FOLLOWING (ADR-002). */
+  showPoints: boolean;
 }) {
   const color = eventColor(event.eventType);
-  const hasPoints = event.points > 0;
+  const hasPoints = showPoints && event.points > 0;
 
   return (
     <div className={cn("flex gap-3 pb-3", !isLast && "border-b border-white/[0.04] mb-3")}>
@@ -60,7 +48,7 @@ function ActivityEntry({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-[#C8C8E0] truncate">
-              {formatEventType(event.eventType)}
+              {formatFanEventTypeLabel(event.eventType)}
             </p>
             <p className="text-[10px] text-[#55556A] mt-0.5">
               {event.source}
@@ -129,12 +117,18 @@ interface FanActivityTimelineProps {
   className?: string;
   /** Denser empty state / tighter rows for Fan 360 fiche layout. */
   compact?: boolean;
+  /**
+   * Show fan_events.points badges. Default true for backward compat.
+   * Fan 360 passes false for FOLLOWING (loyalty N/A).
+   */
+  showPoints?: boolean;
 }
 
 export function FanActivityTimeline({
   events,
   className,
   compact = false,
+  showPoints = true,
 }: FanActivityTimelineProps) {
   if (!events.length) return <EmptyActivity compact={compact} />;
 
@@ -145,6 +139,7 @@ export function FanActivityTimeline({
           key={event.id}
           event={event}
           isLast={i === events.length - 1}
+          showPoints={showPoints}
         />
       ))}
     </div>
