@@ -369,13 +369,23 @@ avatar_url TEXT
 
 `avatar_url` and `country_code` exist in Neon (Migration 006) and are mapped in Drizzle (F07 COMPLETE).
 
-Application note (Block D COMPLETE):
+Fan geography (Block D + physical removal COMPLETE):
 
 ```txt
-country_code  = canonical SoT (ISO-3166-1 alpha-2); create/update/read use this
-country       = legacy physical column still in Neon; UNMAPPED in Drizzle; no app readers/writers
+country_code  = canonical SoT (ISO-3166-1 alpha-2 OR NULL)
+                CHECK fans_country_code_check: NULL OR ^[A-Z]{2}$
+                create/update/read use countryCode → country_code
 avatar_url    = mapped; no upload/profile feature wiring yet
-DROP country  = future human-gated migration (NOT Migration 020)
+country       = PHYSICALLY REMOVED from Neon (unnumbered removal COMPLETE)
+```
+
+Verified snapshot after physical removal:
+
+```txt
+total fans: 7
+country_code NULL: 6
+country_code AR: 1
+invalid country_code: 0
 ```
 
 ---
@@ -402,15 +412,21 @@ Note: a PostgreSQL enum type named `fan_status` exists in the database but is **
 
 ---
 
-### Deprecated Columns
+### Historical — Legacy Fan Geography (REMOVED)
 
 ```txt
-country TEXT
+fans.country  — PHYSICALLY REMOVED (unnumbered Legacy Fan Country Physical Removal COMPLETE)
 ```
 
+Historical path only (not a current column):
+
 ```txt
-country → use country_code (contract phase removal — column still present)
+Migration 006 — ADD country_code + CHECK + Argentina backfill; legacy country retained
+Block D       — application cutover to country_code SoT; Drizzle unmapped country
+Physical DROP — ALTER TABLE fans DROP COLUMN country (EXECUTED AND VALIDATED)
 ```
+
+Canonical fan geography: `fans.country_code` only. Migration number for the DROP was NOT ASSIGNED (not Migration 020).
 
 ### Historical — Legacy Ownership (REMOVED)
 
@@ -507,7 +523,7 @@ campaign_responses, fan_events, fan_points_ledger
 
 ### Observations
 
-Migration 006 backfilled `country_code = 'AR'` from legacy `country` values matching Argentina variants. Legacy `country` values were not modified.
+Migration 006 backfilled `country_code = 'AR'` from legacy `country` values matching Argentina variants. Legacy free-text `country` was later physically removed (unnumbered removal COMPLETE). Canonical geography is `country_code` only.
 
 Migration 017 formalized database-level deprecation of `fans.organization_id` via `COMMENT ON COLUMN` only (ADR-009). Historical — no longer current state.
 

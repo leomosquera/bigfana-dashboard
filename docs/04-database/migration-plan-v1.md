@@ -406,7 +406,9 @@ Approved backfill:
 Argentina variants → AR
 ```
 
-Legacy `country` column retained and deprecated. Do not drop in Migration 006.
+Legacy `country` column retained and deprecated in Migration 006.
+Physical removal completed later via unnumbered Legacy Fan Country Physical Removal
+(EXECUTED AND VALIDATED — not Migration 020).
 
 ---
 
@@ -1022,11 +1024,18 @@ Post-019 Foundation status:
 Technical Audit verdict:
   B. FOUNDATION DB READY WITH NON-BLOCKING TECHNICAL DEBT
 
+Legacy Fan Country Physical Removal (unnumbered):
+  EXECUTED
+  VALIDATED
+  COMPLETE
+  Migration number: NOT ASSIGNED
+
 Migration 020:
   NOT STARTED
   NO FROZEN / RESERVED SCOPE
 
 Do not invent Migration 020 to continue numbering.
+Do not retroactively assign Migration 020 to the fans.country DROP.
 Open future DDL only when a specific technical-debt item is explicitly prioritized.
 ```
 

@@ -292,7 +292,9 @@ country_code TEXT
 avatar_url TEXT
 ```
 
-`country_code` uses ISO 3166-1 alpha-2.
+`country_code` uses ISO 3166-1 alpha-2 (nullable; CHECK `fans_country_code_check`: NULL OR `^[A-Z]{2}$`).
+
+It is the sole current fan geographic field. Legacy free-text `fans.country` was **PHYSICALLY REMOVED** (unnumbered Legacy Fan Country Physical Removal — COMPLETE). Do not reintroduce it.
 
 ---
 

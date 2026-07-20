@@ -91,7 +91,8 @@ Documented by the post-019 Naming / FK / Index Consistency Audit. **Not** Migrat
 F05  COMPLETE — Drizzle TEXT model aligned (no Neon enum migration)
 F06  COMPLETE — MembershipRole aligned to Neon CHECK (owner/admin/tenant/analyst)
 F07  COMPLETE — avatar_url / country_code mapped in Drizzle
-Block D COMPLETE — fans.country → country_code application cutover (DROP country deferred)
+Block D COMPLETE — fans.country → country_code application cutover
+Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered; not Migration 020)
 F08  COMPLETE — sports / competitions / competition_organizations mapped in Drizzle (Block B)
 F09  COMPLETE — false Drizzle index declarations removed/aligned (no indexes created in Neon)
 NEW-F15 COMPLETE — fans / fan_events / integration_jobs timestamp tz representation aligned
@@ -936,7 +937,7 @@ fans_email_normalized_unique_idx
 
 Migration 006 complete. No `fan_profiles` table.
 
-Legacy `country` on `fans` remains deprecated. `fans.organization_id` was physically removed by Migration 018b (COMPLETE). `fan_organizations` is the sole authoritative fan↔organization relationship.
+Legacy free-text `fans.country` was physically removed (unnumbered Legacy Fan Country Physical Removal COMPLETE). Canonical fan geography is `fans.country_code`. `fans.organization_id` was physically removed by Migration 018b (COMPLETE). `fan_organizations` is the sole authoritative fan↔organization relationship.
 
 ---
 

@@ -2,6 +2,15 @@
 
 ## Current Phase
 
+### Lifecycle context (operational gates)
+
+BigFana is currently a greenfield development project.
+There is no production environment with real users or customers.
+Operational migration gates must not invent production rolling-deployment
+or legacy-production rollback requirements until a production environment exists.
+Current deployable surface for Foundation work: Vercel Preview on
+feature/foundation-db-v1 (Block D at ecc515f / HEAD 165640f).
+
 Foundation v1 - Database Implementation
 
 Architecture, ADRs, product modules, EEP integration, roadmap, and dashboard information architecture are defined and accepted.
@@ -24,7 +33,9 @@ Current focus:
   - No Drizzle field changes required; intentional timestamptz preserved
 - F08 COMPLETE (Block B) — sports / competitions / competition_organizations mapped in Drizzle
   - Competition application features: NOT IMPLEMENTED
-- Block D COMPLETE — fans.country_code application SoT; fans.country unmapped (physical DROP deferred)
+- Block D COMPLETE — fans.country_code application SoT
+- Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered; not Migration 020)
+- Fan geography SoT: fans.country_code
 - Migration 020: NOT STARTED / NO FROZEN SCOPE
 ---
 
@@ -132,8 +143,8 @@ Migration 020 NOT STARTED / NO FROZEN SCOPE
 
 Remaining representation debt (not Migration 020):
   Optional: unused fan_status PG type hygiene
-  Legacy fans.country DROP gate: A — TECHNICALLY READY FOR DESIGN BRIEF
-    (physical DROP not authorized; Migration 020 NOT STARTED / NO FROZEN SCOPE)
+  Legacy fans.country physical DROP: COMPLETE — EXECUTED AND VALIDATED
+    (unnumbered; Migration 020 NOT STARTED / NO FROZEN SCOPE)
 ```
 
 No major schema redesign should occur without an explicitly approved migration scope.
@@ -407,7 +418,9 @@ Next:
 - Drizzle Representation Cleanup (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16): COMPLETE
 - Block A / NEW-F17 COMPLETE (mapped-runtime timestamptz verified ALIGNED)
 - F08 / Block B COMPLETE (catalog Drizzle schemas mapped; features NOT implemented)
-- Block D COMPLETE (fans.country_code application cutover; DROP country deferred)
+- Block D COMPLETE (fans.country_code application cutover)
+- Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered)
+- Fan geography SoT: fans.country_code
 - Migration 020: NOT STARTED / NO FROZEN SCOPE
 - Do NOT invent Migration 020 scope
 - Do NOT start Migration 020 Design Brief or SQL

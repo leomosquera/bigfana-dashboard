@@ -121,9 +121,10 @@ npx tsx --test src/server/queries/fan-organizations.test.ts   PASS (8/8)
 ## Neon / Migration 020
 
 ```txt
-Neon DDL: NONE
-Neon DML: NONE
-fans.country physical column: STILL PRESENT
+Neon DDL at Block D time: NONE
+Neon DML at Block D time: NONE
+fans.country physical column at Block D time: STILL PRESENT
+Later: physical DROP COMPLETE — see 2026-07-20-legacy-fan-country-physical-removal.md
 Migration 020: NOT STARTED / NO FROZEN SCOPE
 ```
 
@@ -132,7 +133,7 @@ Migration 020: NOT STARTED / NO FROZEN SCOPE
 ## Remaining debt (not this block)
 
 ```txt
-Physical DROP fans.country — future human-gated migration (unnumbered)
+Physical DROP fans.country — COMPLETE (2026-07-20 completion session)
 fan_status PG type hygiene
 evidence-based indexes
 NEW-F18 broader feature-driven Drizzle mapping

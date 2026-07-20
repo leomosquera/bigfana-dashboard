@@ -794,7 +794,8 @@ NO MIGRATION 020 REQUIRED FROM THIS AUDIT
 F05  COMPLETE — Drizzle TEXT model aligned
 F06  COMPLETE — MembershipRole aligned to Neon CHECK
 F07  COMPLETE — avatar_url / country_code mapped
-Block D COMPLETE — fans country_code application cutover (physical DROP country deferred)
+Block D COMPLETE — fans country_code application cutover
+Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered; not Migration 020)
 F08  COMPLETE — catalog tables mapped in Drizzle (Block B; features NOT implemented)
 F09  COMPLETE — Drizzle index declarations aligned to Neon (no DDL)
 NEW-F15 COMPLETE — timestamp tz representation (fans / fan_events / integration_jobs)
@@ -854,7 +855,8 @@ without requiring architectural redesign.
 - [x] Drizzle ↔ Neon representation cleanup (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
 - [x] Block A / NEW-F17 timestamp representation verification (mapped runtime timestamptz ALIGNED)
 - [x] Drizzle mapping for sports / competitions / competition_organizations (F08 — Block B COMPLETE)
-- [x] fans.country → country_code functional cutover (Block D — application COMPLETE; physical DROP deferred)
+- [x] fans.country → country_code functional cutover (Block D — application COMPLETE)
+- [x] Legacy fans.country physical DROP (unnumbered — EXECUTED AND VALIDATED; Migration 020 NOT ASSIGNED)
 - [ ] EEP audience / segment sync process implementation
 - [ ] Feature UX for FOLLOWING / fan interests / match center / etc.
 

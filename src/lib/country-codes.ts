@@ -4,6 +4,7 @@
  * Canonical storage: fans.country_code (nullable TEXT + CHECK ^[A-Z]{2}$).
  * Display labels are derived via Intl.DisplayNames (default locale: es).
  *
+ * Legacy free-text fans.country was physically removed from Neon.
  * Do not persist free-text country names.
  */
 

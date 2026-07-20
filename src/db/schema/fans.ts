@@ -71,9 +71,9 @@ export const fans = pgTable("fans", {
   gender: text("gender"),
   city: text("city"),
   /**
-   * Canonical fan profile geography (Migration 006 / Block D cutover).
+   * Canonical fan profile geography (Migration 006 / Block D / physical removal COMPLETE).
    * Neon: TEXT + CHECK fans_country_code_check — NULL or ISO 3166-1 alpha-2 ^[A-Z]{2}$.
-   * Legacy fans.country remains physically in Neon but is unmapped (do not reintroduce).
+   * Legacy fans.country was physically removed — do not reintroduce.
    */
   countryCode: text("country_code"),
   /**

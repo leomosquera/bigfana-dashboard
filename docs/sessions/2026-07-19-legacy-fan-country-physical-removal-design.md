@@ -2,27 +2,30 @@
 ## Design Brief
 
 **Date:** 2026-07-19  
-**Status:** FINAL — SQL generated for human review (NOT EXECUTED)  
+**Status:** COMPLETE — SQL reviewed, DROP approved, Neon executed, validated, docs closed  
 **Working identity:** Legacy Fan Country Physical Removal  
 **Migration number:** NOT ASSIGNED  
 **SQL:** `database/migrations/foundation-v1/remove_legacy_fan_country.sql`  
 **Theme:** Physical cleanup after Block D fan geographic application cutover  
 **New ADR:** Not required  
-**Execution:** NOT AUTHORIZED (Neon DROP blocked)
+**Execution:** COMPLETE — EXECUTED AND VALIDATED in Neon  
+**Completion session:** `docs/sessions/2026-07-20-legacy-fan-country-physical-removal.md`
 
 ---
 
 ## Approval authority (explicit)
 
 ```txt
-Design Brief is HUMAN APPROVED.
-SQL has been GENERATED for human review.
-Neither Design Brief approval nor SQL generation authorizes Neon execution.
-Physical DROP requires a later explicit irreversible human approval
-  (separate from Design Brief approval and from SQL review approval).
+Design Brief: HUMAN APPROVED
+SQL: GENERATED and HUMAN REVIEWED
+Human irreversible DROP approval: GRANTED
+Neon execution: COMPLETE
+Validation: COMPLETE
+Completion documentation: COMPLETE
 ```
 
-Do not treat this document as Neon execution authority.
+Historical note: Design Brief approval alone did not authorize Neon execution;
+execution required the separate irreversible DROP approval that was later granted.
 
 ---
 
@@ -44,7 +47,7 @@ Locked by this Design Brief once approved. Must not change during SQL generation
 | Migration number | **NOT ASSIGNED** |
 | Migration 020 | **NOT STARTED / NO FROZEN SCOPE** |
 | New ADR | **Not required** |
-| Human irreversible DROP approval | **Not yet** |
+| Human irreversible DROP approval | **Granted — Neon DROP COMPLETE** |
 
 ### Frozen contract sequence
 
@@ -54,19 +57,19 @@ Block C         = Architecture Review — COMPLETE
 Block D         = Application cutover (country_code SoT; country unmapped) — COMPLETE
 Block E         = Post-cutover gate assessment — COMPLETE (verdict A)
 This brief      = Design physical DROP fans.country — APPROVED
-SQL generation  = COMPLETE (file ready for human review; NOT EXECUTED)
-Neon DROP       = BLOCKED until explicit irreversible human approval
+SQL generation  = COMPLETE (human reviewed)
+Neon DROP       = COMPLETE — EXECUTED AND VALIDATED
 ```
 
 ### Why this removal exists
 
-Block D completed the application cutover. Neon still physically retains unused legacy free-text:
+Block D completed the application cutover. Neon retained unused legacy free-text until physical removal:
 
 ```txt
-fans.country  — TEXT NULLABLE, no default, unused
+fans.country  — TEXT NULLABLE, no default, unused → PHYSICALLY REMOVED
 ```
 
-Canonical geography is already authoritative in:
+Canonical geography remains authoritative in:
 
 ```txt
 fans.country_code  — TEXT NULLABLE + fans_country_code_check
@@ -493,16 +496,19 @@ Before Neon execution (after SQL review):
 
 ---
 
-## 17. Explicit non-actions of this SQL-generation session
+## 17. Closure status (post-execution)
 
 ```txt
-SQL generated for human review only
-No Neon DDL executed
-No Neon DML
-No application changes
-No Drizzle changes
-No physical DROP executed
-No completion docs / PROJECT_STATE DROP-complete updates
-Migration 020 NOT STARTED
-Migration 020 NO FROZEN SCOPE
+SQL reviewed
+Human irreversible DROP approved
+Neon DROP executed and validated
+Idempotent re-run validated
+Application validation passed
+Completion documentation complete
+Migration number NOT ASSIGNED
+Migration 020 NOT STARTED / NO FROZEN SCOPE
 ```
+
+See completion session:
+
+`docs/sessions/2026-07-20-legacy-fan-country-physical-removal.md`
