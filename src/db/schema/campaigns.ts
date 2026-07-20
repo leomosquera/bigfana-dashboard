@@ -12,6 +12,9 @@ import {
 import { organizations } from "./organizations";
 import { fans } from "./fans";
 
+// Neon timestamps for this module (verified Block A / NEW-F17):
+// TIMESTAMP WITH TIME ZONE. `withTimezone: true` is intentional and ALIGNED.
+
 /** Engagement campaign modalities (stored as lowercase text — extensible without migrations). */
 export const CAMPAIGN_TYPES = [
   "survey",

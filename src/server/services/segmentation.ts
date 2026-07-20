@@ -22,8 +22,12 @@
 
 import { db } from "@/db";
 import { fans, fanEvents, fanLevels, fanSegmentRules } from "@/db/schema";
-import { eq, and, ne, gte, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc } from "drizzle-orm";
 import type { SegmentConditions } from "@/db/schema";
+import {
+  hasPrimaryFanOrganization,
+  listFansForOrganization,
+} from "@/server/queries/fan-organizations";
 
 // ─── Level name computation ───────────────────────────────────────────────────
 
@@ -112,12 +116,20 @@ export interface RecomputeSegmentResult {
  * Safe to call after every point award or fan event creation.
  * Returns whether the segment actually changed.
  *
- * Throws if the fan does not exist or belongs to a different org.
+ * Requires PRIMARY membership (R05 / ADR-009 Phase C).
+ * Throws if the fan is not PRIMARY in the organization.
  */
 export async function recomputeFanSegment(
   organizationId: string,
   fanId:          string,
 ): Promise<RecomputeSegmentResult> {
+  const isPrimary = await hasPrimaryFanOrganization(fanId, organizationId);
+  if (!isPrimary) {
+    throw new Error(
+      `recomputeFanSegment: fan ${fanId} is not PRIMARY in org ${organizationId}`,
+    );
+  }
+
   // ── 1. Load fan state ────────────────────────────────────────────────────
   const [fanRow] = await db
     .select({
@@ -126,7 +138,7 @@ export async function recomputeFanSegment(
       segment:         fans.segment,
     })
     .from(fans)
-    .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)))
+    .where(eq(fans.id, fanId))
     .limit(1);
 
   if (!fanRow) {
@@ -209,7 +221,7 @@ export async function recomputeFanSegment(
         tier:      levelName,        // Keep fans.tier in sync with computed level
         updatedAt: new Date(),
       })
-      .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)));
+      .where(eq(fans.id, fanId));
   }
 
   return { previousSegment, newSegment: matchedSegment, changed };
@@ -224,28 +236,22 @@ export interface BatchRecomputeResult {
 }
 
 /**
- * Recomputes segments for all non-archived fans in an org.
+ * Recomputes segments for all non-archived PRIMARY fans in an org (R05).
  * Use after changing segment rules or for initial data population.
  * Processes fans sequentially to avoid overwhelming the DB.
  */
 export async function recomputeAllSegments(
   organizationId: string,
 ): Promise<BatchRecomputeResult> {
-  const fanRows = await db
-    .select({ id: fans.id })
-    .from(fans)
-    .where(
-      and(
-        eq(fans.organizationId, organizationId),
-        ne(fans.status, "archived"),
-      ),
-    );
+  const primaryFans = await listFansForOrganization(organizationId, "primary", {
+    excludeArchived: true,
+  });
 
   let processed = 0;
   let changed   = 0;
   let errors    = 0;
 
-  for (const fan of fanRows) {
+  for (const fan of primaryFans) {
     try {
       const result = await recomputeFanSegment(organizationId, fan.id);
       processed++;

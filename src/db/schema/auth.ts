@@ -7,6 +7,9 @@
  *
  * Do not rename columns or change nullability without checking
  * Better Auth compatibility first.
+ *
+ * Neon timestamps (verified Block A / NEW-F17): TIMESTAMP WITH TIME ZONE.
+ * `withTimezone: true` is intentional and ALIGNED — do not strip it.
  */
 import {
   boolean,

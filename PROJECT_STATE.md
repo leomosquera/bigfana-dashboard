@@ -1,18 +1,31 @@
-# BigFana — PROJECT_STATE.md
+# BigFana - PROJECT_STATE.md
 
 ## Current Phase
 
-Foundation v1 — Database Implementation
+Foundation v1 - Database Implementation
 
 Architecture, ADRs, product modules, EEP integration, roadmap, and dashboard information architecture are defined and accepted.
 
-The project is actively implementing Foundation Database v1 in Neon.
+Foundation Database v1 physical model in Neon is ready with non-blocking technical debt.
 
 Current focus:
 
-- Migration 011 Content
-- aligning schema documentation after each migration
-
+- Migration 019 COMPLETE (019a + App cutover + 019b)
+- organizations.sport physically REMOVED from Neon
+- organizations.sport_id ABSENT
+- Canonical sport path: organization -> competition_organizations -> competitions -> sports (soccer)
+- Post-019 Technical Audit COMPLETE — verdict B (READY WITH NON-BLOCKING TECHNICAL DEBT)
+- Documentation alignment after Migrations 017-019 COMPLETE
+- Drizzle Representation Cleanup COMPLETE (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
+  - Neon physical schema UNCHANGED
+  - Drizzle/application representation ALIGNED for in-scope findings
+- Block A / NEW-F17 COMPLETE — remaining mapped-runtime timestamp representation verified
+  - auth / campaigns / gamification / EIL: live Neon timestamptz; Drizzle withTimezone ALIGNED
+  - No Drizzle field changes required; intentional timestamptz preserved
+- F08 COMPLETE (Block B) — sports / competitions / competition_organizations mapped in Drizzle
+  - Competition application features: NOT IMPLEMENTED
+- Block D COMPLETE — fans.country_code application SoT; fans.country unmapped (physical DROP deferred)
+- Migration 020: NOT STARTED / NO FROZEN SCOPE
 ---
 
 # Product Vision
@@ -97,14 +110,33 @@ foundation-db-v1.md
 Current priority:
 
 ```txt
-Continue Foundation DB v1 execution
+Foundation DB READY WITH NON-BLOCKING TECHNICAL DEBT
 
-Content Foundation (Migration 011)
+ADR-009 Contract Phase COMPLETE
 
-Align documentation after each migration
+Migration 019 COMPLETE - Remove Legacy Organization Sport
+  (019a + App cutover + 019b EXECUTED AND VALIDATED)
+
+Post-019 documentation alignment COMPLETE
+
+Drizzle Representation Cleanup COMPLETE
+  (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
+
+Block A / NEW-F17 COMPLETE
+  (auth / campaigns / gamification / EIL timestamptz verified ALIGNED)
+
+F08 / Block B COMPLETE
+  (sports / competitions / competition_organizations Drizzle mapped; features NOT implemented)
+
+Migration 020 NOT STARTED / NO FROZEN SCOPE
+
+Remaining representation debt (not Migration 020):
+  Optional: unused fan_status PG type hygiene
+  Legacy fans.country DROP gate: A — TECHNICALLY READY FOR DESIGN BRIEF
+    (physical DROP not authorized; Migration 020 NOT STARTED / NO FROZEN SCOPE)
 ```
 
-No major schema redesign should occur before documentation remains aligned.
+No major schema redesign should occur without an explicitly approved migration scope.
 
 ---
 
@@ -285,9 +317,15 @@ Future architecture decisions must be documented using ADRs.
 The current project priority is:
 
 ```txt
-Foundation Database v1
+Foundation Database v1 — READY WITH NON-BLOCKING TECHNICAL DEBT
 
-Content Foundation
+ADR-009 Contract Phase COMPLETE
+
+Migration 019 COMPLETE
+
+Drizzle Representation Cleanup COMPLETE (F05-F07 / F09 / NEW-F15 / NEW-F16)
+
+Migration 020 NOT STARTED / NO FROZEN SCOPE
 
 Dashboard Definition
 
@@ -336,15 +374,41 @@ Completed migrations:
 - 008_create_rewards (executed and validated)
 - 009_create_redemptions (executed and validated)
 - 010_create_sponsors (executed and validated)
-
-Current migration:
-
-- 011_content
+- 011_create_content (executed and validated)
+- 012_create_match_center (executed and validated)
+- 013_create_eep_audiences (executed and validated)
+- 014_create_eep_segments (executed and validated)
+- 015_create_integrations (executed and validated)
+- 016_create_audit_logs (executed and validated)
+- 017_deprecate_legacy_fan_ownership (executed and validated)
+- 018a_make_legacy_fan_ownership_omit_safe (executed and validated)
+- 018b_remove_legacy_fan_ownership (executed and validated)
+- 019a_canonical_competition_data (executed and validated)
+- 019b_remove_legacy_organization_sport (executed and validated)
 
 Current phase:
 
-Content Foundation
+Migration 019 - Remove Legacy Organization Sport - COMPLETE
 
-Next migrations:
+Current status:
+- Migration 019a COMPLETE - executed and validated in Neon
+- Application / Drizzle cutover COMPLETE
+- Migration 019b COMPLETE - executed and validated in Neon
+- organizations.sport: ABSENT
+- organizations.sport_id: ABSENT
+- competitions: liga-profesional-argentina, liga-mx (soccer / INTEGRATED)
+- memberships: river-plate / boca-juniors -> AR; toluca -> MX
+- Canonical path: organization -> competition_organizations -> competitions -> sports
+- Migration 019 contract phase: COMPLETE
+- Migration 020: NOT STARTED (no frozen scope)
 
-- 011_content
+Next:
+- Documentation alignment after Migrations 017-019: COMPLETE
+- Drizzle Representation Cleanup (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16): COMPLETE
+- Block A / NEW-F17 COMPLETE (mapped-runtime timestamptz verified ALIGNED)
+- F08 / Block B COMPLETE (catalog Drizzle schemas mapped; features NOT implemented)
+- Block D COMPLETE (fans.country_code application cutover; DROP country deferred)
+- Migration 020: NOT STARTED / NO FROZEN SCOPE
+- Do NOT invent Migration 020 scope
+- Do NOT start Migration 020 Design Brief or SQL
+- Do NOT treat remaining optional debt as automatic Migration 020

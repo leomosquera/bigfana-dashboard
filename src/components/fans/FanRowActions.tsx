@@ -5,14 +5,14 @@ import { MoreHorizontal, Eye, Pencil, UserX, UserCheck, Archive } from "lucide-r
 import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import { Button } from "@/components/ui/Button";
 import { suspendFan, reactivateFan, archiveFan } from "@/server/actions/fans";
-import type { Fan } from "@/db/schema";
+import type { FanView } from "@/db/schema";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface FanRowActionsProps {
-  fan:           Fan;
-  onEdit:        (fan: Fan) => void;
-  onViewProfile: (fan: Fan) => void;
+  fan:           FanView;
+  onEdit:        (fan: FanView) => void;
+  onViewProfile: (fan: FanView) => void;
   onMutated:     () => void;
 }
 
@@ -36,7 +36,7 @@ export function FanRowActions({ fan, onEdit, onViewProfile, onMutated }: FanRowA
   }
 
   function handleArchive() {
-    if (!confirm(`¿Archivar a ${fan.displayName}? El fan ya no aparecerá en la lista principal.`)) {
+    if (!confirm(`¿Archivar a ${fan.displayName ?? "este fan"}? El fan ya no aparecerá en la lista principal.`)) {
       return;
     }
     startTransition(async () => {

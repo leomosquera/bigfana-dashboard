@@ -1,13 +1,19 @@
 /**
  * Organizations and memberships schema.
  *
- * Reflects the actual Neon PostgreSQL table structure exactly.
+ * Reflects the Neon PostgreSQL table structure used by the application.
  * The existing database uses text (not enums) for role and status columns,
  * and uuid (not text) for user_id in memberships.
  *
  * better_auth_user_id links a membership to a Better Auth user session.
  * It is separate from user_id (which references the legacy users table)
  * so that existing seeded data is not disturbed.
+ *
+ * Legacy organizations.sport was removed by Migration 019b. Canonical sport /
+ * competition context is derived via:
+ *   organization → competition_organizations → competitions → sports
+ *
+ * Do not reintroduce organizations.sport or organizations.sport_id.
  */
 
 import {
@@ -24,7 +30,6 @@ export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
-  sport: text("sport"),
   brandColor: text("brand_color"),
   logoUrl: text("logo_url"),
   faviconUrl: text("favicon_url"),
@@ -46,13 +51,13 @@ export const memberships = pgTable("memberships", {
   userId: uuid("user_id").notNull(),
   organizationId: uuid("organization_id").notNull(),
   /**
-   * Text values: 'owner' | 'admin' | 'manager' | 'analyst' | 'member'
-   * Stored as text in Neon (no PG enum).
+   * Neon CHECK vocabulary: 'owner' | 'admin' | 'tenant' | 'analyst'
+   * Stored as TEXT in Neon (no PG enum).
    */
   role: text("role").notNull(),
   /**
-   * Text values: 'active' | 'invited' | 'suspended'
-   * Stored as text in Neon (no PG enum).
+   * Neon CHECK vocabulary: 'active' | 'invited' | 'suspended'
+   * Stored as TEXT in Neon (no PG enum).
    */
   status: text("status").notNull().default("active"),
   /**
@@ -72,7 +77,17 @@ export type NewOrganization = typeof organizations.$inferInsert;
 export type Membership = typeof memberships.$inferSelect;
 export type NewMembership = typeof memberships.$inferInsert;
 
-// These are typed as string since Neon uses text (not PG enums).
-// Narrowed types are defined here for use in application code.
-export type MembershipRole = "owner" | "admin" | "manager" | "analyst" | "member";
+/**
+ * Canonical membership role contract — matches Neon memberships.role CHECK.
+ * Neon is SoT: owner | admin | tenant | analyst.
+ * Do not reintroduce manager / member without an explicit Neon CHECK change.
+ */
+export const MEMBERSHIP_ROLE_VALUES = [
+  "owner",
+  "admin",
+  "tenant",
+  "analyst",
+] as const;
+
+export type MembershipRole = (typeof MEMBERSHIP_ROLE_VALUES)[number];
 export type MembershipStatus = "active" | "invited" | "suspended";

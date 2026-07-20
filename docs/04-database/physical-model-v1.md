@@ -13,7 +13,39 @@ The objective is to establish:
 - indexes
 - multi-tenant boundaries
 
-This document is the source of truth for future database migrations.
+### How to read this document
+
+Sections may describe one of:
+
+```txt
+Current Foundation physical state  — what is live in Neon after Migrations 001–019
+Target / future model              — intended evolution not yet fully realized in Neon
+Deferred fields                    — planned columns not present in Neon today
+Historical notes                   — retired structures (must not be treated as current)
+```
+
+For **authoritative live column/type inventory**, prefer:
+
+```txt
+docs/04-database/current-schema.md
+```
+
+Canonical relationships (current and target — COMPLETE):
+
+```txt
+fan
+  → fan_organizations
+    → organization
+
+organization
+  → competition_organizations
+    → competitions
+      → sports
+```
+
+Legacy ownership (`fans.organization_id`) and free-text org sport (`organizations.sport`) are **not** canonical. Both are physically removed.
+
+This document remains a design reference for future migrations; it is not automatically rewritten whenever Neon differs on deferred branding fields.
 
 ---
 
@@ -61,6 +93,8 @@ Content
 EEP
 
 Integrations
+
+Audit
 ```
 
 ---
@@ -75,35 +109,64 @@ Stores clubs, leagues, federations, national teams and sports organizations.
 
 ---
 
-### Columns
+### Current Foundation physical state (Neon)
+
+Live columns after Migration 019:
 
 ```txt
 id UUID PK
 
-name TEXT
+name TEXT NOT NULL
 
-slug TEXT UNIQUE
+slug TEXT NOT NULL UNIQUE
+  -- Neon unique constraint/index name: organizations_slug_key
 
-description TEXT
+brand_color TEXT
 
 logo_url TEXT
 
-country_code TEXT
+favicon_url TEXT
 
-is_active BOOLEAN
+country TEXT
 
-created_at TIMESTAMP
+timezone TEXT
 
-updated_at TIMESTAMP
+is_active BOOLEAN NOT NULL DEFAULT true
+
+created_at TIMESTAMP WITHOUT TIME ZONE
+
+updated_at TIMESTAMP WITHOUT TIME ZONE
+```
+
+Canonical sport / competition context (no org-level sport column):
+
+```txt
+organization
+  → competition_organizations
+  → competitions
+  → sports
+```
+
+```txt
+organizations.sport      — REMOVED (Migration 019b COMPLETE)
+organizations.sport_id   — ABSENT (never introduced)
 ```
 
 ---
 
-### Indexes
+### Target / deferred fields (not live in Neon)
+
+These appear in earlier target drafts and may be introduced by a future approved migration if product requires them. They are **not** current:
 
 ```txt
-organizations_slug_idx
+description TEXT          — deferred
+
+country_code TEXT         — deferred / prefer evolution of `country` if needed
+
+organizations_slug_idx    — naming target; live unique is organizations_slug_key
 ```
+
+Do not document these deferred fields as if they already exist in Neon.
 
 ---
 
@@ -253,23 +316,34 @@ archived
 
 ---
 
-### Deprecated
+### Legacy ownership — PHYSICALLY REMOVED
 
 ```txt
-organization_id UUID FK
+fans.organization_id          — REMOVED (Migration 018b COMPLETE)
+fans_organization_id_fkey     — REMOVED (Migration 018b COMPLETE)
+idx_fans_org                  — REMOVED (Migration 018b COMPLETE)
 ```
 
-Status:
+Current physical model:
 
 ```txt
-DEPRECATED
+fans                 = global fan identity only (ADR-001)
+fan_organizations    = sole authoritative fan↔organization relationship
+                       (PRIMARY / FOLLOWING — ADR-002 / ADR-009)
 ```
 
-Legacy organization ownership column. Retained during the transition phase.
+Historical path (not current state):
 
-To be removed during future contract migrations after `fan_organizations` adoption is complete in the application layer.
+```txt
+Migration 017  — COMMENT deprecation
+Migration 018a — omit-safe NULLABLE
+Application F2 — stop projection write + remove Drizzle mapping
+Migration 018b — physical DROP (executed and validated in Neon)
+```
 
-Do not use for new features. Read organization relationships from `fan_organizations`.
+ADR-009 contract phase COMPLETE.
+
+Migration 019 COMPLETE: Foundation minimum competitions + memberships established; Application/Drizzle cutover COMPLETE; `organizations.sport` physically REMOVED (019b). Canonical sport context is derived via `competition_organizations → competitions → sports`. No `organizations.sport_id`.
 
 ---
 
@@ -294,15 +368,13 @@ fans_email_normalized_unique_idx
 
 Canonical global email uniqueness index. Active in Neon (pre-Migration 006 baseline).
 
-Legacy indexes (unchanged):
+Legacy indexes:
 
 ```txt
 idx_fans_email
-
-idx_fans_org
 ```
 
-`idx_fans_org` supports deprecated `organization_id` queries during the transition phase.
+`idx_fans_org` was removed by Migration 018b (COMPLETE).
 
 ---
 
@@ -1158,7 +1230,7 @@ Status:
 Deferred — not executed in Migration 010
 ```
 
-Target anchor: future 010b or Migration 012.
+Target anchor: future 010b.
 
 ---
 
@@ -1250,40 +1322,168 @@ status TEXT
 
 Purpose:
 
-Organization content.
+Organization-owned publishable content for fan engagement.
+
+Status:
+
+```txt
+Executed — Migration 011
+```
 
 ---
 
 ### Columns
+
+```txt
+id UUID PK
+
+organization_id UUID FK NOT NULL
+
+title TEXT NOT NULL
+
+slug TEXT NOT NULL
+
+content_type TEXT NOT NULL
+
+body TEXT
+
+status TEXT NOT NULL DEFAULT draft
+
+published_at TIMESTAMP
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
+```
+
+---
+
+### content_type
+
+```txt
+news
+
+article
+
+announcement
+
+video
+
+match_update
+```
+
+Enforced by `content_content_type_check`.
+
+`match_update` is semantic only — no `match_id` FK (deferred past Migration 012).
+
+---
+
+### status (publication lifecycle)
+
+```txt
+draft
+
+published
+
+paused
+
+archived
+```
+
+Default: `draft`
+
+Publication-oriented lifecycle — not catalog `active` (007–010).
+
+`published` means fan-visible when application rules allow.
+
+---
+
+### published_at
+
+```txt
+NULL while draft
+Set by application on first publish
+No DB CHECK enforcing published_at when status = published
+```
+
+---
+
+### slug
+
+```txt
+content_slug_unique
+    UNIQUE INDEX ON (organization_id, lower(slug))
+```
+
+Organization-scoped, case-insensitive canonical slug. No table-level `UNIQUE (slug)`.
+
+---
+
+### Relationships
+
+```txt
+organization_id
+    → organizations.id ON DELETE RESTRICT
+```
+
+---
+
+### Indexes
+
+```txt
+content_organization_idx
+
+content_organization_status_idx
+
+content_slug_unique
+
+content_organization_content_type_idx
+```
+
+---
+
+### Notes
+
+Organization-owned — all queries must filter by `organization_id`.
+
+No taxonomy, campaign, sponsor, match, scheduling, or media FKs in Migration 011.
+
+No seed data in Migration 011.
+
+---
+
+## Content Taxonomy (Deferred)
+
+Status:
+
+```txt
+Not executed — target for Migration 011b
+```
+
+---
+
+### Target: content_categories
 
 ```txt
 id UUID PK
 
 organization_id UUID FK
 
-title TEXT
+name TEXT
 
 slug TEXT
-
-content_type TEXT
-
-body TEXT
-
-status TEXT
-
-published_at TIMESTAMP
 ```
 
----
-
-## content_categories
+Org-scoped taxonomy — to be confirmed in 011b design brief.
 
 ---
 
-### Columns
+### Target: content_tags
 
 ```txt
 id UUID PK
+
+organization_id UUID FK
 
 name TEXT
 
@@ -1292,19 +1492,15 @@ slug TEXT
 
 ---
 
-## content_tags
-
----
-
-### Columns
+### Target: assignment pivots
 
 ```txt
-id UUID PK
+content_category_assignments
 
-name TEXT
-
-slug TEXT
+content_tag_assignments
 ```
+
+Taxonomy ships with assignment model — not before (Foundation principle).
 
 ---
 
@@ -1314,6 +1510,23 @@ Defined by:
 
 ```txt
 ADR-005
+
+Migration 012 — Match Center Foundation
+```
+
+Status:
+
+```txt
+Executed and validated in Neon
+```
+
+Ownership:
+
+```txt
+Competitions own seasons.
+Seasons own matches and standings.
+season_id is the single source of truth for competition ownership
+on matches and standings (no denormalized competition_id).
 ```
 
 ---
@@ -1325,20 +1538,42 @@ ADR-005
 ```txt
 id UUID PK
 
-competition_id UUID FK
+competition_id UUID FK NOT NULL
 
-name TEXT
+name TEXT NOT NULL
 
 starts_at DATE
 
 ends_at DATE
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+Case-insensitive unique name per competition: `(competition_id, lower(name))`.
 
 ---
 
 ## divisions
 
-### Columns
+Status:
+
+```txt
+Deferred — not executed in Migration 012
+```
+
+Reason:
+
+```txt
+Competition Structure requires a future ADR
+(divisions vs stages vs conferences vs groups vs brackets).
+Migration 012 intentionally avoids freezing this abstraction.
+```
+
+### Columns (sketch — not executed)
 
 ```txt
 id UUID PK
@@ -1359,22 +1594,34 @@ sort_order INTEGER
 ```txt
 id UUID PK
 
-competition_id UUID FK
+season_id UUID FK NOT NULL
 
-season_id UUID FK
+home_organization_id UUID FK NOT NULL
 
-home_organization_id UUID FK
+away_organization_id UUID FK NOT NULL
 
-away_organization_id UUID FK
+starts_at TIMESTAMP NOT NULL
 
-starts_at TIMESTAMP
-
-status TEXT
+status TEXT NOT NULL DEFAULT scheduled
 
 home_score INTEGER
 
 away_score INTEGER
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `competition_id` column — competition derived via `season_id → seasons`.
+
+Fixtures are represented by this table (no separate `fixtures` table).
+
+No venue columns.
+
+Status values: `scheduled`, `live`, `finished`, `postponed`, `cancelled`.
 
 ---
 
@@ -1385,22 +1632,34 @@ away_score INTEGER
 ```txt
 id UUID PK
 
-competition_id UUID FK
+season_id UUID FK NOT NULL
 
-season_id UUID FK
+organization_id UUID FK NOT NULL
 
-organization_id UUID FK
+played INTEGER NOT NULL DEFAULT 0
 
-played INTEGER
+won INTEGER NOT NULL DEFAULT 0
 
-won INTEGER
+drawn INTEGER NOT NULL DEFAULT 0
 
-drawn INTEGER
+lost INTEGER NOT NULL DEFAULT 0
 
-lost INTEGER
+points INTEGER NOT NULL DEFAULT 0
 
-points INTEGER
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `competition_id` column — competition derived via `season_id → seasons`.
+
+Persisted snapshots only — never calculated in SQL.
+
+Unique `(season_id, organization_id)`.
+
+`organization_id` is a participant reference, not a tenant root.
 
 ---
 
@@ -1410,6 +1669,8 @@ Defined by:
 
 ```txt
 ADR-003
+
+ADR-007
 ```
 
 ---
@@ -1418,7 +1679,13 @@ ADR-003
 
 Purpose:
 
-EEP audience cache.
+EEP audience cache (platform-scoped).
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 013
+```
 
 ---
 
@@ -1427,14 +1694,28 @@ EEP audience cache.
 ```txt
 id UUID PK
 
-eep_id TEXT
+eep_id TEXT NOT NULL
 
-name TEXT
+name TEXT NOT NULL
 
 description TEXT
 
-updated_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `organization_id` (ADR-007).
+
+`eep_id` is globally unique, stable, and never reused.
+
+No retirement state columns in Migration 013.
+
+`updated_at` is maintained by the application during successful synchronization (no DB trigger).
+
+Unique index: `audiences_eep_id_unique` ON `(eep_id)`.
 
 ---
 
@@ -1442,7 +1723,21 @@ updated_at TIMESTAMP
 
 Purpose:
 
-EEP segment cache.
+EEP segment cache (platform-scoped).
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 014
+```
+
+Defined by:
+
+```txt
+ADR-003
+
+ADR-008
+```
 
 ---
 
@@ -1451,42 +1746,105 @@ EEP segment cache.
 ```txt
 id UUID PK
 
-eep_id TEXT
+eep_id TEXT NOT NULL
 
-name TEXT
+name TEXT NOT NULL
 
 description TEXT
 
-updated_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `organization_id` (ADR-008).
+
+`id` is a BigFana surrogate key only.  
+`eep_id` is the canonical external synchronization identifier — globally unique, stable, never reused.
+
+No retirement state columns in Migration 014.
+
+`updated_at` is maintained by the application during successful synchronization (no DB trigger).
+
+Unique index: `segments_eep_id_unique` ON `(eep_id)`.
 
 ---
 
 ## fan_audiences
 
+Purpose:
+
+EEP audience membership cache (platform-scoped).
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 013
+```
+
+---
+
 ### Columns
 
 ```txt
 id UUID PK
 
-fan_id UUID FK
+fan_id UUID FK NOT NULL
 
-audience_id UUID FK
+audience_id UUID FK NOT NULL
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `organization_id`.
+
+UNIQUE `(fan_id, audience_id)`.
+
+FKs ON DELETE RESTRICT → `fans`, `audiences`.
 
 ---
 
 ## fan_segments
 
+Purpose:
+
+EEP segment membership cache (platform-scoped).
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 014
+```
+
+---
+
 ### Columns
 
 ```txt
 id UUID PK
 
-fan_id UUID FK
+fan_id UUID FK NOT NULL
 
-segment_id UUID FK
+segment_id UUID FK NOT NULL
+
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+No `organization_id`.
+
+UNIQUE `(fan_id, segment_id)`.
+
+FKs ON DELETE RESTRICT → `fans`, `segments`.
 
 ---
 
@@ -1568,7 +1926,13 @@ created_at TIMESTAMP
 
 Purpose:
 
-Integration registry.
+Organization-owned provider enablement registry.
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 015
+```
 
 ---
 
@@ -1577,14 +1941,32 @@ Integration registry.
 ```txt
 id UUID PK
 
-organization_id UUID FK
+organization_id UUID FK NOT NULL
 
-provider TEXT
+provider TEXT NOT NULL
 
-status TEXT
+status TEXT NOT NULL DEFAULT draft
 
-created_at TIMESTAMP
+created_at TIMESTAMP NOT NULL
+
+updated_at TIMESTAMP NOT NULL
 ```
+
+### Notes
+
+Exactly one row per `(organization_id, provider)`, regardless of lifecycle state.
+
+Lifecycle transitions UPDATE that row; never INSERT a second row for the same pair.
+
+Provider CHECK in Foundation v1: `'eep'` only (platform vocabulary; widen via future expand-only migration).
+
+Status values: `draft`, `active`, `paused`, `archived`.
+
+FK `organization_id` → `organizations.id` ON DELETE RESTRICT.
+
+Conceptual 1:N with `integration_jobs`; physical `integration_id` FK deferred.
+
+Logical job association: `(organization_id, provider)`.
 
 ---
 
@@ -1594,18 +1976,28 @@ Purpose:
 
 Asynchronous integration processing.
 
+Status:
+
+```txt
+Pre-existing — unchanged by Migration 015
+```
+
 ---
 
-### Columns
+### Columns (live shape — reference)
 
 ```txt
 id UUID PK
 
 organization_id UUID FK
 
-integration_id UUID FK
+entity_type TEXT
 
-job_type TEXT
+entity_id UUID
+
+provider TEXT
+
+operation TEXT
 
 payload JSONB
 
@@ -1613,8 +2005,96 @@ status TEXT
 
 attempts INTEGER
 
+max_attempts INTEGER
+
+next_retry_at TIMESTAMP
+
+last_error TEXT
+
+processed_at TIMESTAMP
+
+idempotency_key TEXT UNIQUE
+
 created_at TIMESTAMP
+
+updated_at TIMESTAMP
 ```
+
+### Notes
+
+No `integration_id` FK in Foundation v1 (deferred).
+
+Supports async / retryable / idempotent sync (ADR-003).
+
+Lifecycle history for registry enablement decisions is recorded in `audit_logs` (Migration 016), not on `integrations` or `integration_jobs`.
+
+---
+
+# Audit Domain
+
+---
+
+## audit_logs
+
+Purpose:
+
+Append-only dual-scope business audit trail for security-significant governance decisions.
+
+Status:
+
+```txt
+Executed and validated in Neon — Migration 016
+```
+
+---
+
+### Columns
+
+```txt
+id UUID PK
+
+organization_id UUID FK NULL
+
+actor_type TEXT NOT NULL
+
+actor_id UUID NULL
+
+origin_type TEXT NOT NULL
+
+origin_id UUID NULL
+
+action TEXT NOT NULL
+
+entity_type TEXT NOT NULL
+
+entity_id UUID NOT NULL
+
+metadata JSONB NOT NULL DEFAULT '{}'
+
+created_at TIMESTAMP NOT NULL
+```
+
+### Notes
+
+Dual-scope: org events set `organization_id`; platform events leave it NULL (never invent artificial organization context).
+
+Actor (who) and Origin (where) are distinct dimensions. `actor_id` / `origin_id` are UUID soft references with no foreign keys.
+
+`entity_id` is the canonical BigFana primary key UUID of the audited entity (stable for entity lifetime).
+
+`entity_type` is open TEXT; every emitted value must be documented in the platform canonical entity vocabulary.
+
+`metadata` supplements business context only and must never become the authoritative source of current business state.
+
+Business decisions only — not `fan_events`, not `integration_jobs` execution details, not observability logs.
+
+Append-only: no `updated_at`.
+
+FK `organization_id` → `organizations.id` ON DELETE RESTRICT (nullable).
+
+Owns integration registry lifecycle history deferred from Migration 015.
+
+CHECK vocabularies: `actor_type`, `origin_type`, `action` (see Migration 016 Design Brief / SQL).
 
 ---
 
@@ -1642,6 +2122,12 @@ must always include:
 
 ```txt
 organization_id
+```
+
+Dual-scope governance (nullable `organization_id`):
+
+```txt
+audit_logs
 ```
 
 ---

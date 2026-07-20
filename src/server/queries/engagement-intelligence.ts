@@ -20,6 +20,7 @@ import {
   fanLevels,
   fanSegmentRules,
   fanExperiences,
+  fanOrganizations,
 } from "@/db/schema";
 import {
   eq,
@@ -37,6 +38,15 @@ import {
   isNotNull,
 } from "drizzle-orm";
 import type { FanLevel, FanSegmentRule, FanExperience } from "@/db/schema";
+
+/** PRIMARY + non-archived cohort join (R05 / ADR-009 Phase C). */
+function primaryFanOrgCohort(organizationId: string) {
+  return and(
+    eq(fanOrganizations.organizationId, organizationId),
+    eq(fanOrganizations.isPrimary, true),
+    ne(fans.status, "archived"),
+  );
+}
 
 // ─── Engagement Breakdown ─────────────────────────────────────────────────────
 
@@ -77,13 +87,9 @@ export async function getEngagementBreakdown(
 
     db
       .select({ engagementScore: fans.engagementScore })
-      .from(fans)
-      .where(
-        and(
-          eq(fans.organizationId, organizationId),
-          ne(fans.status, "archived"),
-        ),
-      ),
+      .from(fanOrganizations)
+      .innerJoin(fans, eq(fanOrganizations.fanId, fans.id))
+      .where(primaryFanOrgCohort(organizationId)),
   ]);
 
   const totalFans      = fanRows.length;
@@ -165,13 +171,9 @@ export async function getUpgradeOpportunities(
 
     db
       .select({ engagementScore: fans.engagementScore })
-      .from(fans)
-      .where(
-        and(
-          eq(fans.organizationId, organizationId),
-          ne(fans.status, "archived"),
-        ),
-      ),
+      .from(fanOrganizations)
+      .innerJoin(fans, eq(fanOrganizations.fanId, fans.id))
+      .where(primaryFanOrgCohort(organizationId)),
   ]);
 
   if (levelRows.length < 2) return [];
@@ -459,13 +461,9 @@ export async function getOrgEngagementKPIs(
         withPts:  sql<number>`COUNT(*) FILTER (WHERE ${fans.engagementScore} > 0)`,
         avgScore: sql<number>`COALESCE(AVG(${fans.engagementScore}), 0)`,
       })
-      .from(fans)
-      .where(
-        and(
-          eq(fans.organizationId, organizationId),
-          ne(fans.status, "archived"),
-        ),
-      ),
+      .from(fanOrganizations)
+      .innerJoin(fans, eq(fanOrganizations.fanId, fans.id))
+      .where(primaryFanOrgCohort(organizationId)),
 
     db
       .select({
@@ -505,13 +503,9 @@ export async function getSegmentDistribution(
       segment:  fans.segment,
       fanCount: sql<number>`COUNT(*)`,
     })
-    .from(fans)
-    .where(
-      and(
-        eq(fans.organizationId, organizationId),
-        ne(fans.status, "archived"),
-      ),
-    )
+    .from(fanOrganizations)
+    .innerJoin(fans, eq(fanOrganizations.fanId, fans.id))
+    .where(primaryFanOrgCohort(organizationId))
     .groupBy(fans.segment)
     .orderBy(sql`COUNT(*) DESC`);
 

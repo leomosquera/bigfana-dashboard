@@ -622,7 +622,7 @@ content_tags
 
 # Migration 012
 
-## Competition Operations
+## Match Center Foundation
 
 Defined by:
 
@@ -630,20 +630,26 @@ Defined by:
 ADR-005
 ```
 
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
+
 ---
 
 ## Objective
 
-Support managed competitions.
+Support competition-scoped Match Center operations (seasons, fixtures/results, standings).
+
+Managed and Integrated competitions share the same schema.
 
 ---
 
-## Create
+## Created
 
 ```txt
 seasons
-
-divisions
 
 matches
 
@@ -652,25 +658,68 @@ standings
 
 ---
 
+## Explicitly deferred
+
+```txt
+divisions
+venues
+competition structure (future ADR)
+content.match_id
+sponsor_competitions
+provider / integration metadata
+lineups / match events / statistics
+```
+
+---
+
+## Ownership note
+
+```txt
+season_id is the single source of truth for competition ownership
+on matches and standings (no denormalized competition_id)
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-012-match-center-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/012_create_match_center.sql
+```
+
+---
+
 # Migration 013
 
-## EEP Audiences
+## EEP Audiences Foundation
 
 Defined by:
 
 ```txt
 ADR-003
+
+ADR-007
+```
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
 ```
 
 ---
 
 ## Objective
 
-Store EEP audience cache.
+Store platform-scoped EEP audience cache and fan memberships.
 
 ---
 
-## Create
+## Created
 
 ```txt
 audiences
@@ -680,25 +729,57 @@ fan_audiences
 
 ---
 
+## Explicitly deferred
+
+```txt
+segments / fan_segments          → Migration 014
+organization_id on cache tables
+audience retirement state
+campaign / sponsor activation FKs
+integration_jobs changes         → Migration 015
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-013-eep-audiences-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/013_create_eep_audiences.sql
+```
+
+---
+
 # Migration 014
 
-## EEP Segments
+## EEP Segments Foundation
 
 Defined by:
 
 ```txt
 ADR-003
+
+ADR-008
+```
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
 ```
 
 ---
 
 ## Objective
 
-Store EEP segment cache.
+Store platform-scoped EEP segment cache and fan memberships.
 
 ---
 
-## Create
+## Created
 
 ```txt
 segments
@@ -708,19 +789,50 @@ fan_segments
 
 ---
 
+## Explicitly deferred
+
+```txt
+organization_id on cache tables
+segment retirement state
+campaign / sponsor activation FKs
+scores / recommendations
+integration_jobs changes         → Migration 015
+fan_segment_rules changes
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-014-eep-segments-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/014_create_eep_segments.sql
+```
+
+---
+
 # Migration 015
 
-## Integration Registry
+## Integration Registry Foundation
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
 
 ---
 
 ## Objective
 
-Formalize integration ownership.
+Formalize organization-owned provider enablement registry.
 
 ---
 
-## Create
+## Created
 
 ```txt
 integrations
@@ -728,9 +840,7 @@ integrations
 
 ---
 
-## Review
-
-Existing:
+## Reviewed (unchanged)
 
 ```txt
 integration_jobs
@@ -738,22 +848,79 @@ integration_jobs
 
 ---
 
+## Explicitly deferred
+
+```txt
+integration_id FK on integration_jobs
+credentials / connections
+sync workers / webhooks
+platform-scoped audience/segment sync jobs
+audit lifecycle history              → Migration 016
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-015-integration-registry-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/015_create_integrations.sql
+```
+
+---
+
 # Migration 016
 
-## Audit Layer
+## Audit Layer Foundation
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
 
 ---
 
 ## Objective
 
-Introduce platform auditing.
+Introduce append-only dual-scope business audit trail.
 
 ---
 
-## Create
+## Created
 
 ```txt
 audit_logs
+```
+
+---
+
+## Explicitly deferred
+
+```txt
+retention / purge / legal hold / SIEM
+DB-enforced append-only privileges / RLS
+hash-chaining / WORM
+credential access auditing
+webhook ingress audit
+integration_job_id coupling
+per-domain history tables
+application-layer Drizzle schema changes
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-016-audit-layer-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/016_create_audit_logs.sql
 ```
 
 ---
@@ -817,10 +984,51 @@ EEP Audiences
 
 EEP Segments
 
+Integration Registry
+
+Audit Layer
+
 Managed Competitions
 ```
 
 exist and are operational.
+
+Expand-phase Foundation DDL through Migration 016 is complete. ADR-009 contract phase COMPLETE: Migration 017 / 018a / F2 / 018b COMPLETE.
+
+Migration 019 staged sequence (Remove Legacy Organization Sport):
+
+```txt
+019a = Canonical competition data + COMMENT deprecation — COMPLETE
+App  = remove organizations.sport from Drizzle / types — COMPLETE
+Gate = memberships + derivation + zero consumers — COMPLETE (PASS)
+019b = Physical DROP organizations.sport — COMPLETE
+Migration 019 = COMPLETE
+```
+
+Frozen staged sequence (ADR-009 Option B):
+
+```txt
+017  = Deprecation — COMPLETE
+018a = Make Legacy Fan Ownership Omit-Safe — COMPLETE
+F2   = Stop projection write + remove Drizzle mapping — COMPLETE
+018b = Physical removal — COMPLETE
+019a = Canonical competition data + COMMENT — COMPLETE
+019b = Physical DROP organizations.sport — COMPLETE
+```
+
+Post-019 Foundation status:
+
+```txt
+Technical Audit verdict:
+  B. FOUNDATION DB READY WITH NON-BLOCKING TECHNICAL DEBT
+
+Migration 020:
+  NOT STARTED
+  NO FROZEN / RESERVED SCOPE
+
+Do not invent Migration 020 to continue numbering.
+Open future DDL only when a specific technical-debt item is explicitly prioritized.
+```
 
 ---
 
@@ -830,6 +1038,24 @@ exist and are operational.
 
 ### Deprecate Legacy Fan Ownership
 
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-17-migration-017-deprecate-legacy-fan-ownership-design.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/017_deprecate_legacy_fan_ownership.sql
+```
+
 Objective:
 
 Deprecate:
@@ -838,27 +1064,189 @@ Deprecate:
 fans.organization_id
 ```
 
-after all services use:
+Ownership contract:
 
 ```txt
-fan_organizations
+ADR-009 Legacy Fan Ownership Deprecation Contract
+```
+
+Executed scope:
+
+```txt
+COMMENT ON COLUMN fans.organization_id only
+No DROP / RENAME / structural ALTER
+No fan_organizations changes
+No idx_fans_org changes
+No data mutation / backfill
+Validation: divergent=0 (informational only)
+```
+
+Rules:
+
+```txt
+fan_organizations is sole authoritative relationship
+fans.organization_id still physically exists
+fans.organization_id is DEPRECATED / non-authoritative
+Business commands write only to fan_organizations
+Compatibility projection is implementation detail only
+Approved consumer defined in ADR-009; consistency while any remain
+Migration 017 = deprecation only (no physical DROP)
+Physical removal = Migration 018b (staged after 018a + F2)
 ```
 
 ---
 
-## Migration 018
+## Migration 018a
 
-### Remove Legacy Fan Ownership
+### Make Legacy Fan Ownership Omit-Safe
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-18-migration-018a-make-legacy-fan-ownership-omit-safe-design.md
+```
+
+Session summary:
+
+```txt
+docs/sessions/2026-07-18-migration-018a-make-legacy-fan-ownership-omit-safe.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/018a_make_legacy_fan_ownership_omit_safe.sql
+```
 
 Objective:
 
-Remove:
+Make deprecated `fans.organization_id` omit-safe for staged application cutover
+(old app may write projection; new app may omit) against a shared Neon database.
+
+Executed scope:
+
+```txt
+ALTER TABLE fans ALTER COLUMN organization_id DROP NOT NULL
+  (NOT NULL → NULLABLE only)
+No DROP COLUMN
+No DROP of fans_organization_id_fkey
+No DROP of idx_fans_org
+No type change (UUID)
+No DEFAULT introduced
+Migration 017 DEPRECATED comment retained
+No fan_organizations changes
+No production data mutation / backfill
+No application / Drizzle changes in this migration
+```
+
+Validated Neon state:
+
+```txt
+fans.organization_id still exists
+UUID NULLABLE, no default
+fans_organization_id_fkey unchanged (ON DELETE CASCADE)
+idx_fans_org unchanged
+DEPRECATED comment retained
+fan_organizations structurally unchanged
+total_fans unchanged (7)
+divergent_legacy_vs_primary = 0
+old-style INSERT with organization_id succeeds
+omit-style INSERT succeeds
+validation rows cleaned up
+DDL re-execution idempotent
+```
+
+Application state after 018a (historical — subsequently completed):
+
+```txt
+Compatibility projection writer still active at 018a completion
+Drizzle fans.organizationId mapping still present at 018a completion
+Later COMPLETE: Application F2 → Gate PASS → Migration 018b physical removal
+```
+
+---
+
+## Migration 018b
+
+### Physical Remove Legacy Fan Ownership
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
+
+Design brief:
+
+```txt
+docs/sessions/2026-07-18-migration-018b-remove-legacy-fan-ownership-design.md
+```
+
+Session summary:
+
+```txt
+docs/sessions/2026-07-18-migration-018b-remove-legacy-fan-ownership.md
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/018b_remove_legacy_fan_ownership.sql
+```
+
+Objective:
+
+Physically remove:
 
 ```txt
 fans.organization_id
+fans_organization_id_fkey
+idx_fans_org
 ```
 
-when no longer referenced by the application.
+Executed scope:
+
+```txt
+DROP INDEX IF EXISTS idx_fans_org
+ALTER TABLE fans DROP CONSTRAINT IF EXISTS fans_organization_id_fkey
+ALTER TABLE fans DROP COLUMN IF EXISTS organization_id
+No CASCADE
+No fan_organizations changes
+No application / Drizzle changes in this migration
+No Migration 019 / organizations.sport changes
+```
+
+Validated Neon state:
+
+```txt
+fans.organization_id ABSENT
+fans_organization_id_fkey ABSENT
+idx_fans_org ABSENT
+fan_organizations structurally unchanged
+total_fans 7 → 7
+fans_with_primary = 7
+fans_without_primary = 0
+fans_with_multiple_primary = 0
+organizations.sport untouched
+Idempotent re-execution PASS
+Application: tsc / build / Phase B tests PASS
+Repository audit: zero runtime ownership reads/writes; zero Drizzle mapping
+```
+
+Final ADR-009 contract state:
+
+```txt
+fans = global fan identity
+fan_organizations = sole authoritative fan↔organization relationship
+Legacy ownership projection = RETIRED
+ADR-009 contract phase = COMPLETE
+```
 
 ---
 
@@ -866,7 +1254,16 @@ when no longer referenced by the application.
 
 ### Remove Legacy Organization Sport
 
-Objective:
+Status:
+
+```txt
+COMPLETE — EXECUTED AND VALIDATED
+019a COMPLETE
+Application / Drizzle cutover COMPLETE
+019b COMPLETE
+```
+
+Objective (achieved):
 
 Remove:
 
@@ -882,6 +1279,67 @@ sports
 competitions
 
 competition_organizations
+```
+
+### Migration 019a — Canonical Competition Data + Deprecation
+
+Status:
+
+```txt
+Completed — executed and validated in Neon
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/019a_canonical_competition_data.sql
+```
+
+Established:
+
+```txt
+competitions:
+  liga-profesional-argentina (INTEGRATED, AR, soccer)
+  liga-mx (INTEGRATED, MX, soccer)
+
+competition_organizations:
+  river-plate  → liga-profesional-argentina
+  boca-juniors → liga-profesional-argentina
+  toluca       → liga-mx
+
+organizations.sport:
+  COMMENT DEPRECATED (non-authoritative) at 019a
+  physically removed by 019b
+```
+
+Canonical sport path:
+
+```txt
+organization
+  → competition_organizations
+  → competitions
+  → sports (slug = soccer)
+```
+
+### Migration 019b — Physical DROP
+
+Status:
+
+```txt
+COMPLETE — executed and validated in Neon
+```
+
+SQL:
+
+```txt
+database/migrations/foundation-v1/019b_remove_legacy_organization_sport.sql
+```
+
+Final physical state:
+
+```txt
+organizations.sport     = ABSENT
+organizations.sport_id  = ABSENT
 ```
 
 ---

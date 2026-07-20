@@ -2,8 +2,9 @@
 
 import { db } from "@/db";
 import { fans } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getDashboardContext } from "@/server/queries/session";
+import { hasFanOrgMembership } from "@/server/queries/fan-organizations";
 import { getFanEventsByFan } from "@/server/queries/fan-events";
 import { getFanLedger, getOrgLevels } from "@/server/queries/gamification";
 import {
@@ -60,11 +61,17 @@ export async function getFanProfile(fanId: string): Promise<FanProfileResult> {
   try {
     const { org } = await getDashboardContext();
 
+    // ANY membership via fan_organizations (ADR-009 Phase C)
+    const related = await hasFanOrgMembership(fanId, org.id, "any");
+    if (!related) {
+      return { success: false, error: "Fan no encontrado." };
+    }
+
     // Resolve the fan's current segment (written by the segmentation service)
     const [fanRow] = await db
       .select({ segment: fans.segment })
       .from(fans)
-      .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)))
+      .where(eq(fans.id, fanId))
       .limit(1);
 
     if (!fanRow) {

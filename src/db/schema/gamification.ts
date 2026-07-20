@@ -12,6 +12,9 @@ import { organizations } from "./organizations";
 import { fans } from "./fans";
 import { fanEvents } from "./events";
 
+// Neon timestamps for this module (verified Block A / NEW-F17):
+// TIMESTAMP WITH TIME ZONE. `withTimezone: true` is intentional and ALIGNED.
+
 // ─── fan_points_ledger ────────────────────────────────────────────────────────
 
 /**

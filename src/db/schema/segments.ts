@@ -11,6 +11,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { organizations } from "./organizations";
 
+// Neon timestamps for this module (verified Block A / NEW-F17):
+// TIMESTAMP WITH TIME ZONE. `withTimezone: true` is intentional and ALIGNED.
+
 // ─── SegmentConditions ────────────────────────────────────────────────────────
 //
 // Typed JSONB payload stored in fan_segment_rules.conditions.

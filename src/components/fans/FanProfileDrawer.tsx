@@ -21,8 +21,9 @@ import { FanActivityTimeline } from "./FanActivityTimeline";
 import { FanIntelligencePanel } from "./FanIntelligencePanel";
 import { PointsTimeline } from "@/components/gamification/PointsTimeline";
 import { getFanProfile } from "@/server/actions/fan-profile";
+import { getCountryLabel } from "@/lib/country-codes";
 import { cn } from "@/lib/utils";
-import type { Fan, FanLevel, FanEvent, FanPointsLedger } from "@/db/schema";
+import type { FanView, FanLevel, FanEvent, FanPointsLedger } from "@/db/schema";
 import type { FanIntelligence } from "@/server/actions/fan-profile";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -143,7 +144,7 @@ function FanProfileContent({
   fan,
   orgLevels,
 }: {
-  fan:       Fan;
+  fan:       FanView;
   orgLevels: FanLevel[];
 }) {
   const [activeTab,   setActiveTab]   = useState<DrawerTab>("actividad");
@@ -188,9 +189,10 @@ function FanProfileContent({
   const initials = [fan.firstName, fan.lastName]
     .filter(Boolean)
     .map((n) => n![0].toUpperCase())
-    .join("") || fan.displayName[0]?.toUpperCase() || "?";
+    .join("") || fan.displayName?.[0]?.toUpperCase() || "?";
 
-  const locationParts = [fan.city, fan.country].filter(Boolean).join(", ");
+  const countryLabel = getCountryLabel(fan.countryCode);
+  const locationParts = [fan.city, countryLabel].filter(Boolean).join(", ");
   const memberSince   = new Intl.DateTimeFormat("es", {
     month: "short",
     year:  "numeric",
@@ -369,7 +371,7 @@ function FanProfileContent({
 interface FanProfileDrawerProps {
   open:      boolean;
   onClose:   () => void;
-  fan:       Fan | null;
+  fan:       FanView | null;
   orgLevels: FanLevel[];
 }
 
@@ -385,7 +387,7 @@ export function FanProfileDrawer({
     <Drawer
       open={open}
       onClose={onClose}
-      title={fan.displayName}
+      title={fan.displayName ?? undefined}
       subtitle={fan.email ?? undefined}
       side="right"
       width="520px"

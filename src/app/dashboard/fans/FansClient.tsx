@@ -10,7 +10,8 @@ import { FanForm } from "@/components/fans/FanForm";
 import { FanRowActions } from "@/components/fans/FanRowActions";
 import { FanProfileDrawer } from "@/components/fans/FanProfileDrawer";
 import { FanLevelBadge } from "@/components/gamification/FanLevelBadge";
-import type { Fan, FanStatus, EepSyncStatus, FanLevel } from "@/db/schema";
+import { getCountryLabel } from "@/lib/country-codes";
+import type { FanView, FanStatus, EepSyncStatus, FanLevel } from "@/db/schema";
 
 // ─── Status badge helpers ─────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ const EEP_STATUS_CONFIG: Record<
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 
-function buildColumns(orgLevels: FanLevel[]): ColumnDef<Fan, unknown>[] {
+function buildColumns(orgLevels: FanLevel[]): ColumnDef<FanView, unknown>[] {
   return [
     {
       accessorKey: "displayName",
@@ -47,7 +48,7 @@ function buildColumns(orgLevels: FanLevel[]): ColumnDef<Fan, unknown>[] {
         const initials = [fan.firstName, fan.lastName]
           .filter(Boolean)
           .map((n) => n![0].toUpperCase())
-          .join("") || fan.displayName[0].toUpperCase();
+          .join("") || fan.displayName?.[0]?.toUpperCase() || "?";
         return (
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-[#FF2D55]/10 border border-[#FF2D55]/20 flex items-center justify-center shrink-0">
@@ -76,8 +77,8 @@ function buildColumns(orgLevels: FanLevel[]): ColumnDef<Fan, unknown>[] {
       id:     "location",
       header: "Ubicación",
       cell: ({ row }) => {
-        const { city, country } = row.original;
-        const parts = [city, country].filter(Boolean).join(", ");
+        const { city, countryCode } = row.original;
+        const parts = [city, getCountryLabel(countryCode)].filter(Boolean).join(", ");
         return (
           <span className="text-xs text-[#8888AA]">
             {parts || "—"}
@@ -140,7 +141,7 @@ function buildColumns(orgLevels: FanLevel[]): ColumnDef<Fan, unknown>[] {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface FansClientProps {
-  initialFans: Fan[];
+  initialFans: FanView[];
   totalCount:  number;
   orgLevels:   FanLevel[];
 }
@@ -152,13 +153,13 @@ export function FansClient({ initialFans, totalCount, orgLevels }: FansClientPro
   const [, startTransition] = useTransition();
 
   const [formOpen,    setFormOpen]    = useState(false);
-  const [editingFan,  setEditingFan]  = useState<Fan | undefined>(undefined);
+  const [editingFan,  setEditingFan]  = useState<FanView | undefined>(undefined);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [profileFan,  setProfileFan]  = useState<Fan | null>(null);
+  const [profileFan,  setProfileFan]  = useState<FanView | null>(null);
 
   const columns = buildColumns(orgLevels);
 
-  function handleEdit(fan: Fan) {
+  function handleEdit(fan: FanView) {
     setEditingFan(fan);
     setFormOpen(true);
   }
@@ -173,7 +174,7 @@ export function FansClient({ initialFans, totalCount, orgLevels }: FansClientPro
     setEditingFan(undefined);
   }
 
-  function handleViewProfile(fan: Fan) {
+  function handleViewProfile(fan: FanView) {
     setProfileFan(fan);
     setProfileOpen(true);
   }
@@ -194,7 +195,7 @@ export function FansClient({ initialFans, totalCount, orgLevels }: FansClientPro
   }
 
   const rowActions = useCallback(
-    (fan: Fan) => (
+    (fan: FanView) => (
       <FanRowActions
         fan={fan}
         onEdit={handleEdit}

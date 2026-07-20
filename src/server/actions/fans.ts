@@ -2,8 +2,13 @@
 
 import { db } from "@/db";
 import { fans } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import {
+  isInvalidCountryCodeInput,
+  normalizeCountryCode,
+} from "@/lib/country-codes";
 import { getDashboardContext } from "@/server/queries/session";
+import { assertFanOrgMembership } from "@/server/queries/fan-organizations";
 import {
   createOrganizationFan,
   enqueueFanEepJob,
@@ -19,7 +24,8 @@ export interface CreateFanInput {
   birthDate?: string;
   gender?: string;
   city?: string;
-  country?: string;
+  /** ISO 3166-1 alpha-2 or empty. Maps to fans.country_code. */
+  countryCode?: string;
 }
 
 export interface UpdateFanInput {
@@ -31,7 +37,8 @@ export interface UpdateFanInput {
   birthDate?: string;
   gender?: string;
   city?: string;
-  country?: string;
+  /** ISO 3166-1 alpha-2 or empty. Maps to fans.country_code. */
+  countryCode?: string;
 }
 
 // ─── Result type ──────────────────────────────────────────────────────────────
@@ -43,22 +50,14 @@ export type ActionResult =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Verifies the fan belongs to the current org before mutation.
- * Returns the fan row or throws if not found / wrong org.
+ * Verifies ANY fan_organizations membership before mutation (ADR-009 Phase C).
+ * Does not use the deprecated legacy ownership column.
  */
 async function assertFanOwnership(
   organizationId: string,
   fanId: string,
 ): Promise<void> {
-  const result = await db
-    .select({ id: fans.id })
-    .from(fans)
-    .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)))
-    .limit(1);
-
-  if (!result[0]) {
-    throw new Error("Fan not found or access denied");
-  }
+  await assertFanOrgMembership(fanId, organizationId, "any");
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -76,7 +75,7 @@ export async function createFan(input: CreateFanInput): Promise<ActionResult> {
       birthDate:      input.birthDate,
       gender:         input.gender,
       city:           input.city,
-      country:        input.country,
+      countryCode:    input.countryCode,
     });
 
     if (!result.ok) {
@@ -96,8 +95,17 @@ export async function updateFan(input: UpdateFanInput): Promise<ActionResult> {
 
     await assertFanOwnership(org.id, input.id);
 
-    const displayName = `${input.firstName} ${input.lastName}`.trim();
+    if (isInvalidCountryCodeInput(input.countryCode)) {
+      return {
+        success: false,
+        error: "El país debe ser un código ISO de 2 letras (ej. AR, MX).",
+      };
+    }
 
+    const displayName = `${input.firstName} ${input.lastName}`.trim();
+    const countryCode = normalizeCountryCode(input.countryCode);
+
+    // Membership already asserted; update by fan id only (no legacy ownership column).
     await db
       .update(fans)
       .set({
@@ -109,11 +117,11 @@ export async function updateFan(input: UpdateFanInput): Promise<ActionResult> {
         birthDate: input.birthDate || null,
         gender: input.gender || null,
         city: input.city || null,
-        country: input.country || null,
+        countryCode,
         eepSyncStatus: "pending",
         updatedAt: new Date(),
       })
-      .where(and(eq(fans.id, input.id), eq(fans.organizationId, org.id)));
+      .where(eq(fans.id, input.id));
 
     await enqueueFanEepJob(org.id, input.id, "update");
 
@@ -133,7 +141,7 @@ export async function suspendFan(fanId: string): Promise<ActionResult> {
     await db
       .update(fans)
       .set({ status: "suspended", eepSyncStatus: "pending", updatedAt: new Date() })
-      .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
+      .where(eq(fans.id, fanId));
 
     await enqueueFanEepJob(org.id, fanId, "update");
 
@@ -153,7 +161,7 @@ export async function reactivateFan(fanId: string): Promise<ActionResult> {
     await db
       .update(fans)
       .set({ status: "active", eepSyncStatus: "pending", updatedAt: new Date() })
-      .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
+      .where(eq(fans.id, fanId));
 
     await enqueueFanEepJob(org.id, fanId, "update");
 
@@ -173,7 +181,7 @@ export async function archiveFan(fanId: string): Promise<ActionResult> {
     await db
       .update(fans)
       .set({ status: "archived", eepSyncStatus: "pending", updatedAt: new Date() })
-      .where(and(eq(fans.id, fanId), eq(fans.organizationId, org.id)));
+      .where(eq(fans.id, fanId));
 
     await enqueueFanEepJob(org.id, fanId, "delete");
 

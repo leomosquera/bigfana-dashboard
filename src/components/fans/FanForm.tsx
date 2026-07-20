@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/forms/Select";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/feedback/Modal";
 import { createFan, updateFan } from "@/server/actions/fans";
-import type { Fan } from "@/db/schema";
+import type { FanView } from "@/db/schema";
+import {
+  getCountryLabel,
+  getCountrySelectOptions,
+} from "@/lib/country-codes";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,7 +19,7 @@ interface FanFormProps {
   onClose: () => void;
   onSuccess: () => void;
   /** When provided, the form operates in edit mode. */
-  fan?: Fan;
+  fan?: FanView;
 }
 
 interface FormState {
@@ -26,7 +30,8 @@ interface FormState {
   birthDate: string;
   gender: string;
   city: string;
-  country: string;
+  /** ISO 3166-1 alpha-2 or empty string for NULL. */
+  countryCode: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -37,7 +42,7 @@ const EMPTY_FORM: FormState = {
   birthDate: "",
   gender: "",
   city: "",
-  country: "",
+  countryCode: "",
 };
 
 const GENDER_OPTIONS = [
@@ -57,17 +62,38 @@ export function FanForm({ open, onClose, onSuccess, fan }: FanFormProps) {
   const [form, setForm] = useState<FormState>(() =>
     fan
       ? {
-          firstName: fan.firstName ?? "",
-          lastName:  fan.lastName  ?? "",
-          email:     fan.email     ?? "",
-          phone:     fan.phone     ?? "",
-          birthDate: fan.birthDate ?? "",
-          gender:    fan.gender    ?? "",
-          city:      fan.city      ?? "",
-          country:   fan.country   ?? "",
+          firstName:   fan.firstName   ?? "",
+          lastName:    fan.lastName    ?? "",
+          email:       fan.email       ?? "",
+          phone:       fan.phone       ?? "",
+          birthDate:   fan.birthDate   ?? "",
+          gender:      fan.gender      ?? "",
+          city:        fan.city        ?? "",
+          countryCode: fan.countryCode ?? "",
         }
       : EMPTY_FORM,
   );
+
+  const countryOptions = useMemo(() => {
+    const options = getCountrySelectOptions("es");
+    const current = form.countryCode.trim().toUpperCase();
+    const withCurrent =
+      current &&
+      /^[A-Z]{2}$/.test(current) &&
+      !options.some((o) => o.value === current)
+        ? [
+            {
+              value: current,
+              label: getCountryLabel(current, "es") ?? current,
+            },
+            ...options,
+          ]
+        : options;
+
+    // Explicit empty option so country_code can be cleared to NULL
+    // (native Select placeholder option is disabled once a value is chosen).
+    return [{ value: "", label: "Sin país" }, ...withCurrent];
+  }, [form.countryCode]);
 
   function handleClose() {
     if (isPending) return;
@@ -91,28 +117,20 @@ export function FanForm({ open, onClose, onSuccess, fan }: FanFormProps) {
     }
 
     startTransition(async () => {
+      const payload = {
+        firstName:   form.firstName.trim(),
+        lastName:    form.lastName.trim(),
+        email:       form.email     || undefined,
+        phone:       form.phone     || undefined,
+        birthDate:   form.birthDate || undefined,
+        gender:      form.gender    || undefined,
+        city:        form.city      || undefined,
+        countryCode: form.countryCode || undefined,
+      };
+
       const result = isEdit
-        ? await updateFan({
-            id: fan!.id,
-            firstName: form.firstName.trim(),
-            lastName:  form.lastName.trim(),
-            email:     form.email     || undefined,
-            phone:     form.phone     || undefined,
-            birthDate: form.birthDate || undefined,
-            gender:    form.gender    || undefined,
-            city:      form.city      || undefined,
-            country:   form.country   || undefined,
-          })
-        : await createFan({
-            firstName: form.firstName.trim(),
-            lastName:  form.lastName.trim(),
-            email:     form.email     || undefined,
-            phone:     form.phone     || undefined,
-            birthDate: form.birthDate || undefined,
-            gender:    form.gender    || undefined,
-            city:      form.city      || undefined,
-            country:   form.country   || undefined,
-          });
+        ? await updateFan({ id: fan!.id, ...payload })
+        : await createFan(payload);
 
       if (result.success) {
         setForm(EMPTY_FORM);
@@ -228,11 +246,12 @@ export function FanForm({ open, onClose, onSuccess, fan }: FanFormProps) {
             disabled={isPending}
             size="sm"
           />
-          <Input
+          <Select
             label="País"
-            placeholder="ej. Argentina"
-            value={form.country}
-            onChange={set("country")}
+            placeholder="Seleccionar país…"
+            options={countryOptions}
+            value={form.countryCode}
+            onChange={set("countryCode")}
             disabled={isPending}
             size="sm"
           />

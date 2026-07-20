@@ -16,6 +16,10 @@ import {
   type CampaignType,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import {
+  hasFanOrgMembership,
+  hasPrimaryFanOrganization,
+} from "@/server/queries/fan-organizations";
 import { awardPoints } from "./points";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -124,18 +128,33 @@ function rowPointsBudget(
   return Math.max(per, 0);
 }
 
-/** Core submission write path (no auth — caller verifies org boundaries). */
+/**
+ * Core submission write path (no auth — caller verifies org boundaries).
+ *
+ * Membership: ANY fan_organizations relation (PRIMARY or FOLLOWING).
+ * Loyalty points: PRIMARY-only — FOLLOWING-only fans may submit but skip awardPoints.
+ */
 export async function submitCampaignAnswers(
   input: SubmitCampaignAnswersParams,
 ): Promise<SubmitCampaignAnswersResult> {
   const submittedAt = input.submittedAt ?? new Date();
+
+  // ANY membership via fan_organizations (ADR-009 Phase C)
+  const related = await hasFanOrgMembership(
+    input.fanId,
+    input.organizationId,
+    "any",
+  );
+  if (!related) {
+    throw new Error("Fan no encontrado o no pertenece a la organización.");
+  }
 
   const detailRows = await db
     .select({
       fanSegment: fans.segment,
     })
     .from(fans)
-    .where(and(eq(fans.id, input.fanId), eq(fans.organizationId, input.organizationId)))
+    .where(eq(fans.id, input.fanId))
     .limit(1);
 
   const fanRow = detailRows[0];
@@ -309,24 +328,37 @@ export async function submitCampaignAnswers(
 
   const fanEventId = fanEventRecord.id;
 
-  const awardResult = await awardPoints({
-    organizationId: input.organizationId,
-    fanId:          input.fanId,
-    points:         totalPoints,
-    eventType:
-      campaign.type === "trivia"
-        ? "campaign_trivia"
-        : "campaign_participation",
-    reason:         `Participación · ${campaign.title}`,
-    source:         "campaign",
-    fanEventId,
-    metadata:       { campaignId: campaign.id, campaignType: campaign.type },
-  });
+  // Loyalty rewards are PRIMARY-only (R05). FOLLOWING-only: skip award entirely
+  // (do not write a zero-value ledger entry).
+  let totalPointsAwarded = 0;
+  let engagementDelta = 0;
+
+  const isPrimary = await hasPrimaryFanOrganization(
+    input.fanId,
+    input.organizationId,
+  );
+  if (isPrimary) {
+    const awardResult = await awardPoints({
+      organizationId: input.organizationId,
+      fanId:          input.fanId,
+      points:         totalPoints,
+      eventType:
+        campaign.type === "trivia"
+          ? "campaign_trivia"
+          : "campaign_participation",
+      reason:         `Participación · ${campaign.title}`,
+      source:         "campaign",
+      fanEventId,
+      metadata:       { campaignId: campaign.id, campaignType: campaign.type },
+    });
+    totalPointsAwarded = awardResult.points;
+    engagementDelta = awardResult.points;
+  }
 
   return {
     recordedRows:       planned.length,
-    totalPointsAwarded: totalPoints,
+    totalPointsAwarded,
     fanEventId,
-    engagementDelta:    awardResult.points,
+    engagementDelta,
   };
 }

@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { fanPointsLedger, fanLevels, fans } from "@/db/schema";
+import { fanPointsLedger, fanLevels, fans, fanOrganizations } from "@/db/schema";
 import { eq, and, ne, desc, asc, sql } from "drizzle-orm";
 import type { FanPointsLedger, FanLevel } from "@/db/schema";
 
@@ -92,7 +92,7 @@ export function computeLevelForScore(
 
 export interface LeaderboardEntry {
   id:              string;
-  displayName:     string;
+  displayName:     string | null;
   firstName:       string | null;
   lastName:        string | null;
   engagementScore: number;
@@ -101,7 +101,8 @@ export interface LeaderboardEntry {
 }
 
 /**
- * Returns the top fans for an org ranked by engagement_score descending.
+ * Returns the top PRIMARY fans for an org ranked by engagement_score descending.
+ * Loyalty cohort via fan_organizations (R05 / ADR-009 Phase C).
  * Excludes archived fans. Includes rank position.
  */
 export async function getOrgLeaderboard(
@@ -117,10 +118,12 @@ export async function getOrgLeaderboard(
       engagementScore: fans.engagementScore,
       status:          fans.status,
     })
-    .from(fans)
+    .from(fanOrganizations)
+    .innerJoin(fans, eq(fanOrganizations.fanId, fans.id))
     .where(
       and(
-        eq(fans.organizationId, organizationId),
+        eq(fanOrganizations.organizationId, organizationId),
+        eq(fanOrganizations.isPrimary, true),
         ne(fans.status, "archived"),
       ),
     )

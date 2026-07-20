@@ -34,33 +34,33 @@ Fully document the current Neon schema.
 
 ### Current Schema Documentation
 
-- [ ] Document all tables
-- [ ] Document all columns
-- [ ] Document all foreign keys
-- [ ] Document all indexes
-- [ ] Document all enums
-- [ ] Document all constraints
+- [x] Document all tables
+- [x] Document all columns
+- [x] Document all foreign keys
+- [x] Document all indexes
+- [x] Document all enums / CHECK-constrained TEXT domains
+- [x] Document all constraints
 
 Deliverable:
 
 ```txt
-current-schema.md updated
+current-schema.md updated (aligned post-Migration 019)
 ```
 
 ---
 
 ### Gap Analysis Validation
 
-- [ ] Compare current schema against logical model
-- [ ] Identify reusable entities
-- [ ] Identify missing entities
-- [ ] Identify migration candidates
-- [ ] Identify deprecated structures
+- [x] Compare current schema against logical model
+- [x] Identify reusable entities
+- [x] Identify missing entities
+- [x] Identify migration candidates
+- [x] Identify deprecated structures (resolved via 017–019)
 
 Deliverable:
 
 ```txt
-gap-analysis.md updated
+gap-analysis.md updated (aligned post-Migration 019)
 ```
 
 ---
@@ -82,13 +82,16 @@ ADR-002
 Current model:
 
 ```txt
-fans.organization_id
+Canonical: fan_organizations (sole authoritative)
+fans.organization_id          — PHYSICALLY REMOVED (Migration 018b COMPLETE)
+fans_organization_id_fkey     — PHYSICALLY REMOVED
+idx_fans_org                  — PHYSICALLY REMOVED
 ```
 
 Target model:
 
 ```txt
-fan_organizations
+Achieved — fan_organizations only
 ```
 
 ---
@@ -99,10 +102,16 @@ fan_organizations
 
 ---
 
-### New Features
+### Database / Foundation readiness
 
-- [ ] Support primary organization
-- [ ] Support followed organizations
+- [x] PRIMARY / FOLLOWING model in `fan_organizations` (Migration 001)
+- [x] Partial unique PRIMARY invariant (`fan_organizations_primary_idx`)
+- [x] Legacy `fans.organization_id` retired (017 → 018a → F2 → 018b COMPLETE)
+
+### Feature implementation (not Foundation DB blockers)
+
+- [ ] Support primary organization UX / product flows beyond current runtime
+- [ ] Support followed organizations UX / product flows
 - [ ] Support organization affinity
 - [ ] Support organization relationship metadata
 
@@ -110,9 +119,9 @@ fan_organizations
 
 ### Migration
 
-- [ ] Migrate existing fans
-- [ ] Preserve organization ownership
-- [ ] Validate data consistency
+- [x] Migrate existing fans into `fan_organizations` (Migration 001 backfill)
+- [x] Preserve organization ownership during cutover
+- [x] Validate data consistency (through Migration 018b)
 
 ---
 
@@ -152,15 +161,29 @@ MANAGED
 ## Competition Memberships
 
 - [x] Create competition_organizations
-- [x] Execute Migration 004 in Neon (validated: 0 rows, FKs, indexes, unique constraint)
-- [ ] Create competition metadata structure
+- [x] Execute Migration 004 in Neon (validated: FKs, indexes, unique constraint)
+- [x] Foundation minimum memberships (Migration 019a — validated: 3 rows)
+- [ ] Create competition metadata structure (future / feature — not a Foundation blocker)
+
+### Application readiness note
+
+```txt
+Neon: sports / competitions / competition_organizations exist + canonical seed live
+Drizzle: catalog tables mapped (F08 COMPLETE — Block B)
+Competition application features: NOT IMPLEMENTED (feature readiness only)
+This is NOT a Foundation DB blocker.
+```
 
 ---
 
 ## Organization Evolution
 
-- [ ] Replace organizations.sport
-- [ ] Migrate existing organization sport references
+- [x] Migrate existing organization sport references (Migration 019a — canonical competitions + memberships)
+- [x] Deprecate `organizations.sport` via COMMENT (Migration 019a)
+- [x] Application / Drizzle cutover — remove `organizations.sport` mapping/types
+- [x] Replace / physically remove `organizations.sport` (Migration 019b — COMPLETE)
+
+Organization Sport Refactor = **COMPLETE** (Migration 019).
 
 ---
 
@@ -304,7 +327,7 @@ Migration references:
 
 - [x] Create redemptions table (`009_create_redemptions.sql`)
 - [ ] Create redemption status workflow
-- [ ] Create redemption audit history
+- [x] Redemption audit history intent absorbed by `audit_logs` (Migration 016)
 
 ---
 
@@ -343,7 +366,7 @@ Migration references:
 
 ## Competition Sponsors
 
-- [ ] Create sponsor_competitions (deferred — 010b or Migration 012)
+- [ ] Create sponsor_competitions (deferred — 010b)
 
 ---
 
@@ -378,7 +401,29 @@ Migration references:
 
 ## Content
 
-- [ ] Create content table
+- [x] Create content table (`011_create_content.sql`)
+
+---
+
+## Execution (Migration 011)
+
+- [x] Migration 011 SQL file created (`011_create_content.sql`)
+- [x] Execute Migration 011 in Neon
+- [x] Validate schema per design brief
+
+---
+
+## Documentation (Migration 011)
+
+- [x] Update current-schema.md content inventory
+- [x] Update gap-analysis.md content status
+- [x] Update physical-model-v1.md content domain
+- [x] Update foundation-db-backlog.md
+- [x] Update PROJECT_STATE.md
+
+---
+
+# Phase 7b — Content Taxonomy Foundation (Deferred)
 
 ---
 
@@ -394,9 +439,15 @@ Migration references:
 
 ---
 
-## Content Relationships
+## Content Category Assignments
 
-- [ ] Create content_tag pivot model
+- [ ] Create content_category_assignments
+
+---
+
+## Content Tag Assignments
+
+- [ ] Create content_tag_assignments
 
 ---
 
@@ -406,38 +457,47 @@ Defined by:
 
 ```txt
 ADR-005
+
+Migration 012
+```
+
+Status:
+
+```txt
+Complete (Foundation DDL)
 ```
 
 ---
 
 ## Seasons
 
-- [ ] Create seasons table
+- [x] Create seasons table
 
 ---
 
 ## Divisions
 
-- [ ] Create divisions table
+- [ ] Create divisions table (deferred — Competition Structure future ADR)
 
 ---
 
 ## Matches
 
-- [ ] Create matches table
+- [x] Create matches table
 
 ---
 
 ## Standings
 
-- [ ] Create standings table
+- [x] Create standings table
 
 ---
 
 ## Competition Tracking
 
 - [ ] Create competition statistics model
-- [ ] Create fixture management model
+- [ ] Create fixture management model (application / later migrations)
+- [ ] Competition Structure ADR (divisions vs stages vs groups vs brackets)
 
 ---
 
@@ -447,31 +507,31 @@ Defined by:
 
 ```txt
 ADR-003
+
+ADR-007
+
+ADR-008
+```
+
+Status:
+
+```txt
+Complete (Foundation DDL) — Migrations 013–014
 ```
 
 ---
 
 ## Audiences
 
-- [ ] Create audiences table
+- [x] Create audiences table (Migration 013)
+- [x] Create fan_audiences (Migration 013)
 
 ---
 
 ## Segments
 
-- [ ] Create segments table
-
----
-
-## Audience Memberships
-
-- [ ] Create fan_audiences
-
----
-
-## Segment Memberships
-
-- [ ] Create fan_segments
+- [x] Create segments table (Migration 014)
+- [x] Create fan_segments (Migration 014)
 
 ---
 
@@ -480,16 +540,23 @@ ADR-003
 - [ ] Define audience sync process
 - [ ] Define segment sync process
 - [ ] Define reconciliation process
+- [x] EEP Segment identity contract (ADR-008 Accepted)
 
 ---
 
 # Phase 10 — Integration Layer
 
+Status:
+
+```txt
+Complete (Foundation DDL) — Migration 015 registry
+```
+
 ---
 
 ## Integration Registry
 
-- [ ] Create integrations table
+- [x] Create integrations table (Migration 015)
 
 ---
 
@@ -509,12 +576,18 @@ ADR-003
 
 Review existing structure:
 
-- [ ] Validate integration_jobs
-- [ ] Extend if required
+- [x] Validate integration_jobs (unchanged in 015; logical assoc via org+provider)
+- [ ] Extend if required (`integration_id` FK deferred)
 
 ---
 
 # Phase 11 — Audit and Events
+
+Status:
+
+```txt
+Complete (Foundation DDL) — Migration 016 audit_logs
+```
 
 ---
 
@@ -529,41 +602,213 @@ Review existing implementation:
 
 ## Audit Logs
 
-- [ ] Create audit_logs
+- [x] Create audit_logs (Migration 016 — executed and validated)
+- [x] Dual-scope org/platform ownership
+- [x] Actor separated from Origin (UUID soft refs, no FKs)
+- [x] Canonical BigFana entity identifiers
+- [x] Business decisions only (independent from integration_jobs)
+- [x] Append-only (no updated_at)
 
 ---
 
 ## Change Tracking
 
-- [ ] Define entity audit strategy
+- [x] Define entity audit strategy (`audit_logs` polymorphic association)
+- [x] Capture integration registry lifecycle history (owned by audit_logs)
+
+---
+
+# Phase 12 — Contract Phase
+
+Status:
+
+```txt
+COMPLETE — ADR-009 fan ownership retirement finished
+017 COMPLETE
+018a COMPLETE
+Application Phase F2 COMPLETE
+018b COMPLETE (executed and validated in Neon)
+
+Migration 019 (Remove Legacy Organization Sport) — COMPLETE:
+019a COMPLETE (executed and validated in Neon)
+Application / Drizzle cutover COMPLETE
+019b COMPLETE (executed and validated in Neon)
+```
+
+---
+
+## Migration 017 — Deprecate Legacy Fan Ownership
+
+- [x] Architecture Review
+- [x] ADR-009 Legacy Fan Ownership Deprecation Contract (Accepted — Frozen)
+- [x] Design Brief approved
+- [x] SQL generated (`017_deprecate_legacy_fan_ownership.sql`)
+- [x] Neon execution and validation (11/11; divergent=0 informational)
+- [x] Deprecate `fans.organization_id` via COMMENT ON COLUMN only
+- [x] Confirm no DROP / RENAME / structural ALTER / data mutation
+- [x] Confirm `idx_fans_org` and `fan_organizations` unchanged
+- [x] Confirm application ownership reads cut over to `fan_organizations` (Phases A–E)
+- [x] Confirm Application Phase F2 retires projection write + Drizzle mapping
+
+---
+
+## Migration 018a — Make Legacy Fan Ownership Omit-Safe
+
+- [x] Staged Option B sequencing approved (018a → F2 → 018b; 019 unchanged)
+- [x] Design Brief approved (`2026-07-18-migration-018a-make-legacy-fan-ownership-omit-safe-design.md`)
+- [x] SQL generated (`018a_make_legacy_fan_ownership_omit_safe.sql`)
+- [x] Human SQL review approved
+- [x] Neon execution and validation (ALL CHECKS PASS)
+- [x] `fans.organization_id` still physically present (at 018a completion)
+- [x] Type remains UUID; now NULLABLE; no default
+- [x] `fans_organization_id_fkey` unchanged (at 018a completion)
+- [x] `idx_fans_org` unchanged (at 018a completion)
+- [x] Migration 017 DEPRECATED comment retained
+- [x] `fan_organizations` structurally unchanged
+- [x] No production data mutation (`total_fans` unchanged; divergent=0)
+- [x] Old-style and omit-style INSERTs validated; validation rows cleaned up
+- [x] DDL re-execution idempotent
+
+---
+
+## Application Phase F2 — COMPLETE (2026-07-18)
+
+- [x] Stop `createOrganizationFan` compatibility projection write
+- [x] Remove Drizzle `fans.organizationId` mapping
+- [x] Simplify `Fan` / `FanView` types if appropriate (`FanView ≡ Fan`; `toFanView` identity)
+- [x] Keep `fan_organizations` PRIMARY creation mandatory
+- [x] Keep R04 global email behavior unchanged
+- [x] No ownership/tenancy behavior regressions (R03/R04/R05 unchanged)
+
+---
+
+## Migration 018b readiness / gate assessment — COMPLETE (PASS)
+
+- [x] Zero reads of `fans.organization_id` (application services)
+- [x] Zero writes of `fans.organization_id` (including projection writers)
+- [x] Zero Drizzle / schema mappings of `fans.organizationId`
+- [x] Zero reads/writes in reports, exports, scripts, operational tooling
+- [x] Consistency verification complete
+- [x] Human approval recorded for irreversible contract DDL
+
+---
+
+## Migration 018b — Physical Remove Legacy Fan Ownership — COMPLETE
+
+- [x] Design Brief approved (`2026-07-18-migration-018b-remove-legacy-fan-ownership-design.md`)
+- [x] SQL generated (`018b_remove_legacy_fan_ownership.sql`)
+- [x] Final pre-Neon SQL review PASS
+- [x] Explicit human DROP approval recorded
+- [x] Neon execution and validation (ALL CHECKS PASS)
+- [x] Removed `idx_fans_org`
+- [x] Removed `fans_organization_id_fkey`
+- [x] Removed `fans.organization_id`
+- [x] `fan_organizations` unchanged; PRIMARY intact; fan count unchanged
+- [x] `organizations.sport` untouched
+- [x] Application validation: tsc / build / Phase B tests PASS
+- [x] Idempotent re-execution PASS
+- [x] Completion documentation updated
+
+---
+
+## Migration 019a — Canonical Competition Data + Deprecation — COMPLETE
+
+- [x] Canonical Competition Data Package approved
+- [x] Design Brief approved (`2026-07-19-migration-019a-canonical-competition-data-design.md`)
+- [x] SQL generated (`019a_canonical_competition_data.sql`)
+- [x] Neon execution and validation (ALL CHECKS PASS)
+- [x] Competitions: `liga-profesional-argentina`, `liga-mx` (soccer / INTEGRATED)
+- [x] Memberships: river-plate / boca-juniors → AR; toluca → MX
+- [x] `organizations.sport` COMMENT DEPRECATED (column still present)
+- [x] Idempotent re-execution PASS
+- [x] Completion documentation updated
+
+---
+
+## Migration 019b — Physical Remove Legacy Organization Sport — COMPLETE
+
+- [x] Application / Drizzle cutover — remove `organizations.sport` (COMPLETE)
+- [x] Gate assessment — zero consumers + derivation intact (PASS)
+- [x] Migration 019b Design Brief approved
+- [x] SQL generated (`019b_remove_legacy_organization_sport.sql`)
+- [x] Final Pre-Neon SQL Review PASS
+- [x] Explicit human irreversible DROP approval recorded
+- [x] Neon execution and validation (ALL CHECKS PASS)
+- [x] Idempotent re-execution PASS
+- [x] Application validation: tsc / build / Phase B tests / scoped eslint PASS
+- [x] `organizations.sport` physically REMOVED
+- [x] `organizations.sport_id` ABSENT
+- [x] Canonical competitions + memberships unchanged
+- [x] Completion documentation updated
+
+## Later contract migrations (plan)
+
+- [x] Migration 019 — Remove Legacy Organization Sport (COMPLETE)
+- [ ] Migration 020 — NOT STARTED / NO FROZEN / RESERVED SCOPE
+
+Do **not** invent Migration 020 scope from residual technical debt.
+Open a new migration only when a specific DDL item is explicitly prioritized and approved.
 
 ---
 
 # Technical Review Tasks
 
+Post-019 Naming / FK / Index Consistency Audit: **COMPLETE**.
+
+Verdict:
+
+```txt
+B. FOUNDATION DB READY WITH NON-BLOCKING TECHNICAL DEBT
+NO MIGRATION 020 REQUIRED FROM THIS AUDIT
+```
+
 ---
 
 ## Naming Consistency
 
-- [ ] Validate table naming conventions
-- [ ] Validate foreign key naming conventions
-- [ ] Validate index naming conventions
+- [x] Validate table naming conventions (audit: KEEP AS-IS for cosmetic era mix)
+- [x] Validate foreign key naming conventions (audit: KEEP AS-IS `*_fk` vs `*_fkey`)
+- [x] Validate index naming conventions (audit: KEEP AS-IS `idx_*` vs `{table}_*_idx`)
 
 ---
 
 ## Multi-Tenant Review
 
-- [ ] Validate organization ownership
-- [ ] Validate tenant boundaries
-- [ ] Validate future global fan model
+- [x] Validate organization ownership (`fan_organizations` SoT; ADR-009 COMPLETE)
+- [x] Validate tenant boundaries (org-scoped business data + global fan identity)
+- [x] Validate global fan model Foundation readiness (COMPLETE; feature UX may continue)
 
 ---
 
 ## Performance Review
 
-- [ ] Review indexes
-- [ ] Review high-volume tables
-- [ ] Review event storage strategy
+- [x] Review indexes (audit complete — F09/F10 remain as optional debt)
+- [ ] Review high-volume tables under production load (operational — future)
+- [ ] Review event storage strategy under production load (operational — future)
+
+---
+
+## Remaining non-blocking technical debt (do not auto-scope as Migration 020)
+
+```txt
+F05  COMPLETE — Drizzle TEXT model aligned
+F06  COMPLETE — MembershipRole aligned to Neon CHECK
+F07  COMPLETE — avatar_url / country_code mapped
+Block D COMPLETE — fans country_code application cutover (physical DROP country deferred)
+F08  COMPLETE — catalog tables mapped in Drizzle (Block B; features NOT implemented)
+F09  COMPLETE — Drizzle index declarations aligned to Neon (no DDL)
+NEW-F15 COMPLETE — timestamp tz representation (fans / fan_events / integration_jobs)
+NEW-F16 COMPLETE — display_name nullability aligned
+NEW-F17 COMPLETE — auth / campaigns / gamification / EIL timestamptz verified ALIGNED (Block A)
+F10–F14  redundant indexes / PRIMARY sync CHECK / naming / unused enum / etc.
+Optional composites (performance) — only with workload evidence
+```
+
+Completed technical phase (no Neon DDL):
+
+```txt
+Drizzle ↔ Neon Representation Cleanup — COMPLETE
+```
 
 ---
 
@@ -580,19 +825,38 @@ Before any migration:
 
 # Success Criteria
 
-Foundation Database v1 is complete when:
+Distinguish three layers:
 
-- [ ] Global Fan Model exists
+```txt
+1. Database / Foundation readiness  — DDL + canonical invariants in Neon
+2. Drizzle / application readiness  — schema mappings + runtime consumers
+3. Feature implementation           — product UX / sync processes / workflows
+```
+
+## Database / Foundation readiness
+
+Foundation Database v1 DDL is considered complete when:
+
+- [x] Global Fan Model exists (`fan_organizations` SoT; legacy ownership removed)
 - [x] Fan profile foundation exists
-- [ ] Sports hierarchy exists
-- [ ] Competition hierarchy exists
+- [x] Sports hierarchy exists
+- [x] Competition hierarchy exists (including Foundation minimum memberships)
 - [x] Loyalty expansion exists
 - [x] Sponsor foundation exists (sponsor_competitions and sponsor_ads reconciliation deferred)
-- [ ] Content platform exists
-- [ ] Match center exists
-- [ ] EEP audiences and segments exist
+- [x] Content foundation exists (taxonomy deferred to 011b)
+- [x] Match center exists (Foundation DDL — Migrations 012)
+- [x] EEP audiences and segments exist (Foundation DDL — Migrations 013–014)
 
 without requiring architectural redesign.
+
+## Explicitly still open (not Foundation blockers)
+
+- [x] Drizzle ↔ Neon representation cleanup (F05 / F06 / F07 / F09 / NEW-F15 / NEW-F16)
+- [x] Block A / NEW-F17 timestamp representation verification (mapped runtime timestamptz ALIGNED)
+- [x] Drizzle mapping for sports / competitions / competition_organizations (F08 — Block B COMPLETE)
+- [x] fans.country → country_code functional cutover (Block D — application COMPLETE; physical DROP deferred)
+- [ ] EEP audience / segment sync process implementation
+- [ ] Feature UX for FOLLOWING / fan interests / match center / etc.
 
 ---
 

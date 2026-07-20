@@ -2,7 +2,6 @@ import {
   index,
   integer,
   jsonb,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -10,25 +9,36 @@ import {
 } from "drizzle-orm/pg-core";
 import { organizations } from "./organizations";
 
-// --- Enums ---
+// --- Application value domains (Neon: TEXT / TEXT + CHECK) ---
+// Neon physical columns are TEXT, not PG enum types.
+// Status is CHECK-constrained in Neon; provider / operation are TEXT without CHECK.
+// Application-supported unions below are TypeScript contracts, not DB enum types.
 
-export const integrationJobStatusEnum = pgEnum("integration_job_status", [
+/** Neon CHECK-aligned integration_jobs.status values. */
+export const INTEGRATION_JOB_STATUS_VALUES = [
   "pending",
   "processing",
   "synced",
   "failed",
   "retrying",
-]);
+] as const;
 
-export const integrationProviderEnum = pgEnum("integration_provider", [
-  "eep",
-]);
+/** Application-supported provider values (Neon: unconstrained TEXT). */
+export const INTEGRATION_PROVIDER_VALUES = ["eep"] as const;
 
-export const integrationOperationEnum = pgEnum("integration_operation", [
+/** Application-supported operation values (Neon: unconstrained TEXT). */
+export const INTEGRATION_OPERATION_VALUES = [
   "create",
   "update",
   "delete",
-]);
+] as const;
+
+export type IntegrationJobStatus =
+  (typeof INTEGRATION_JOB_STATUS_VALUES)[number];
+export type IntegrationProvider =
+  (typeof INTEGRATION_PROVIDER_VALUES)[number];
+export type IntegrationOperation =
+  (typeof INTEGRATION_OPERATION_VALUES)[number];
 
 // --- Tables ---
 
@@ -43,8 +53,10 @@ export const integrationJobs = pgTable(
     // What is being synced
     entityType: text("entity_type").notNull(),
     entityId: uuid("entity_id").notNull(),
-    provider: integrationProviderEnum("provider").notNull(),
-    operation: integrationOperationEnum("operation").notNull(),
+    /** Neon: TEXT (no CHECK). Application-supported values: IntegrationProvider. */
+    provider: text("provider").$type<IntegrationProvider>().notNull(),
+    /** Neon: TEXT (no CHECK). Application-supported values: IntegrationOperation. */
+    operation: text("operation").$type<IntegrationOperation>().notNull(),
     /**
      * Snapshot of the entity data at enqueue time.
      * Prevents stale-read issues when processing is delayed.
@@ -52,17 +64,23 @@ export const integrationJobs = pgTable(
     payload: jsonb("payload"),
 
     // Job lifecycle
-    status: integrationJobStatusEnum("status").notNull().default("pending"),
+    /** Neon: TEXT + CHECK — pending | processing | synced | failed | retrying */
+    status: text("status")
+      .$type<IntegrationJobStatus>()
+      .notNull()
+      .default("pending"),
     attempts: integer("attempts").notNull().default(0),
     maxAttempts: integer("max_attempts").notNull().default(5),
     /**
      * Computed on failure using exponential backoff.
      * Null means "process immediately" (initial state).
      * Pattern: 2^attempts * 30s, capped at 1h.
+     * Neon: TIMESTAMP WITHOUT TIME ZONE.
      */
-    nextRetryAt: timestamp("next_retry_at", { withTimezone: true }),
+    nextRetryAt: timestamp("next_retry_at"),
     lastError: text("last_error"),
-    processedAt: timestamp("processed_at", { withTimezone: true }),
+    /** Neon: TIMESTAMP WITHOUT TIME ZONE. */
+    processedAt: timestamp("processed_at"),
 
     /**
      * Optional idempotency key to prevent duplicate jobs for the same entity+operation.
@@ -71,24 +89,15 @@ export const integrationJobs = pgTable(
      */
     idempotencyKey: text("idempotency_key").unique(),
 
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // Neon: TIMESTAMP WITHOUT TIME ZONE
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
-    // Primary polling index: find work to process
-    index("integration_jobs_status_retry_idx").on(
-      table.status,
-      table.nextRetryAt,
-    ),
-    // Entity lookup index: find all jobs for a given entity
-    index("integration_jobs_entity_idx").on(
-      table.organizationId,
-      table.entityType,
-      table.entityId,
-    ),
+    // Physical Neon indexes (do not declare composites absent from Neon)
+    index("idx_integration_jobs_status").on(table.status),
+    index("idx_integration_jobs_org").on(table.organizationId),
     // Uniqueness on idempotency_key is enforced at the column level (.unique()).
-    // A partial index (WHERE idempotency_key IS NOT NULL) can be added via a
-    // raw SQL migration if needed once the sync layer is introduced.
   ],
 );
 
@@ -96,10 +105,3 @@ export const integrationJobs = pgTable(
 
 export type IntegrationJob = typeof integrationJobs.$inferSelect;
 export type NewIntegrationJob = typeof integrationJobs.$inferInsert;
-
-export type IntegrationJobStatus =
-  (typeof integrationJobStatusEnum.enumValues)[number];
-export type IntegrationProvider =
-  (typeof integrationProviderEnum.enumValues)[number];
-export type IntegrationOperation =
-  (typeof integrationOperationEnum.enumValues)[number];

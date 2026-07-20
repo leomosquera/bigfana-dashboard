@@ -57,11 +57,14 @@ async function main() {
       ORDER BY min_points ASC
     `;
 
-    // Load all non-archived fans
+    // Load non-archived PRIMARY fans via fan_organizations (ADR-009 / R05)
     const orgFans = await sql`
-      SELECT id, engagement_score, status, segment
-      FROM fans
-      WHERE organization_id = ${org.id} AND status != 'archived'
+      SELECT f.id, f.engagement_score, f.status, f.segment
+      FROM fan_organizations fo
+      INNER JOIN fans f ON f.id = fo.fan_id
+      WHERE fo.organization_id = ${org.id}
+        AND fo.is_primary = TRUE
+        AND f.status != 'archived'
     `;
 
     console.log(`  ${orgFans.length} fans to process, ${rules.length} active rules`);
@@ -168,9 +171,11 @@ async function main() {
       o.name AS org,
       f.segment,
       COUNT(*) AS fan_count
-    FROM fans f
-    JOIN organizations o ON o.id = f.organization_id
-    WHERE f.status != 'archived'
+    FROM fan_organizations fo
+    INNER JOIN fans f ON f.id = fo.fan_id
+    INNER JOIN organizations o ON o.id = fo.organization_id
+    WHERE fo.is_primary = TRUE
+      AND f.status != 'archived'
     GROUP BY o.name, f.segment
     ORDER BY o.name, fan_count DESC
   `;

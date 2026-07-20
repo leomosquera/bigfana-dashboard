@@ -20,6 +20,7 @@
 import { db } from "@/db";
 import { fans, fanPointsLedger } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { hasPrimaryFanOrganization } from "@/server/queries/fan-organizations";
 import { recomputeFanSegment } from "./segmentation";
 
 // ─── Input / output types ─────────────────────────────────────────────────────
@@ -60,13 +61,16 @@ export interface AwardPointsResult {
 /**
  * Awards or deducts points for a fan and records the ledger entry.
  *
- * Steps:
- *   1. Read the fan's current engagement_score (verified org-scoped).
- *   2. Compute new balance = current + points.
- *   3. INSERT a fan_points_ledger row with the new balance_after.
- *   4. UPDATE fans.engagement_score to the new balance.
+ * Loyalty authorization is PRIMARY-only (R05 / ADR-002 / ADR-009 Phase C).
  *
- * Throws if the fan does not exist or belongs to a different org.
+ * Steps:
+ *   1. Assert canonical PRIMARY membership via fan_organizations.
+ *   2. Read the fan's current engagement_score.
+ *   3. Compute new balance = current + points.
+ *   4. INSERT a fan_points_ledger row with the new balance_after.
+ *   5. UPDATE fans.engagement_score to the new balance.
+ *
+ * Throws if the fan lacks PRIMARY membership in the organization.
  */
 export async function awardPoints(input: AwardPointsInput): Promise<AwardPointsResult> {
   const {
@@ -81,11 +85,19 @@ export async function awardPoints(input: AwardPointsInput): Promise<AwardPointsR
     metadata,
   } = input;
 
-  // 1. Read current balance (org-scoped for tenant safety)
+  // 1. PRIMARY membership required for loyalty writes
+  const isPrimary = await hasPrimaryFanOrganization(fanId, organizationId);
+  if (!isPrimary) {
+    throw new Error(
+      `awardPoints: fan ${fanId} is not PRIMARY in organization ${organizationId}`,
+    );
+  }
+
+  // 2. Read current balance
   const [fan] = await db
     .select({ engagementScore: fans.engagementScore })
     .from(fans)
-    .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)))
+    .where(eq(fans.id, fanId))
     .limit(1);
 
   if (!fan) {
@@ -96,7 +108,7 @@ export async function awardPoints(input: AwardPointsInput): Promise<AwardPointsR
 
   const newBalance = fan.engagementScore + points;
 
-  // 2. Insert ledger entry
+  // 3. Insert ledger entry (org-owned ledger)
   const [entry] = await db
     .insert(fanPointsLedger)
     .values({
@@ -113,13 +125,13 @@ export async function awardPoints(input: AwardPointsInput): Promise<AwardPointsR
     })
     .returning({ id: fanPointsLedger.id });
 
-  // 3. Update fan's running balance
+  // 4. Update fan's running balance
   await db
     .update(fans)
     .set({ engagementScore: newBalance, updatedAt: new Date() })
-    .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)));
+    .where(eq(fans.id, fanId));
 
-  // 4. Recompute segment (fire-and-forget — never blocks point write)
+  // 5. Recompute segment (fire-and-forget — never blocks point write)
   recomputeFanSegment(organizationId, fanId).catch((err) => {
     console.error("[awardPoints] segment recompute failed silently:", err);
   });
@@ -134,12 +146,21 @@ export async function awardPoints(input: AwardPointsInput): Promise<AwardPointsR
  * Use this if engagement_score drifts out of sync with the ledger (e.g. after
  * a partial write failure).
  *
+ * Loyalty authorization is PRIMARY-only (R05 / ADR-009 Phase C).
+ *
  * Returns the corrected balance.
  */
 export async function rebuildFanBalance(
   organizationId: string,
   fanId:          string,
 ): Promise<number> {
+  const isPrimary = await hasPrimaryFanOrganization(fanId, organizationId);
+  if (!isPrimary) {
+    throw new Error(
+      `rebuildFanBalance: fan ${fanId} is not PRIMARY in organization ${organizationId}`,
+    );
+  }
+
   const entries = await db
     .select({ points: fanPointsLedger.points })
     .from(fanPointsLedger)
@@ -155,7 +176,7 @@ export async function rebuildFanBalance(
   await db
     .update(fans)
     .set({ engagementScore: total, updatedAt: new Date() })
-    .where(and(eq(fans.id, fanId), eq(fans.organizationId, organizationId)));
+    .where(eq(fans.id, fanId));
 
   return total;
 }

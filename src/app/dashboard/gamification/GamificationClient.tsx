@@ -44,7 +44,7 @@ function LeaderboardRow({
   const initials = [entry.firstName, entry.lastName]
     .filter(Boolean)
     .map((n) => n![0].toUpperCase())
-    .join("") || entry.displayName[0]?.toUpperCase() || "?";
+    .join("") || entry.displayName?.[0]?.toUpperCase() || "?";
 
   return (
     <motion.div

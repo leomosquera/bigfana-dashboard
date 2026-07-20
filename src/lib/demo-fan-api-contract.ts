@@ -5,7 +5,7 @@
 
 export interface DemoFanLoginSnapshot {
   fanId:             string;
-  displayName:       string;
+  displayName:       string | null;
   segment:           string | null;
   level:             string | null;
   engagementScore:   number;
@@ -96,7 +96,7 @@ export interface DemoFanExperienceSponsor {
 
 export interface DemoFanExperienceFan {
   id:               string;
-  displayName:      string;
+  displayName:      string | null;
   email:            string | null;
   segment:          string | null;
   tier:             string | null;

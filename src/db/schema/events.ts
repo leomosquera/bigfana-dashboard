@@ -66,22 +66,18 @@ export const fanEvents = pgTable(
     /**
      * When the event actually occurred (not when BigFana recorded it).
      * Required — analytics and streaks depend on accurate event timestamps.
+     * Neon: TIMESTAMP WITHOUT TIME ZONE.
      */
-    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    occurredAt: timestamp("occurred_at").notNull(),
 
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Neon: TIMESTAMP WITHOUT TIME ZONE. */
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
-    // Fan timeline queries
-    index("fan_events_fan_occurred_idx").on(table.fanId, table.occurredAt),
-    // Org-level analytics aggregations
-    index("fan_events_org_type_occurred_idx").on(
-      table.organizationId,
-      table.eventType,
-      table.occurredAt,
-    ),
-    // Source deduplication lookups
-    index("fan_events_source_idx").on(table.source, table.sourceId),
+    // Physical Neon indexes (do not declare composites absent from Neon)
+    index("idx_fan_events_fan").on(table.fanId),
+    index("idx_fan_events_org").on(table.organizationId),
+    index("idx_fan_events_type").on(table.eventType),
   ],
 );
 
