@@ -1,7 +1,16 @@
 "use client";
 
 import { useTransition } from "react";
-import { MoreHorizontal, Eye, Pencil, UserX, UserCheck, Archive } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  UserX,
+  UserCheck,
+  Archive,
+  ExternalLink,
+} from "lucide-react";
 import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import { Button } from "@/components/ui/Button";
 import { suspendFan, reactivateFan, archiveFan } from "@/server/actions/fans";
@@ -10,15 +19,24 @@ import type { FanView } from "@/db/schema";
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface FanRowActionsProps {
-  fan:           FanView;
-  onEdit:        (fan: FanView) => void;
-  onViewProfile: (fan: FanView) => void;
-  onMutated:     () => void;
+  fan: FanView;
+  onEdit: (fan: FanView) => void;
+  onViewProfile?: (fan: FanView) => void;
+  onMutated: () => void;
+  /** When true, hide navigation items already covered by the current page. */
+  hideProfileLinks?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function FanRowActions({ fan, onEdit, onViewProfile, onMutated }: FanRowActionsProps) {
+export function FanRowActions({
+  fan,
+  onEdit,
+  onViewProfile,
+  onMutated,
+  hideProfileLinks = false,
+}: FanRowActionsProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handleSuspend() {
@@ -36,7 +54,11 @@ export function FanRowActions({ fan, onEdit, onViewProfile, onMutated }: FanRowA
   }
 
   function handleArchive() {
-    if (!confirm(`¿Archivar a ${fan.displayName ?? "este fan"}? El fan ya no aparecerá en la lista principal.`)) {
+    if (
+      !confirm(
+        `¿Archivar a ${fan.displayName ?? "este fan"}? El fan ya no aparecerá en la lista principal.`,
+      )
+    ) {
       return;
     }
     startTransition(async () => {
@@ -45,9 +67,9 @@ export function FanRowActions({ fan, onEdit, onViewProfile, onMutated }: FanRowA
     });
   }
 
-  const canSuspend    = fan.status === "active";
+  const canSuspend = fan.status === "active";
   const canReactivate = fan.status === "suspended" || fan.status === "inactive";
-  const canArchive    = fan.status !== "archived";
+  const canArchive = fan.status !== "archived";
 
   return (
     <DropdownMenu>
@@ -65,12 +87,23 @@ export function FanRowActions({ fan, onEdit, onViewProfile, onMutated }: FanRowA
       <DropdownMenu.Content align="end" minWidth={176}>
         <DropdownMenu.Label>Acciones</DropdownMenu.Label>
 
-        <DropdownMenu.Item
-          icon={<Eye size={13} />}
-          onSelect={() => onViewProfile(fan)}
-        >
-          Ver perfil
-        </DropdownMenu.Item>
+        {!hideProfileLinks && onViewProfile && (
+          <DropdownMenu.Item
+            icon={<Eye size={13} />}
+            onSelect={() => onViewProfile(fan)}
+          >
+            Vista rápida
+          </DropdownMenu.Item>
+        )}
+
+        {!hideProfileLinks && (
+          <DropdownMenu.Item
+            icon={<ExternalLink size={13} />}
+            onSelect={() => router.push(`/dashboard/fans/${fan.id}`)}
+          >
+            Ver perfil completo
+          </DropdownMenu.Item>
+        )}
 
         <DropdownMenu.Item
           icon={<Pencil size={13} />}

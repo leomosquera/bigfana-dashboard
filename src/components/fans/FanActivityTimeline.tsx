@@ -92,16 +92,32 @@ function ActivityEntry({
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
-function EmptyActivity() {
+function EmptyActivity({ compact }: { compact?: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 gap-2">
-      <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-        <span className="text-[#55556A] text-sm">○</span>
-      </div>
-      <p className="text-sm font-semibold text-[#8888AA]">Sin actividad registrada</p>
-      <p className="text-xs text-[#55556A] text-center max-w-[200px]">
-        Los eventos de este fan aparecerán aquí cuando comiencen a interactuar.
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-1.5",
+        compact ? "py-4" : "py-12 gap-2",
+      )}
+    >
+      {!compact && (
+        <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+          <span className="text-[#55556A] text-sm">○</span>
+        </div>
+      )}
+      <p
+        className={cn(
+          "font-semibold text-[#8888AA]",
+          compact ? "text-xs" : "text-sm",
+        )}
+      >
+        Sin actividad registrada
       </p>
+      {!compact && (
+        <p className="text-xs text-[#55556A] text-center max-w-[200px]">
+          Los eventos de este fan aparecerán aquí cuando comiencen a interactuar.
+        </p>
+      )}
     </div>
   );
 }
@@ -109,15 +125,21 @@ function EmptyActivity() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface FanActivityTimelineProps {
-  events:    FanEvent[];
+  events: FanEvent[];
   className?: string;
+  /** Denser empty state / tighter rows for Fan 360 fiche layout. */
+  compact?: boolean;
 }
 
-export function FanActivityTimeline({ events, className }: FanActivityTimelineProps) {
-  if (!events.length) return <EmptyActivity />;
+export function FanActivityTimeline({
+  events,
+  className,
+  compact = false,
+}: FanActivityTimelineProps) {
+  if (!events.length) return <EmptyActivity compact={compact} />;
 
   return (
-    <div className={cn("", className)}>
+    <div className={cn(compact && "space-y-0", className)}>
       {events.map((event, i) => (
         <ActivityEntry
           key={event.id}

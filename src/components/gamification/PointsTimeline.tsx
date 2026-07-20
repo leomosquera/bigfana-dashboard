@@ -76,16 +76,32 @@ function LedgerEntry({
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
-function EmptyLedger() {
+function EmptyLedger({ compact }: { compact?: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 gap-2">
-      <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-        <span className="text-base">✦</span>
-      </div>
-      <p className="text-sm font-semibold text-[#8888AA]">Sin historial de puntos</p>
-      <p className="text-xs text-[#55556A] text-center max-w-[200px]">
-        Los puntos acumulados y deducciones aparecerán aquí.
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-1.5",
+        compact ? "py-4" : "py-12 gap-2",
+      )}
+    >
+      {!compact && (
+        <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+          <span className="text-base">✦</span>
+        </div>
+      )}
+      <p
+        className={cn(
+          "font-semibold text-[#8888AA]",
+          compact ? "text-xs" : "text-sm",
+        )}
+      >
+        Sin historial de puntos
       </p>
+      {!compact && (
+        <p className="text-xs text-[#55556A] text-center max-w-[200px]">
+          Los puntos acumulados y deducciones aparecerán aquí.
+        </p>
+      )}
     </div>
   );
 }
@@ -93,12 +109,18 @@ function EmptyLedger() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface PointsTimelineProps {
-  entries:   FanPointsLedger[];
+  entries: FanPointsLedger[];
   className?: string;
+  /** Denser empty state for Fan 360 / compact panels. */
+  compact?: boolean;
 }
 
-export function PointsTimeline({ entries, className }: PointsTimelineProps) {
-  if (!entries.length) return <EmptyLedger />;
+export function PointsTimeline({
+  entries,
+  className,
+  compact = false,
+}: PointsTimelineProps) {
+  if (!entries.length) return <EmptyLedger compact={compact} />;
 
   return (
     <div className={cn("divide-y-0", className)}>

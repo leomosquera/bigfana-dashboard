@@ -154,11 +154,11 @@ export function StatCard({
   const isPositive = change !== undefined && change >= 0;
 
   return (
-    <Card hover className={dense ? "p-4" : "p-6"}>
+    <Card hover className={dense ? "p-3.5" : "p-6"}>
       <div
         className={cn(
           "flex items-start justify-between",
-          dense ? "mb-3" : "mb-4",
+          dense ? "mb-2.5" : "mb-4",
         )}
       >
         <div
@@ -185,12 +185,13 @@ export function StatCard({
           </span>
         )}
       </div>
-      <div className={dense ? "space-y-0.5" : "space-y-1"}>
+      <div className={dense ? "space-y-0.5 min-w-0" : "space-y-1"}>
         <p
           className={cn(
             "font-bold text-[#F0F0F8] tracking-tight tabular-nums",
-            dense ? "text-xl" : "text-2xl",
+            dense ? "text-lg truncate" : "text-2xl",
           )}
+          title={typeof value === "string" ? value : undefined}
         >
           {value}
         </p>
@@ -203,7 +204,9 @@ export function StatCard({
           {label}
         </p>
         {period && (
-          <p className="text-[11px] text-[#55556A] leading-snug">{period}</p>
+          <p className="text-[11px] text-[#55556A] leading-snug truncate">
+            {period}
+          </p>
         )}
       </div>
     </Card>

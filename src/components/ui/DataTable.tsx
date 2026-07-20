@@ -106,6 +106,8 @@ export interface DataTableProps<TData> {
   maxHeight?:         string;
   caption?:           string;
   className?:         string;
+  /** Initial TanStack column visibility (e.g. hide lower-priority columns). */
+  initialColumnVisibility?: VisibilityState;
 }
 
 // ─── Sort indicator ───────────────────────────────────────────────────────────
@@ -204,12 +206,15 @@ export function DataTable<TData>({
   maxHeight,
   caption,
   className,
+  initialColumnVisibility,
 }: DataTableProps<TData>) {
 
   // ── Internal table state ───────────────────────────────────────────────────
   const [sorting,          setSorting]          = useState<SortingState>([]);
   const [globalFilter,     setGlobalFilter]     = useState("");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => initialColumnVisibility ?? {},
+  );
   const [rowSelection,     setRowSelection]     = useState<RowSelectionState>({});
   const [pagination,       setPagination]       = useState({
     pageIndex: 0,

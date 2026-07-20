@@ -19,9 +19,10 @@ Foundation Database v1 physical model in Neon is ready with non-blocking technic
 
 Current focus:
 
-- Product cycle: Dashboard Home / Command Center Phase 1
-- Phase 1A + 1B + 1C + 1D + 1E COMPLETE — Dashboard Home V1
-- Real org-scoped Command Center on `/dashboard` (Neon)
+- Product cycle: Fan Intelligence / Fans (F1+F2 COMPLETE; F3/F4 next)
+- Fan Intelligence F1+F2 COMPLETE (2026-07-20)
+- Fan Intelligence functional audit COMPLETE (2026-07-20)
+- Dashboard Home / Command Center V1 COMPLETE
 - Foundation Database v1 closed (non-blocking debt only)
 - Fan ownership SoT: fan_organizations
 - Fan geography SoT: fans.country_code
@@ -111,9 +112,9 @@ foundation-db-v1.md
 Current priority:
 
 ```txt
-Dashboard Home V1 COMPLETE (Phases 1A–1E)
+Fan Intelligence / Fans  -  F1+F2 COMPLETE; F3/F4 remaining
 
-Next product cycle: Fan Intelligence / Fans (module depth)
+Dashboard Home V1 COMPLETE (Phases 1A-1E)
 
 Foundation DB READY WITH NON-BLOCKING TECHNICAL DEBT (closed)
 
@@ -203,6 +204,8 @@ dashboard-information-architecture.md
 docs/sessions/2026-07-20-dashboard-home-command-center-audit.md
 docs/sessions/2026-07-20-dashboard-home-phase-1a-1b.md
 docs/sessions/2026-07-20-dashboard-home-phase-1c-1d-1e.md
+docs/sessions/2026-07-20-fan-intelligence-audit.md
+docs/sessions/2026-07-20-fan-intelligence-f1-f2.md
 ```
 
 Current Home (`/dashboard`):
@@ -216,6 +219,19 @@ DASHBOARD HOME V1 COMPLETE
   Geographic top countries (country_code)
   Recent Activity (real)
   Zero Home mock-data dependency
+```
+
+Fan Intelligence / Fans (`/dashboard/fans`):
+
+```txt
+F1 + F2 COMPLETE (2026-07-20)
+  PRIMARY intelligence list + filters (real Neon)
+  Fan 360 route /dashboard/fans/[id] (PRIMARY | FOLLOWING)
+  Drawer = quick summary + Ver perfil completo
+  Campaign history + activity + loyalty (relationship-aware)
+  Geography: country_code only
+  Session: docs/sessions/2026-07-20-fan-intelligence-f1-f2.md
+  Next: Block F3 (activity/engagement depth) or F4 (segment/campaign polish)
 ```
 
 ---
@@ -303,9 +319,10 @@ Future architecture decisions must be documented using ADRs.
 The current project priority is:
 
 ```txt
-Dashboard Home / Command Center V1 COMPLETE
+Fan Intelligence / Fans  -  F1+F2 COMPLETE
+Next: Block F3 (Activity + Engagement depth) or F4 (Segment/Campaign polish)
 
-Recommended next product area: Fan Intelligence / Fans
+Dashboard Home / Command Center V1 COMPLETE
 
 Foundation Database v1 closed (non-blocking debt only)
 Migration 020 NOT STARTED / NO FROZEN SCOPE
@@ -387,7 +404,7 @@ Next:
 - Block A / NEW-F17 COMPLETE (mapped-runtime timestamptz verified ALIGNED)
 - F08 / Block B COMPLETE (catalog Drizzle schemas mapped; features NOT implemented)
 - Block D COMPLETE (fans.country_code application cutover)
-- Legacy fans.country physical DROP COMPLETE — EXECUTED AND VALIDATED (unnumbered)
+- Legacy fans.country physical DROP COMPLETE  -  EXECUTED AND VALIDATED (unnumbered)
 - Fan geography SoT: fans.country_code
 - Migration 020: NOT STARTED / NO FROZEN SCOPE
 - Do NOT invent Migration 020 scope

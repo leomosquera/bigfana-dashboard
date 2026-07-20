@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 // ─── PageShell ────────────────────────────────────────────────────────────────
 
 interface PageShellProps {
-  title: string;
-  subtitle: string;
+  /** Page title — string or custom node (e.g. breadcrumb). */
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   actions?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -29,8 +30,18 @@ export function PageShell({
         className="flex items-start justify-between gap-4"
       >
         <div className="min-w-0">
-          <h1 className="text-xl font-bold text-[#F0F0F8]">{title}</h1>
-          <p className="text-sm text-[#8888AA] mt-0.5 truncate">{subtitle}</p>
+          {typeof title === "string" ? (
+            <h1 className="text-xl font-bold text-[#F0F0F8]">{title}</h1>
+          ) : (
+            <div className="min-w-0">{title}</div>
+          )}
+          {subtitle != null && subtitle !== "" && (
+            typeof subtitle === "string" ? (
+              <p className="text-sm text-[#8888AA] mt-0.5 truncate">{subtitle}</p>
+            ) : (
+              <div className="mt-0.5 min-w-0">{subtitle}</div>
+            )
+          )}
         </div>
         {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
       </motion.div>
